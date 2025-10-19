@@ -1,0 +1,52 @@
+{% extends 'leagues/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Leagues{% endblock %}
+
+{% block content %}
+<h1>Leagues</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('league.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Short Name
+            </th>
+            <th class="text-left">
+                Long Name
+            </th>
+            <th class="text-right">
+                First Season
+            </th>
+            <th class="text-right">
+                Last Season
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for league in leagues %}
+        <tr>
+            <td class="text-left">
+                {{ league.short_name }}
+            </td>
+            <td class="text-left">
+                {{ league.long_name }}
+            </td>
+            <td class="text-right">
+                {{ league.first_season_year }}
+            </td>
+            <td class="text-right">
+                {{ league.last_season_year }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league.details', id=league.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league.edit', id=league.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league.delete', id=league.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

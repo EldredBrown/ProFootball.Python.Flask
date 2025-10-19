@@ -1,0 +1,37 @@
+{% extends 'seasons/base.html' %}
+
+{% block content %}
+<h1>Season</h1>
+
+    {% block header_content %}{% endblock %}
+    <hr>
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">
+                Year
+            </dt>
+            <dd class="col-sm-10">
+                {{ season.year }}
+            </dd>
+            <dt class="col-sm-2">
+                Number of Weeks Scheduled
+            </dt>
+            <dd class="col-sm-10">
+                {{ season.num_of_weeks_scheduled }}
+            </dd>
+            <dt class="col-sm-2">
+                Number of Weeks Completed
+            </dt>
+            <dd class="col-sm-10">
+                {{ season.num_of_weeks_completed }}
+            </dd>
+        </dl>
+    </div>
+
+    <div>
+        {% block footer_content %}{% endblock %}
+        <p>
+            <a href="{{ url_for('season.index') }}">Back to List</a>
+        </p>
+    </div>
+{% endblock %}

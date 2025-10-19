@@ -1,0 +1,25 @@
+.navbar-brand {
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+/* This is temporary and will be replaced by Flask-WTF styling. */
+button a {
+    color: white;
+}
+
+.delete-form {
+    display: inline;
+}

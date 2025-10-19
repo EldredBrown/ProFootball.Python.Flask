@@ -1,0 +1,46 @@
+{% extends 'seasons/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Seasons{% endblock %}
+
+{% block content %}
+<h1>Seasons</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('season.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-right">
+                Year
+            </th>
+            <th class="text-right">
+                Weeks Scheduled
+            </th>
+            <th class="text-right">
+                Weeks Completed
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for season in seasons %}
+        <tr>
+            <td class="text-right">
+                {{ season.year }}
+            </td>
+            <td class="text-right">
+                {{ season.num_of_weeks_scheduled }}
+            </td>
+            <td class="text-right">
+                {{ season.num_of_weeks_completed }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('season.details', id=season.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('season.edit', id=season.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('season.delete', id=season.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

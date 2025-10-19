@@ -1,0 +1,29 @@
+{% extends 'leagues/edit_base.html' %}
+{% set active_page = 'create' %}
+{% block title %}Create League{% endblock %}
+
+{% block h4 %}Create{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('league.create') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.short_name.label }}
+        {{ form.short_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.long_name.label }}
+        {{ form.long_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.first_season_year.label }}
+        {{ form.first_season_year(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.last_season_year.label }}
+        {{ form.last_season_year(class='form-control') }}
+    </div>
+    <hr>
+    {{ form.submit(class='btn btn-primary form-control') }}
+</form>
+{% endblock %}

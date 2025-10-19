@@ -1,0 +1,25 @@
+{% extends 'seasons/edit_base.html' %}
+{% set active_page = 'create' %}
+{% block title %}Create Season{% endblock %}
+
+{% block h4 %}Create{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('season.create') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.year.label }}
+        {{ form.year(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.num_of_weeks_scheduled.label }}
+        {{ form.num_of_weeks_scheduled(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.num_of_weeks_completed.label }}
+        {{ form.num_of_weeks_completed(class='form-control') }}
+    </div>
+    <hr>
+    {{ form.submit(class='btn btn-primary form-control') }}
+</form>
+{% endblock %}
