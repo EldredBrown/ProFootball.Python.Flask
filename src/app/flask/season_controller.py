@@ -1,6 +1,5 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
 from app.flask.forms.season import NewSeasonForm, EditSeasonForm, DeleteSeasonForm
 
@@ -35,9 +34,13 @@ def create():
             'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
             'num_of_weeks_completed': int(form.num_of_weeks_completed.data)
         }
-        season_repository.add_season(**kwargs)
-        flash(f"Item {form.year.data} has been successfully submitted.", 'success')
-        return redirect(url_for('season.index'))
+        try:
+            season_repository.add_season(**kwargs)
+            flash(f"Item {form.year.data} has been successfully submitted.", 'success')
+            return redirect(url_for('season.index'))
+        except ValueError as err:
+            flash(str(err), 'danger')
+            return render_template('seasons/create.html', form=form)
     else:
         if form.errors:
             flash(f"{form.errors}", 'danger')
@@ -57,9 +60,13 @@ def edit(id: int):
                 'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
                 'num_of_weeks_completed': int(form.num_of_weeks_completed.data)
             }
-            season_repository.update_season(**kwargs)
-            flash(f"Item {form.year.data} has been successfully updated.", 'success')
-            return redirect(url_for('season.details', id=id))
+            try:
+                season_repository.update_season(**kwargs)
+                flash(f"Item {form.year.data} has been successfully updated.", 'success')
+                return redirect(url_for('season.details', id=id))
+            except ValueError as err:
+                flash(str(err), 'danger')
+                return render_template('seasons/edit.html', season=season, form=form)
         else:
             form.year.data = season.year
             form.num_of_weeks_scheduled.data = season.num_of_weeks_scheduled

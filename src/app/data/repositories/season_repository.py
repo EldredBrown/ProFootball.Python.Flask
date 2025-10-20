@@ -1,12 +1,11 @@
 from typing import List
 
-from sqlalchemy import exists
-
 from app.data.models.season import Season
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason
 from app.data.models.league_season import LeagueSeason
 from app.data.sqla import sqla
+from app.services.data_factories import season_factory
 
 
 class SeasonRepository:
@@ -58,38 +57,28 @@ class SeasonRepository:
         """
         Adds a season to the data store.
 
-        :param season: The season to add.
+        :param **kwargs: A keyword args dictionary containing values for the season to add.
 
         :return: The added season.
         """
-        if 'year' in kwargs:
-            existing_year = Season.query.filter_by(year=kwargs['year']).first()
-            if existing_year:
-                raise ValueError(f"Season already exists with year={kwargs['year']}.")
-
-        new_season = Season(**kwargs)
-        sqla.session.add(new_season)
+        season = season_factory.create_season(**kwargs)
+        sqla.session.add(season)
         sqla.session.commit()
-        return new_season
+        return season
 
     def add_seasons(self, season_args: tuple) -> List[Season]:
         """
         Adds a collection of season_args dictionaries to the data store.
 
-        :param season_args: The list of kwargs dictionaries to add.
+        :param season_args: The tuple of season keyword args dictionaries to add.
 
         :return: The added seasons.
         """
         seasons = []
         for kwargs in season_args:
-            if 'year' in kwargs:
-                existing_year = Season.query.filter_by(year=kwargs['year']).first()
-                if existing_year:
-                    raise ValueError(f"Season already exists with year={kwargs['year']}.")
-
-            new_season = Season(kwargs)
-            seasons.append(new_season)
-            sqla.session.add(new_season)
+            season = season_factory.create_season(kwargs)
+            seasons.append(season)
+            sqla.session.add(season)
         sqla.session.commit()
         return seasons
 
@@ -101,21 +90,22 @@ class SeasonRepository:
 
         :return: The updated season.
         """
-        new_season = Season(**kwargs)
-        if not self.season_exists(new_season.id):
-            return new_season
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing Season.")
 
-        old_season = self.get_season(new_season.id)
-        if 'year' in kwargs and kwargs['year'] != old_season.year:
-            existing_year = Season.query.filter_by(year=kwargs['year']).first()
-            if existing_year:
-                raise ValueError(f"Season already exists with year={kwargs['year']}.")
+        if not self.season_exists(kwargs['id']):
+            return Season(**kwargs)
+
+        old_season = self.get_season(kwargs['id'])
+        new_season = season_factory.create_season(old_season, **kwargs)
 
         old_season.year = new_season.year
         old_season.num_of_weeks_scheduled = new_season.num_of_weeks_scheduled
         old_season.num_of_weeks_completed = new_season.num_of_weeks_completed
+
         sqla.session.add(old_season)
         sqla.session.commit()
+
         return new_season
 
     def delete_season(self, id: int) -> Season | None:

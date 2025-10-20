@@ -31,9 +31,4 @@ class Season(sqla.Model):
         if not value and value != 0:
             raise ValueError(f"{key.capitalize()} is required.")
 
-        # if key == 'year':
-        #     self._validate_is_unique(
-        #         key, value, error_message=f"Row with {key}={value} already exists in the Season table."
-        #     )
-
         return value

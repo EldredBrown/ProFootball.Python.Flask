@@ -28,7 +28,6 @@ def test_get_seasons_should_get_seasons(fake_season):
         seasons_out = test_repo.get_seasons()
 
     # Assert
-    # fake_season.query.all.assert_called_once()
     assert seasons_out == seasons_in
 
 
