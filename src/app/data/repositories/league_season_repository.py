@@ -50,7 +50,7 @@ class LeagueSeasonRepository:
         league_seasons = self.get_league_seasons()
         if len(league_seasons) == 0:
             return None
-        return LeagueSeason.query.filter_by(league_id=league_name, season_id=season_year).first()
+        return LeagueSeason.query.filter_by(league_name=league_name, season_year=season_year).first()
 
     def add_league_season(self, league_season: LeagueSeason) -> LeagueSeason:
         """

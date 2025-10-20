@@ -38,7 +38,7 @@ def test_validate_not_empty_when_name_is_empty_string_should_raise_value_error()
     assert err.value.args[0] == "name is required."
 
 
-@patch('app.data.models.team.Team._validate_is_unique')
+@patch('app.data.models.team.Team.validate_is_unique')
 def test_validate_not_empty_when_name_is_not_empty_string_should_validate_name_is_unique(
         fake_validate_is_unique
 ):
@@ -89,7 +89,7 @@ def test_validate_is_unique_when_name_is_unique_should_not_raise_value_error():
 def _init_and_populate_test_db():
     init_db()
     conn = sqlite3.connect(
-        'D:\\Source\\Repos\\ProFootball\\Python\\Flask\\pro_football_app\\tests\\instance\\test_db\\test_db.sqlite3'
+        'D:\\Source\\Repos\\ProFootball\\ProFootball.Python.Flask\\tests\\instance\\test_db\\test_db.sqlite3'
     )
     c = conn.cursor()
     c.execute('''

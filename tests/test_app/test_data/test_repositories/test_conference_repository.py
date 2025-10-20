@@ -2,12 +2,13 @@ import pytest
 
 from unittest.mock import patch, call
 
-from app import create_app
 from app.data.models.conference import Conference
+from app.data.models.division import Division
 from app.data.models.game import Game
 from app.data.models.league_season import LeagueSeason
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.conference_repository import ConferenceRepository
+from test_app import create_app
 
 
 @patch('app.data.repositories.conference_repository.Conference')

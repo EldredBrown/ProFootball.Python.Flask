@@ -38,7 +38,7 @@ def test_validate_not_empty_when_short_name_is_empty_string_should_raise_value_e
     assert err.value.args[0] == "short_name is required."
 
 
-@patch('app.data.models.conference.Conference._validate_is_unique')
+@patch('app.data.models.conference.Conference.validate_is_unique')
 def test_validate_not_empty_when_short_name_is_not_empty_string_should_validate_short_name_is_unique(
         fake_validate_is_unique
 ):
@@ -112,7 +112,7 @@ def test_validate_not_empty_when_long_name_is_empty_string_should_raise_value_er
     assert err.value.args[0] == "long_name is required."
 
 
-@patch('app.data.models.conference.Conference._validate_is_unique')
+@patch('app.data.models.conference.Conference.validate_is_unique')
 def test_validate_not_empty_when_long_name_is_not_empty_string_should_validate_long_name_is_unique(
         fake_validate_is_unique
 ):
@@ -187,7 +187,7 @@ def test_validate_not_empty_when_league_name_is_empty_should_raise_value_error()
     assert err.value.args[0] == "league_name is required."
 
 
-@patch('app.data.models.conference.Conference._validate_is_unique')
+@patch('app.data.models.conference.Conference.validate_is_unique')
 def test_validate_not_empty_when_league_name_is_not_empty_should_not_raise_value_error(fake_validate_is_unique):
     # Arrange
     test_err = None
@@ -218,7 +218,7 @@ def test_validate_not_empty_when_first_season_year_is_none_should_raise_value_er
     assert err.value.args[0] == "first_season_year is required."
 
 
-@patch('app.data.models.conference.Conference._validate_is_unique')
+@patch('app.data.models.conference.Conference.validate_is_unique')
 def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_value_error(fake_validate_is_unique):
     # Arrange
     test_err = None
@@ -236,7 +236,7 @@ def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_valu
     fake_validate_is_unique.assert_not_called()
 
 
-@patch('app.data.models.conference.Conference._validate_is_unique')
+@patch('app.data.models.conference.Conference.validate_is_unique')
 def test_validate_not_empty_when_first_season_year_is_greater_than_zero_should_not_raise_value_error(fake_validate_is_unique):
     # Arrange
     test_err = None
@@ -257,7 +257,7 @@ def test_validate_not_empty_when_first_season_year_is_greater_than_zero_should_n
 def _init_and_populate_test_db():
     init_db()
     conn = sqlite3.connect(
-        'D:\\Source\\Repos\\ProFootball\\Python\\Flask\\pro_football_app\\tests\\instance\\test_db\\test_db.sqlite3'
+        'D:\\Source\\Repos\\ProFootball\\ProFootball.Python.Flask\\tests\\instance\\test_db\\test_db.sqlite3'
     )
     c = conn.cursor()
     c.execute('''
