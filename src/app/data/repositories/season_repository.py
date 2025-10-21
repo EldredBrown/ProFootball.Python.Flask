@@ -1,11 +1,8 @@
 from typing import List
 
 from app.data.models.season import Season
-from app.data.models.game import Game
-from app.data.models.team_season import TeamSeason
-from app.data.models.league_season import LeagueSeason
 from app.data.sqla import sqla
-from app.services.data_factories import season_factory
+from app.data.factories import season_factory
 
 
 class SeasonRepository:

@@ -11,9 +11,13 @@ from instance.test_db.db_init import init_db
 from test_app import create_app
 
 
-def test_validate_not_empty_when_year_is_none_should_raise_value_error():
+@pytest.fixture
+def test_app():
+    return create_app()
+
+
+def test_validate_not_empty_when_year_is_none_should_raise_value_error(test_app):
     # Arrange
-    test_app = create_app()
     with test_app.app_context():
         # Act
         with pytest.raises(ValueError) as err:
@@ -24,11 +28,10 @@ def test_validate_not_empty_when_year_is_none_should_raise_value_error():
     assert err.value.args[0] == "Year is required."
 
 
-def test_validate_not_empty_when_year_is_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_year_is_zero_should_not_raise_value_error(test_app):
     # Arrange
     err = None
 
-    test_app = create_app()
     with test_app.app_context():
         # Act
         try:
@@ -40,11 +43,10 @@ def test_validate_not_empty_when_year_is_zero_should_not_raise_value_error():
     assert err is None
 
 
-def test_validate_not_empty_when_year_is_greater_than_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_year_is_greater_than_zero_should_not_raise_value_error(test_app):
     # Arrange
     err = None
 
-    test_app = create_app()
     with test_app.app_context():
         # Act
         try:

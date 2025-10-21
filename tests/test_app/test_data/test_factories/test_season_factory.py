@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 import pytest
 
+from app.data.factories import season_factory
 from app.data.models.season import Season
-from app.services.data_factories import season_factory
 
 
 def test_create_season_when_year_not_in_kwargs_should_raise_value_error():
@@ -18,7 +18,7 @@ def test_create_season_when_year_not_in_kwargs_should_raise_value_error():
     assert err.value.args[0] == "Year is required."
 
 
-@patch('app.services.data_factories.season_factory._validate_is_unique')
+@patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kwargs_year_is_not_unique_should_raise_value_error(
         fake_validate_is_unique
 ):
@@ -39,7 +39,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
     assert err.value.args[0] == error_message
 
 
-@patch('app.services.data_factories.season_factory._validate_is_unique')
+@patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kwargs_year_is_unique_should_return_season(
         fake_validate_is_unique
 ):
@@ -69,7 +69,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
     assert test_season.num_of_weeks_completed == kwargs['num_of_weeks_completed']
 
 
-@patch('app.services.data_factories.season_factory._validate_is_unique')
+@patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_equals_kwargs_year_should_not_validate_unique_key_values_and_return_season(
         fake_validate_is_unique
 ):
@@ -98,7 +98,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_se
     assert test_season.num_of_weeks_completed == kwargs['num_of_weeks_completed']
 
 
-@patch('app.services.data_factories.season_factory._validate_is_unique')
+@patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_does_not_equal_kwargs_year_and_kwargs_year_is_unique_should_validate_unique_key_values_and_return_season(
         fake_validate_is_unique
 ):
@@ -130,7 +130,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_se
     assert test_season.num_of_weeks_completed == kwargs['num_of_weeks_completed']
 
 
-@patch('app.services.data_factories.season_factory._validate_is_unique')
+@patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_does_not_equal_kwargs_year_and_kwargs_year_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
         fake_validate_is_unique
 ):
@@ -156,7 +156,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_se
     assert err.value.args[0] == error_message
 
 
-@patch('app.services.data_factories.season_factory.Season')
+@patch('app.data.factories.season_factory.Season')
 def test_validate_is_unique_when_year_is_unique_should_not_raise_value_error(fake_season):
     # Arrange
     fake_season.query.filter_by.return_value.first.return_value = None
@@ -168,7 +168,7 @@ def test_validate_is_unique_when_year_is_unique_should_not_raise_value_error(fak
     assert result is None
 
 
-@patch('app.services.data_factories.season_factory.Season')
+@patch('app.data.factories.season_factory.Season')
 def test_validate_is_unique_when_year_is_not_unique_and_error_message_is_not_provided_should_raise_value_error_with_default_error_message(fake_season):
     # Arrange
     fake_season.query.filter_by.return_value.first.return_value = Season()
@@ -181,7 +181,7 @@ def test_validate_is_unique_when_year_is_not_unique_and_error_message_is_not_pro
     assert err.value.args[0] == "year must be unique."
 
 
-@patch('app.services.data_factories.season_factory.Season')
+@patch('app.data.factories.season_factory.Season')
 def test_validate_is_unique_when_year_is_not_unique_and_error_message_is_provided_should_raise_value_error_with_provided_error_message(fake_season):
     # Arrange
     fake_season.query.filter_by.return_value.first.return_value = Season()
