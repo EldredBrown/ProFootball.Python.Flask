@@ -33,6 +33,7 @@ def create():
         kwargs = {
             'short_name': str(form.short_name.data),
             'long_name': str(form.long_name.data),
+            'league_name': str(form.league_name.data),
             'first_season_year': int(form.first_season_year.data),
             'last_season_year': form.last_season_year.data,
         }
@@ -67,7 +68,7 @@ def edit(id: int):
             }
             try:
                 conference_repository.update_conference(**kwargs)
-                flash(f"Item {form.year.data} has been successfully updated.", 'success')
+                flash(f"Item {form.short_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('conference.details', id=id))
             except ValueError as err:
                 return _handle_error(err, 'conferences/edit.html', form, conference=conference)

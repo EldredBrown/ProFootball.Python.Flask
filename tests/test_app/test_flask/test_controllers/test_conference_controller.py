@@ -126,15 +126,17 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 ):
     # Arrange
     fake_new_conference_form.return_value.validate_on_submit.return_value = True
-    fake_new_conference_form.return_value.short_name.data = "NFL"
+    fake_new_conference_form.return_value.short_name.data = "NFC"
     fake_new_conference_form.return_value.long_name.data = "National Football Conference"
-    fake_new_conference_form.return_value.first_season_year.data = 1922
+    fake_new_conference_form.return_value.league_name.data = "NFL"
+    fake_new_conference_form.return_value.first_season_year.data = 1970
     fake_new_conference_form.return_value.last_season_year.data = None
 
     kwargs = {
-        'short_name': "NFL",
+        'short_name': "NFC",
         'long_name': "National Football Conference",
-        'first_season_year': 1922,
+        'league_name': "NFL",
+        'first_season_year': 1970,
         'last_season_year': None
     }
 
@@ -159,18 +161,20 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 ):
     # Arrange
     fake_new_conference_form.return_value.validate_on_submit.return_value = True
-    fake_new_conference_form.return_value.short_name.data = "NFL"
+    fake_new_conference_form.return_value.short_name.data = "NFC"
     fake_new_conference_form.return_value.long_name.data = "National Football Conference"
-    fake_new_conference_form.return_value.first_season_year.data = 1922
+    fake_new_conference_form.return_value.league_name.data = "NFL"
+    fake_new_conference_form.return_value.first_season_year.data = 1970
     fake_new_conference_form.return_value.last_season_year.data = None
 
     err = ValueError()
     fake_conference_repository.add_conference.side_effect = err
 
     kwargs = {
-        'short_name': "NFL",
+        'short_name': "NFC",
         'long_name': "National Football Conference",
-        'first_season_year': 1922,
+        'league_name': "NFL",
+        'first_season_year': 1970,
         'last_season_year': None
     }
 
@@ -196,9 +200,10 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
 ):
     # Arrange
     fake_new_conference_form.return_value.validate_on_submit.return_value = True
-    fake_new_conference_form.return_value.short_name.data = "NFL"
+    fake_new_conference_form.return_value.short_name.data = "NFC"
     fake_new_conference_form.return_value.long_name.data = "National Football Conference"
-    fake_new_conference_form.return_value.first_season_year.data = 1922
+    fake_new_conference_form.return_value.league_name.data = "NFL"
+    fake_new_conference_form.return_value.first_season_year.data = 1970
     fake_new_conference_form.return_value.last_season_year.data = None
 
     err = IntegrityError('statement', 'params', Exception())
@@ -206,9 +211,10 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     fake_conference_repository.add_conference.side_effect = err
 
     kwargs = {
-        'short_name': "NFL",
+        'short_name': "NFC",
         'long_name': "National Football Conference",
-        'first_season_year': 1922,
+        'league_name': "NFL",
+        'first_season_year': 1970,
         'last_season_year': None
     }
 
@@ -250,7 +256,7 @@ def test_edit_when_conference_found_and_form_not_submitted_and_no_form_errors_sh
             short_name="NFC",
             long_name="National Football Conference",
             league_name="NFL",
-            first_season_year=1922,
+            first_season_year=1970,
             last_season_year=None
         )
         fake_conference_repository.get_conference.return_value = conference
@@ -287,7 +293,7 @@ def test_edit_when_conference_found_and_form_not_submitted_and_form_errors_shoul
             short_name="NFC",
             long_name="National Football Conference",
             league_name="NFL",
-            first_season_year=1922,
+            first_season_year=1970,
             last_season_year=None
         )
         fake_conference_repository.get_conference.return_value = conference
@@ -355,7 +361,7 @@ def test_edit_when_conference_found_and_form_submitted_and_no_errors_caught_shou
     # Assert
     fake_conference_repository.update_conference.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(
-        f"Item {fake_edit_conference_form.return_value.year.data} has been successfully updated.", 'success'
+        f"Item {fake_edit_conference_form.return_value.short_name.data} has been successfully updated.", 'success'
     )
     fake_url_for.assert_called_once_with('conference.details', id=id)
     fake_redirect.assert_called_once_with(fake_url_for.return_value)

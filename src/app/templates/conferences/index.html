@@ -1,0 +1,58 @@
+{% extends 'conferences/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Conferences{% endblock %}
+
+{% block content %}
+<h1>Conferences</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('conference.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Short Name
+            </th>
+            <th class="text-left">
+                Long Name
+            </th>
+            <th class="text-left">
+                League Name
+            </th>
+            <th class="text-right">
+                First Season
+            </th>
+            <th class="text-right">
+                Last Season
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for conference in conferences %}
+        <tr>
+            <td class="text-left">
+                {{ conference.short_name }}
+            </td>
+            <td class="text-left">
+                {{ conference.long_name }}
+            </td>
+            <td class="text-left">
+                {{ conference.league_name }}
+            </td>
+            <td class="text-right">
+                {{ conference.first_season_year }}
+            </td>
+            <td class="text-right">
+                {{ conference.last_season_year }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('conference.details', id=conference.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('conference.edit', id=conference.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('conference.delete', id=conference.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

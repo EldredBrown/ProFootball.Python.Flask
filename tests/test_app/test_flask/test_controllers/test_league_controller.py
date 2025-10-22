@@ -346,7 +346,7 @@ def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_f
     # Assert
     fake_league_repository.update_league.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(
-        f"Item {fake_edit_league_form.return_value.year.data} has been successfully updated.", 'success'
+        f"Item {fake_edit_league_form.return_value.short_name.data} has been successfully updated.", 'success'
     )
     fake_url_for.assert_called_once_with('league.details', id=id)
     fake_redirect.assert_called_once_with(fake_url_for.return_value)

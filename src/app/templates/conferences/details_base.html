@@ -1,7 +1,7 @@
-{% extends 'leagues/base.html' %}
+{% extends 'conferences/base.html' %}
 
 {% block content %}
-<h1>League</h1>
+<h1>Conference</h1>
 
     {% block header_content %}{% endblock %}
     <hr>
@@ -11,25 +11,31 @@
                 Short Name
             </dt>
             <dd class="col-sm-10">
-                {{ league.short_name }}
+                {{ conference.short_name }}
             </dd>
             <dt class="col-sm-2">
                 Long Name
             </dt>
             <dd class="col-sm-10">
-                {{ league.long_name }}
+                {{ conference.long_name }}
+            </dd>
+            <dt class="col-sm-2">
+                League Name
+            </dt>
+            <dd class="col-sm-10">
+                {{ conference.league_name }}
             </dd>
             <dt class="col-sm-2">
                 First Season
             </dt>
             <dd class="col-sm-10">
-                {{ league.first_season_year }}
+                {{ conference.first_season_year }}
             </dd>
             <dt class="col-sm-2">
                 Last Season
             </dt>
             <dd class="col-sm-10">
-                {{ league.last_season_year }}
+                {{ conference.last_season_year }}
             </dd>
         </dl>
     </div>
@@ -37,7 +43,7 @@
     <div>
         {% block footer_content %}{% endblock %}
         <p>
-            <a href="{{ url_for('league.index') }}">Back to List</a>
+            <a href="{{ url_for('conference.index') }}">Back to List</a>
         </p>
     </div>
 {% endblock %}

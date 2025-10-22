@@ -1,7 +1,7 @@
-{% extends 'leagues/base.html' %}
+{% extends 'conferences/base.html' %}
 
 {% block content %}
-<h1>League</h1>
+<h1>Conference</h1>
 
 <h4>{% block h4 %}{% endblock %}</h4>
 <hr>
@@ -13,7 +13,7 @@
 <br>
 <div>
     <p>
-        <a href="{{ url_for('league.index') }}">Back to List</a>
+        <a href="{{ url_for('conference.index') }}">Back to List</a>
     </p>
 </div>
 {% endblock %}

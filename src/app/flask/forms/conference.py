@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, SubmitField, StringField
-from wtforms.validators import DataRequired, InputRequired, NumberRange, ValidationError
+from wtforms.validators import DataRequired, InputRequired, NumberRange, ValidationError, Optional
 
 
 def short_name_length_check(form, field):
@@ -50,7 +50,9 @@ class ConferenceForm(FlaskForm):
         ]
     )
     last_season_year = IntegerField(
-        "Last Season"
+        "Last Season",
+        validators=[Optional()],
+        filters=[lambda x: x or None]  # Convert empty string to None
     )
 
 

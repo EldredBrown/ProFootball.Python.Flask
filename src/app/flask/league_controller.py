@@ -66,7 +66,7 @@ def edit(id: int):
             }
             try:
                 league_repository.update_league(**kwargs)
-                flash(f"Item {form.year.data} has been successfully updated.", 'success')
+                flash(f"Item {form.short_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('league.details', id=id))
             except ValueError as err:
                 return _handle_error(err, 'leagues/edit.html', form, league=league)
