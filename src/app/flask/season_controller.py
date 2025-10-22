@@ -32,7 +32,7 @@ def create():
         kwargs = {
             'year': int(form.year.data),
             'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
-            'num_of_weeks_completed': int(form.num_of_weeks_completed.data)
+            'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
         }
         try:
             season_repository.add_season(**kwargs)

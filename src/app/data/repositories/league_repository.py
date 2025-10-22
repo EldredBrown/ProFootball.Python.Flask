@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.league import League
 from app.data.sqla import sqla
+from app.data.factories import league_factory
 
 
 class LeagueRepository:
@@ -42,7 +43,7 @@ class LeagueRepository:
         """
         Gets the league in the data store with the specified id.
 
-        :param short_name: The year of the league to fetch.
+        :param short_name: The short_name of the league to fetch.
 
         :return: The fetched league.
         """
@@ -51,32 +52,44 @@ class LeagueRepository:
             return None
         return League.query.filter_by(short_name=short_name).first()
 
-    def add_league(self, league: League) -> League:
+    def add_league(self, **kwargs) -> League:
         """
         Adds a league to the data store.
 
-        :param league: The league to add.
+        :param **kwargs: A keyword args dictionary containing values for the league to add.
 
         :return: The added league.
         """
+        league = league_factory.create_league(**kwargs)
         sqla.session.add(league)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return league
 
-    def add_leagues(self, leagues: tuple) -> tuple:
+    def add_leagues(self, league_args: tuple) -> List[League]:
         """
-        Adds a collection of leagues to the data store.
+        Adds a collection of league_args dictionaries to the data store.
 
-        :param leagues: The leagues to add.
+        :param league_args: The tuple of league keyword args dictionaries to add.
 
         :return: The added leagues.
         """
-        for league in leagues:
-            sqla.session.add(league)
-        sqla.session.commit()
+        leagues = []
+        try:
+            for kwargs in league_args:
+                league = league_factory.create_league(kwargs)
+                leagues.append(league)
+                sqla.session.add(league)
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return leagues
 
-    def update_league(self, league: League) -> League | None:
+    def update_league(self, **kwargs) -> League | None:
         """
         Updates a league in the data store.
 
@@ -84,17 +97,28 @@ class LeagueRepository:
 
         :return: The updated league.
         """
-        if not self.league_exists(league.id):
-            return league
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing League.")
 
-        league_to_update = self.get_league(league.id)
-        league_to_update.short_name = league.short_name
-        league_to_update.long_name = league.long_name
-        league_to_update.first_season_year = league.first_season_year
-        league_to_update.last_season_year = league.last_season_year
-        sqla.session.add(league_to_update)
-        sqla.session.commit()
-        return league
+        if not self.league_exists(kwargs['id']):
+            return League(**kwargs)
+
+        old_league = self.get_league(kwargs['id'])
+        new_league = league_factory.create_league(old_league, **kwargs)
+
+        old_league.short_name = new_league.short_name
+        old_league.long_name = new_league.long_name
+        old_league.first_season_year = new_league.first_season_year
+        old_league.last_season_year = new_league.last_season_year
+
+        sqla.session.add(old_league)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return new_league
 
     def delete_league(self, id: int) -> League | None:
         """
@@ -120,4 +144,4 @@ class LeagueRepository:
 
         :return: True if the league with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(League.id == id)).scalar()
+        return self.get_league(id) is not None

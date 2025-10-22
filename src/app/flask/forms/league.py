@@ -41,6 +41,9 @@ class LeagueForm(FlaskForm):
             NumberRange(min=1920, message="Please enter a year no earlier than 1920.")
         ]
     )
+    last_season_year = IntegerField(
+        "Last Season"
+    )
 
 
 class NewLeagueForm(LeagueForm):
