@@ -1,29 +1,28 @@
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy.exc import IntegrityError
 
+from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 import app.flask.league_controller as league_controller
+
 from app.data.models.season import Season
 from app.data.models.league import League
 from app.data.models.game import Game
 from app.data.models.league_season import LeagueSeason
 from app.data.models.team_season import TeamSeason
-
 from test_app import create_app
 
 
 @pytest.fixture()
 def test_app():
-    test_app = create_app()
-    return test_app
+    return create_app()
 
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.league_repository')
-def test_index_should_render_leagues_index_template(fake_league_repository, fake_render_template, test_app):
+def test_index_should_render_league_index_template(fake_league_repository, fake_render_template, test_app):
     # Act
     with test_app.app_context():
         result = league_controller.index()
@@ -115,6 +114,40 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     assert result is fake_render_template.return_value
 
 
+@patch('app.flask.league_controller.url_for')
+@patch('app.flask.league_controller.flash')
+@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.redirect')
+@patch('app.flask.league_controller.NewLeagueForm')
+def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_index(
+        fake_new_league_form, fake_redirect, fake_league_repository, fake_flash, fake_url_for, test_app
+):
+    # Arrange
+    fake_new_league_form.return_value.validate_on_submit.return_value = True
+    fake_new_league_form.return_value.short_name.data = "NFL"
+    fake_new_league_form.return_value.long_name.data = "National Football League"
+    fake_new_league_form.return_value.first_season_year.data = 1922
+    fake_new_league_form.return_value.last_season_year.data = None
+
+    kwargs = {
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None
+    }
+
+    # Act
+    with test_app.app_context():
+        result = league_controller.create()
+
+    # Assert
+    fake_league_repository.add_league.assert_called_once_with(**kwargs)
+    fake_flash(f"Item {kwargs['short_name']} has been successfully submitted.", 'success')
+    fake_url_for.assert_called_once_with('league.index')
+    fake_redirect.assert_called_once_with(fake_url_for.return_value)
+    assert result is fake_redirect.return_value
+
+
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.league_repository')
@@ -190,40 +223,6 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.league_controller.url_for')
-@patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.league_repository')
-@patch('app.flask.league_controller.redirect')
-@patch('app.flask.league_controller.NewLeagueForm')
-def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_index(
-        fake_new_league_form, fake_redirect, fake_league_repository, fake_flash, fake_url_for, test_app
-):
-    # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = True
-    fake_new_league_form.return_value.short_name.data = "NFL"
-    fake_new_league_form.return_value.long_name.data = "National Football League"
-    fake_new_league_form.return_value.first_season_year.data = 1922
-    fake_new_league_form.return_value.last_season_year.data = None
-
-    kwargs = {
-        'short_name': "NFL",
-        'long_name': "National Football League",
-        'first_season_year': 1922,
-        'last_season_year': None
-    }
-
-    # Act
-    with test_app.app_context():
-        result = league_controller.create()
-
-    # Assert
-    fake_league_repository.add_league.assert_called_once_with(**kwargs)
-    fake_flash(f"Item {kwargs['short_name']} has been successfully submitted.", 'success')
-    fake_url_for.assert_called_once_with('league.index')
-    fake_redirect.assert_called_once_with(fake_url_for.return_value)
-    assert result is fake_redirect.return_value
-
-
 @patch('app.flask.league_controller.league_repository')
 def test_edit_when_league_not_found_should_abort_with_404_error(fake_league_repository, test_app):
     # Arrange
@@ -256,7 +255,7 @@ def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should
         fake_edit_league_form.return_value.validate_on_submit.return_value = False
         fake_edit_league_form.return_value.errors = None
 
-    # Act
+        # Act
         result = league_controller.edit(1)
 
     # Assert
@@ -306,6 +305,52 @@ def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_fl
         'leagues/edit.html', league=league, form=fake_edit_league_form.return_value
     )
     assert result is fake_render_template.return_value
+
+
+@patch('app.flask.league_controller.url_for')
+@patch('app.flask.league_controller.flash')
+@patch('app.flask.league_controller.redirect')
+@patch('app.flask.league_controller.EditLeagueForm')
+@patch('app.flask.league_controller.league_repository')
+def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_details(
+        fake_league_repository, fake_edit_league_form, fake_redirect, fake_flash, fake_url_for, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        league = League(
+            short_name="NFL",
+            long_name="National Football League",
+            first_season_year=1922,
+            last_season_year=None
+        )
+        fake_league_repository.get_league.return_value = league
+
+        fake_edit_league_form.return_value.validate_on_submit.return_value = True
+        fake_edit_league_form.return_value.short_name.data = "AFL"
+        fake_edit_league_form.return_value.long_name.data = "American Football League"
+        fake_edit_league_form.return_value.first_season_year.data = 1960
+        fake_edit_league_form.return_value.last_season_year.data = 1969
+
+        id = 1
+        kwargs = {
+            'id': id,
+            'short_name': "AFL",
+            'long_name': "American Football League",
+            'first_season_year': 1960,
+            'last_season_year': 1969,
+        }
+
+        # Act
+        result = league_controller.edit(id)
+
+    # Assert
+    fake_league_repository.update_league.assert_called_once_with(**kwargs)
+    fake_flash.assert_called_once_with(
+        f"Item {fake_edit_league_form.return_value.year.data} has been successfully updated.", 'success'
+    )
+    fake_url_for.assert_called_once_with('league.details', id=id)
+    fake_redirect.assert_called_once_with(fake_url_for.return_value)
+    assert result is fake_redirect.return_value
 
 
 @patch('app.flask.league_controller.flash')
@@ -400,52 +445,6 @@ def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_sh
         'leagues/edit.html', league=league, form=fake_edit_league_form.return_value
     )
     assert result is fake_render_template.return_value
-
-
-@patch('app.flask.league_controller.url_for')
-@patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.redirect')
-@patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
-def test_edit_when_league_found_and_form_submitted_and_no_value_error_caught_should_flash_success_message_and_redirect_to_league_details(
-        fake_league_repository, fake_edit_league_form, fake_redirect, fake_flash, fake_url_for, test_app
-):
-    with test_app.app_context():
-        # Arrange
-        league = League(
-            short_name="NFL",
-            long_name="National Football League",
-            first_season_year=1922,
-            last_season_year=None
-        )
-        fake_league_repository.get_league.return_value = league
-
-        fake_edit_league_form.return_value.validate_on_submit.return_value = True
-        fake_edit_league_form.return_value.short_name.data = "AFL"
-        fake_edit_league_form.return_value.long_name.data = "American Football League"
-        fake_edit_league_form.return_value.first_season_year.data = 1960
-        fake_edit_league_form.return_value.last_season_year.data = 1969
-
-        id = 1
-        kwargs = {
-            'id': id,
-            'short_name': "AFL",
-            'long_name': "American Football League",
-            'first_season_year': 1960,
-            'last_season_year': 1969,
-        }
-
-        # Act
-        result = league_controller.edit(id)
-
-    # Assert
-    fake_league_repository.update_league.assert_called_once_with(**kwargs)
-    fake_flash.assert_called_once_with(
-        f"Item {fake_edit_league_form.return_value.year.data} has been successfully updated.", 'success'
-    )
-    fake_url_for.assert_called_once_with('league.details', id=id)
-    fake_redirect.assert_called_once_with(fake_url_for.return_value)
-    assert result is fake_redirect.return_value
 
 
 @patch('app.flask.league_controller.render_template')

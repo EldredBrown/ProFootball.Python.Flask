@@ -24,15 +24,4 @@ class Conference(sqla.Model):
     def validate_not_empty(self, key, value):
         if not value and value != 0:
             raise ValueError(f"{key} is required.")
-
-        if key in ('short_name', 'long_name'):
-            self.validate_is_unique(
-                key, value, error_message=f"Row with {key}={value} already exists in the Conference table."
-            )
         return value
-
-    def validate_is_unique(self, key, value, error_message=None):
-        if Conference.query.filter_by(**{key: value}).first() is not None:
-            if not error_message:
-                error_message = f"{key} must be unique."
-            raise ValueError(error_message)

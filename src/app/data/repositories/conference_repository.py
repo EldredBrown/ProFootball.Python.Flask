@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.conference import Conference
 from app.data.sqla import sqla
+from app.data.factories import conference_factory
 
 
 class ConferenceRepository:
@@ -42,7 +43,7 @@ class ConferenceRepository:
         """
         Gets the conference in the data store with the specified id.
 
-        :param short_name: The year of the conference to fetch.
+        :param short_name: The short_name of the conference to fetch.
 
         :return: The fetched conference.
         """
@@ -51,32 +52,44 @@ class ConferenceRepository:
             return None
         return Conference.query.filter_by(short_name=short_name).first()
 
-    def add_conference(self, conference: Conference) -> Conference:
+    def add_conference(self, **kwargs) -> Conference:
         """
         Adds a conference to the data store.
 
-        :param conference: The conference to add.
+        :param **kwargs: A keyword args dictionary containing values for the conference to add.
 
         :return: The added conference.
         """
+        conference = conference_factory.create_conference(**kwargs)
         sqla.session.add(conference)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return conference
 
-    def add_conferences(self, conferences: tuple) -> tuple:
+    def add_conferences(self, conference_args: tuple) -> List[Conference]:
         """
-        Adds a collection of conferences to the data store.
+        Adds a collection of conference_args dictionaries to the data store.
 
-        :param conferences: The conferences to add.
+        :param conference_args: The tuple of conference keyword args dictionaries to add.
 
         :return: The added conferences.
         """
-        for conference in conferences:
-            sqla.session.add(conference)
-        sqla.session.commit()
+        conferences = []
+        try:
+            for kwargs in conference_args:
+                conference = conference_factory.create_conference(kwargs)
+                conferences.append(conference)
+                sqla.session.add(conference)
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return conferences
 
-    def update_conference(self, conference: Conference) -> Conference | None:
+    def update_conference(self, **kwargs) -> Conference | None:
         """
         Updates a conference in the data store.
 
@@ -84,18 +97,29 @@ class ConferenceRepository:
 
         :return: The updated conference.
         """
-        if not self.conference_exists(conference.id):
-            return conference
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing Conference.")
 
-        conference_to_update = self.get_conference(conference.id)
-        conference_to_update.short_name = conference.short_name
-        conference_to_update.long_name = conference.long_name
-        conference_to_update.league_name = conference.league_name
-        conference_to_update.first_season_year = conference.first_season_year
-        conference_to_update.last_season_year = conference.last_season_year
-        sqla.session.add(conference_to_update)
-        sqla.session.commit()
-        return conference
+        if not self.conference_exists(kwargs['id']):
+            return Conference(**kwargs)
+
+        old_conference = self.get_conference(kwargs['id'])
+        new_conference = conference_factory.create_conference(old_conference, **kwargs)
+
+        old_conference.short_name = new_conference.short_name
+        old_conference.long_name = new_conference.long_name
+        old_conference.league_name = new_conference.league_name
+        old_conference.first_season_year = new_conference.first_season_year
+        old_conference.last_season_year = new_conference.last_season_year
+
+        sqla.session.add(old_conference)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return new_conference
 
     def delete_conference(self, id: int) -> Conference | None:
         """
@@ -121,4 +145,4 @@ class ConferenceRepository:
 
         :return: True if the conference with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(Conference.id == id)).scalar()
+        return self.get_conference(id) is not None

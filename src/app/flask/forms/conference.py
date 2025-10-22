@@ -16,7 +16,7 @@ def length_check(field, length):
         raise ValidationError(f"{field} must not be longer than {length} characters.")
 
 
-class LeagueForm(FlaskForm):
+class ConferenceForm(FlaskForm):
     short_name = StringField(
         "Short Name",
         validators=[
@@ -33,6 +33,14 @@ class LeagueForm(FlaskForm):
             long_name_length_check,
         ]
     )
+    league_name = StringField(
+        "League Name",
+        validators=[
+            InputRequired("Please enter a league name."),
+            DataRequired("Please enter a league name."),
+            short_name_length_check,
+        ]
+    )
     first_season_year = IntegerField(
         "First Season",
         validators=[
@@ -46,13 +54,13 @@ class LeagueForm(FlaskForm):
     )
 
 
-class NewLeagueForm(LeagueForm):
+class NewConferenceForm(ConferenceForm):
     submit = SubmitField("Create")
 
 
-class EditLeagueForm(LeagueForm):
+class EditConferenceForm(ConferenceForm):
     submit = SubmitField("Update")
 
 
-class DeleteLeagueForm(FlaskForm):
+class DeleteConferenceForm(FlaskForm):
     submit = SubmitField("Delete")

@@ -77,7 +77,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
 
 
 @patch('app.data.factories.season_factory._validate_is_unique')
-def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_equals_kwargs_year_should_not_validate_unique_key_values_and_return_season(
+def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_equals_old_season_year_should_not_validate_unique_key_values_and_return_season(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
@@ -107,7 +107,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_se
 
 
 @patch('app.data.factories.season_factory._validate_is_unique')
-def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_does_not_equal_kwargs_year_and_kwargs_year_is_unique_should_validate_unique_key_values_and_return_season(
+def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_does_not_equal_old_season_year_and_kwargs_year_is_unique_should_validate_unique_key_values_and_return_season(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
@@ -140,7 +140,7 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_se
 
 
 @patch('app.data.factories.season_factory._validate_is_unique')
-def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_old_season_year_does_not_equal_kwargs_year_and_kwargs_year_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
+def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_does_not_equal_old_season_year_and_kwargs_year_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():

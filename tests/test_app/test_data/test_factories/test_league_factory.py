@@ -85,7 +85,7 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_not_provided_
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_old_league_short_name_equals_kwargs_short_name_should_not_validate_unique_key_values_and_return_league(
+def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_equals_old_league_short_name_should_not_validate_unique_key_values_and_return_league(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
@@ -119,14 +119,14 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_old_league_short_name_does_not_equal_kwargs_short_name_and_kwargs_short_name_is_unique_should_validate_unique_key_values_and_return_league(
+def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_does_not_equal_old_league_short_name_and_kwargs_short_name_is_unique_should_validate_unique_key_values_and_return_league(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
         # Arrange
         kwargs = {
             'id': 1,
-            'short_name': "NFL",
+            'short_name': "AFL",
             'long_name': "National Football League",
             'first_season_year': 1922,
             'last_season_year': None,
@@ -135,7 +135,7 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
         fake_validate_is_unique.return_value = None
 
         old_league = League(
-            id=1, short_name="AFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
         )
 
         # Act
@@ -156,14 +156,14 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_old_league_short_name_does_not_equal_kwargs_short_name_and_kwargs_short_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
+def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_does_not_equal_old_league_short_name_and_kwargs_short_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
         # Arrange
         kwargs = {
             'id': 1,
-            'short_name': "NFL",
+            'short_name': "AFL",
             'long_name': "National Football League",
             'first_season_year': 1922,
             'last_season_year': None,
@@ -173,7 +173,7 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
         fake_validate_is_unique.side_effect = ValueError(error_message)
 
         old_league = League(
-            id=1, short_name="AFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
         )
 
         # Act
@@ -270,7 +270,7 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_not_provided_a
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_old_league_long_name_equals_kwargs_long_name_should_not_validate_unique_key_values_and_return_league(
+def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_equals_old_league_long_name_should_not_validate_unique_key_values_and_return_league(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
@@ -304,7 +304,7 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_o
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_old_league_long_name_does_not_equal_kwargs_short_name_and_kwargs_long_name_is_unique_should_validate_unique_key_values_and_return_league(
+def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_does_not_equal_old_league_long_name_and_kwargs_long_name_is_unique_should_validate_unique_key_values_and_return_league(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
@@ -341,7 +341,7 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_o
 
 
 @patch('app.data.factories.league_factory._validate_is_unique')
-def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_old_league_long_name_does_not_equal_kwargs_short_name_and_kwargs_long_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
+def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_does_not_equal_old_league_long_name_and_kwargs_long_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
         fake_validate_is_unique, test_app
 ):
     with test_app.app_context():
