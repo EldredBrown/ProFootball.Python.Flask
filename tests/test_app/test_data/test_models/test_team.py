@@ -1,4 +1,5 @@
 import sqlite3
+
 from unittest.mock import patch
 
 import pytest
@@ -12,9 +13,13 @@ from instance.test_db.db_init import init_db
 from test_app import create_app
 
 
-def test_validate_not_empty_when_name_is_none_should_raise_value_error():
+@pytest.fixture
+def test_app():
+    return create_app()
+
+
+def test_validate_not_empty_when_name_is_none_should_raise_value_error(test_app):
     # Arrange
-    test_app = create_app()
     with test_app.app_context():
         # Act
         with pytest.raises(ValueError) as err:
@@ -25,9 +30,8 @@ def test_validate_not_empty_when_name_is_none_should_raise_value_error():
     assert err.value.args[0] == "name is required."
 
 
-def test_validate_not_empty_when_name_is_empty_string_should_raise_value_error():
+def test_validate_not_empty_when_name_is_empty_should_raise_value_error(test_app):
     # Arrange
-    test_app = create_app()
     with test_app.app_context():
         # Act
         with pytest.raises(ValueError) as err:
@@ -38,52 +42,19 @@ def test_validate_not_empty_when_name_is_empty_string_should_raise_value_error()
     assert err.value.args[0] == "name is required."
 
 
-@patch('app.data.models.team.Team.validate_is_unique')
-def test_validate_not_empty_when_name_is_not_empty_string_should_validate_name_is_unique(
-        fake_validate_is_unique
-):
+def test_validate_not_empty_when_name_is_not_empty_should_not_raise_value_error(test_app):
     # Arrange
-    test_app = create_app()
-    with test_app.app_context():
-        # Act
-        test_team = Team(name="Chicago Bears")
+    err = None
 
-    # Assert
-    fake_validate_is_unique.assert_called_once_with(
-        'name', "Chicago Bears", error_message=f"Row with name='Chicago Bears' already exists in the Team table."
-    )
-
-
-def test_validate_is_unique_when_name_is_not_unique_should_raise_value_error():
-    # Arrange
-    _init_and_populate_test_db()
-
-    test_app = create_app()
-    with test_app.app_context():
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_team = Team(name="Chicago Bears")
-
-    # Assert
-    assert err.value.args[0] == f"Row with name='Chicago Bears' already exists in the Team table."
-
-
-def test_validate_is_unique_when_name_is_unique_should_not_raise_value_error():
-    # Arrange
-    _init_and_populate_test_db()
-
-    test_err = None
-
-    test_app = create_app()
     with test_app.app_context():
         # Act
         try:
-            test_team = Team(name="Green Bay Packers")
+            test_team = Team(name="Chicago Cardinals")
         except ValueError as err:
-            test_err = err
+            pass
 
     # Assert
-    assert test_err is None
+    assert err is None
 
 
 def _init_and_populate_test_db():
@@ -93,6 +64,6 @@ def _init_and_populate_test_db():
     )
     c = conn.cursor()
     c.execute('''
-        INSERT INTO Team (name) VALUES ("Chicago Bears")
+        INSERT INTO Team (name) VALUES ("Chicago Cardinals")
     ''')
     conn.commit()

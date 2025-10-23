@@ -126,7 +126,7 @@ def test_create_when_form_submitted_and_no_value_error_caught_should_flash_succe
     kwargs = {
         'year': 1920,
         'num_of_weeks_scheduled': 13,
-        'num_of_weeks_completed': 13
+        'num_of_weeks_completed': 13,
     }
 
     # Act
@@ -160,7 +160,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     kwargs = {
         'year': 1920,
         'num_of_weeks_scheduled': 13,
-        'num_of_weeks_completed': 13
+        'num_of_weeks_completed': 13,
     }
 
     # Act
@@ -324,7 +324,7 @@ def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should
         'id': id,
         'year': 1921,
         'num_of_weeks_scheduled': 0,
-        'num_of_weeks_completed': 0
+        'num_of_weeks_completed': 0,
     }
 
     # Act

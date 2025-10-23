@@ -133,7 +133,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
         'short_name': "NFL",
         'long_name': "National Football League",
         'first_season_year': 1922,
-        'last_season_year': None
+        'last_season_year': None,
     }
 
     # Act
@@ -169,7 +169,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
         'short_name': "NFL",
         'long_name': "National Football League",
         'first_season_year': 1922,
-        'last_season_year': None
+        'last_season_year': None,
     }
 
     # Act
@@ -207,7 +207,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
         'short_name': "NFL",
         'long_name': "National Football League",
         'first_season_year': 1922,
-        'last_season_year': None
+        'last_season_year': None,
     }
 
     # Act

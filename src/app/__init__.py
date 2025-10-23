@@ -29,13 +29,14 @@ def create_app():
     Migrate(app, sqla, render_as_batch=True)
 
     from app.flask import (home_controller, season_controller, league_controller, conference_controller,
-                           division_controller)
+                           division_controller, team_controller)
 
     app.register_blueprint(home_controller.blueprint, url_prefix='/home')
     app.register_blueprint(season_controller.blueprint, url_prefix='/seasons')
     app.register_blueprint(league_controller.blueprint, url_prefix='/leagues')
     app.register_blueprint(conference_controller.blueprint, url_prefix='/conferences')
     app.register_blueprint(division_controller.blueprint, url_prefix='/divisions')
+    app.register_blueprint(team_controller.blueprint, url_prefix='/teams')
 
     app.add_url_rule('/', endpoint='index')
 

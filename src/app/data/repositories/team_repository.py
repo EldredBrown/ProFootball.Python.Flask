@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.team import Team
 from app.data.sqla import sqla
+from app.data.factories import team_factory
 
 
 class TeamRepository:
@@ -38,45 +39,57 @@ class TeamRepository:
             return None
         return Team.query.get(id)
 
-    def get_team_by_name(self, name: str) -> Team | None:
+    def get_team_by_name(self, short_name: str) -> Team | None:
         """
         Gets the team in the data store with the specified id.
 
-        :param name: The year of the team to fetch.
+        :param short_name: The short_name of the team to fetch.
 
         :return: The fetched team.
         """
         teams = self.get_teams()
         if len(teams) == 0:
             return None
-        return Team.query.filter_by(name=name).first()
+        return Team.query.filter_by(short_name=short_name).first()
 
-    def add_team(self, team: Team) -> Team:
+    def add_team(self, **kwargs) -> Team:
         """
         Adds a team to the data store.
 
-        :param team: The team to add.
+        :param **kwargs: A keyword args dictionary containing values for the team to add.
 
         :return: The added team.
         """
+        team = team_factory.create_team(**kwargs)
         sqla.session.add(team)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return team
 
-    def add_teams(self, teams: tuple) -> tuple:
+    def add_teams(self, team_args: tuple) -> List[Team]:
         """
-        Adds a collection of teams to the data store.
+        Adds a collection of team_args dictionaries to the data store.
 
-        :param teams: The teams to add.
+        :param team_args: The tuple of team keyword args dictionaries to add.
 
         :return: The added teams.
         """
-        for team in teams:
-            sqla.session.add(team)
-        sqla.session.commit()
+        teams = []
+        try:
+            for kwargs in team_args:
+                team = team_factory.create_team(kwargs)
+                teams.append(team)
+                sqla.session.add(team)
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return teams
 
-    def update_team(self, team: Team) -> Team | None:
+    def update_team(self, **kwargs) -> Team | None:
         """
         Updates a team in the data store.
 
@@ -84,14 +97,25 @@ class TeamRepository:
 
         :return: The updated team.
         """
-        if not self.team_exists(team.id):
-            return team
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing Team.")
 
-        team_to_update = self.get_team(team.id)
-        team_to_update.name = team.name
-        sqla.session.add(team_to_update)
-        sqla.session.commit()
-        return team
+        if not self.team_exists(kwargs['id']):
+            return Team(**kwargs)
+
+        old_team = self.get_team(kwargs['id'])
+        new_team = team_factory.create_team(old_team, **kwargs)
+
+        old_team.name = new_team.name
+
+        sqla.session.add(old_team)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return new_team
 
     def delete_team(self, id: int) -> Team | None:
         """
@@ -117,4 +141,4 @@ class TeamRepository:
 
         :return: True if the team with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(Team.id == id)).scalar()
+        return self.get_team(id) is not None

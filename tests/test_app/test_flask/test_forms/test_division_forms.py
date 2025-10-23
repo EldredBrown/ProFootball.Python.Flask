@@ -44,7 +44,7 @@ class TestForms(unittest.TestCase):
     #         'last_season_year': None,
     #     })
     #     self.assertFalse(form.validate())
-    #     self.assertIn(f"name must not be longer than 5 characters.", form.name.errors)
+    #     self.assertIn(f"name must not be longer than 50 characters.", form.name.errors)
 
     def test_league_name_not_provided(self):
         form = DivisionForm(data={

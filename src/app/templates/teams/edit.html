@@ -1,0 +1,17 @@
+{% extends 'teams/edit_base.html' %}
+{% set active_page = 'edit' %}
+{% block title %}Edit Team{% endblock %}
+
+{% block h4 %}Edit{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('team.edit', id=team.id) }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.name.label }}
+        {{ form.name(class='form-control') }}
+    </div>
+    <hr>
+    {{ form.submit(class='btn btn-primary form-control') }}
+</form>
+{% endblock %}

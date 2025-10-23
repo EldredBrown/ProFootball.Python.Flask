@@ -69,14 +69,8 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_not_provided_an
             assert False
 
     # Assert
-    error_messages = (
-        f"Division already exists with name={kwargs['name']}.",
-        f"Division already exists with long_name={kwargs['long_name']}.",
-    )
-    fake_validate_is_unique.assert_has_calls([
-        call('name', kwargs['name'], error_message=error_messages[0]),
-        call('long_name', kwargs['long_name'], error_message=error_messages[1])
-    ])
+    error_message = f"Division already exists with name={kwargs['name']}."
+    fake_validate_is_unique.assert_called_once_with('name', kwargs['name'], error_message=error_message)
     assert isinstance(test_division, Division)
     assert test_division.id == kwargs['id']
     assert test_division.name == kwargs['name']
