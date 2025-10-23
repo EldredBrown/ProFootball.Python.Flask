@@ -1,0 +1,67 @@
+{% extends 'games/base.html' %}
+
+{% block content %}
+<h1>Game</h1>
+
+    {% block header_content %}{% endblock %}
+    <hr>
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">
+                Season
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.season_year }}
+            </dd>
+            <dt class="col-sm-2">
+                Week
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.week }}
+            </dd>
+            <dt class="col-sm-2">
+                Guest
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.guest_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Guest Score
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.guest_score }}
+            </dd>
+            <dt class="col-sm-2">
+                Host
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.host_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Host Score
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.host_score }}
+            </dd>
+            <dt class="col-sm-2">
+                Is Playoff?
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.is_playoff }}
+            </dd>
+            <dt class="col-sm-2">
+                Notes
+            </dt>
+            <dd class="col-sm-10">
+                {{ game.notes }}
+            </dd>
+        </dl>
+    </div>
+
+    <div>
+        {% block footer_content %}{% endblock %}
+        <p>
+            <a href="{{ url_for('game.index') }}">Back to List</a>
+        </p>
+    </div>
+{% endblock %}

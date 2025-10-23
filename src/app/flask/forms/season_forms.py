@@ -7,8 +7,8 @@ class SeasonForm(FlaskForm):
     year = IntegerField(
         "Year",
         validators=[
-            InputRequired("Please enter a year (input)."),
-            DataRequired("Please enter a year (data)."),
+            InputRequired("Please enter a year."),
+            DataRequired("Please enter a year."),
             NumberRange(min=1920, message="Please enter a year no earlier than 1920.")
         ]
     )

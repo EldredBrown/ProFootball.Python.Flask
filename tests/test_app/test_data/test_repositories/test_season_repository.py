@@ -88,7 +88,6 @@ def test_get_season_when_seasons_is_not_empty_and_season_is_found_should_return_
 
         # Act
         test_repo = SeasonRepository()
-
         season_out = test_repo.get_season(id)
 
     # Assert
@@ -307,10 +306,10 @@ def test_update_season_when_id_is_in_kwargs_and_no_season_exists_with_id_should_
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(season_updated, Season)
-    assert season_updated.id == 1
-    assert season_updated.year == 1920
-    assert season_updated.num_of_weeks_scheduled == 13
-    assert season_updated.num_of_weeks_completed == 0
+    assert season_updated.id == kwargs['id']
+    assert season_updated.year == kwargs['year']
+    assert season_updated.num_of_weeks_scheduled == kwargs['num_of_weeks_scheduled']
+    assert season_updated.num_of_weeks_completed == kwargs['num_of_weeks_completed']
 
 
 @patch('app.data.repositories.season_repository.sqla')
@@ -354,10 +353,10 @@ def test_update_season_when_id_is_in_kwargs_and_season_exists_with_id_should_ret
     fake_sqla.session.add.assert_called_once_with(old_season)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(season_updated, Season)
-    assert season_updated.id == 2
-    assert season_updated.year == 4
-    assert season_updated.num_of_weeks_scheduled == 4
-    assert season_updated.num_of_weeks_completed == 4
+    assert season_updated.id == kwargs['id']
+    assert season_updated.year == kwargs['year']
+    assert season_updated.num_of_weeks_scheduled == kwargs['num_of_weeks_scheduled']
+    assert season_updated.num_of_weeks_completed == kwargs['num_of_weeks_completed']
     assert season_updated is new_season
 
 

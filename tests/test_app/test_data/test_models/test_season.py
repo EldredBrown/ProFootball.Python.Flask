@@ -1,7 +1,5 @@
 import sqlite3
 
-from unittest.mock import patch
-
 import pytest
 
 from app.data.models.season import Season

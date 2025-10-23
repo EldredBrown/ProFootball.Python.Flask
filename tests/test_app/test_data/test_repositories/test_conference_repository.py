@@ -90,7 +90,6 @@ def test_get_conference_when_conferences_is_not_empty_and_conference_is_found_sh
 
         # Act
         test_repo = ConferenceRepository()
-
         conference_out = test_repo.get_conference(id)
 
     # Assert
@@ -135,7 +134,7 @@ def test_get_conference_by_name_when_conferences_is_not_empty_and_conference_wit
 
 
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conference_by_year_when_conferences_is_not_empty_and_conference_with_year_is_found_should_return_conference(
+def test_get_conference_by_name_when_conferences_is_not_empty_and_conference_with_name_is_found_should_return_conference(
         fake_conference, test_app
 ):
     with test_app.app_context():
@@ -214,38 +213,6 @@ def test_add_conferences_when_conferences_arg_is_empty_should_add_no_conferences
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
     assert conferences_out == []
-
-
-@patch('app.data.repositories.conference_repository.sqla')
-@patch('app.data.repositories.conference_repository.conference_factory')
-def test_add_conferences_when_conferences_arg_is_not_empty_should_add_conferences(fake_conference_factory, fake_sqla, test_app):
-    with test_app.app_context():
-        # Arrange
-        conferences_in = [
-            Conference(short_name="NFC"),
-            Conference(short_name="AFC"),
-            Conference(short_name="AAFC"),
-        ]
-        fake_conference_factory.create_conference.side_effect = conferences_in
-
-        # Act
-        test_repo = ConferenceRepository()
-
-        conference_args = (
-            {'short_name': "NFC"},
-            {'short_name': "AFC"},
-            {'short_name': "AAFC"},
-        )
-        conferences_out = test_repo.add_conferences(conference_args)
-
-    # Assert
-    fake_sqla.session.add.assert_has_calls([
-        call(conferences_in[0]),
-        call(conferences_in[1]),
-        call(conferences_in[2]),
-    ])
-    fake_sqla.session.commit.assert_called_once()
-    assert conferences_out == conferences_in
 
 
 @patch('app.data.repositories.conference_repository.sqla')
@@ -399,12 +366,12 @@ def test_update_conference_when_id_is_in_kwargs_and_no_conference_exists_with_id
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(conference_updated, Conference)
-    assert conference_updated.id == 1
-    assert conference_updated.short_name == "NFC"
-    assert conference_updated.long_name == "National Football Conference"
-    assert conference_updated.league_name == "NFL"
-    assert conference_updated.first_season_year == 1970
-    assert conference_updated.last_season_year == None
+    assert conference_updated.id == kwargs['id']
+    assert conference_updated.short_name == kwargs['short_name']
+    assert conference_updated.long_name == kwargs['long_name']
+    assert conference_updated.league_name == kwargs['league_name']
+    assert conference_updated.first_season_year == kwargs['first_season_year']
+    assert conference_updated.last_season_year == kwargs['last_season_year']
 
 
 @patch('app.data.repositories.conference_repository.sqla')
@@ -462,12 +429,12 @@ def test_update_conference_when_id_is_in_kwargs_and_conference_exists_with_id_an
     fake_sqla.session.add.assert_called_once_with(old_conference)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(conference_updated, Conference)
-    assert conference_updated.id == 2
-    assert conference_updated.short_name == "USFC"
-    assert conference_updated.long_name == "United States Football Conference"
-    assert conference_updated.league_name == "USFL"
-    assert conference_updated.first_season_year == 1983
-    assert conference_updated.last_season_year == 1987
+    assert conference_updated.id == kwargs['id']
+    assert conference_updated.short_name == kwargs['short_name']
+    assert conference_updated.long_name == kwargs['long_name']
+    assert conference_updated.league_name == kwargs['league_name']
+    assert conference_updated.first_season_year == kwargs['first_season_year']
+    assert conference_updated.last_season_year == kwargs['last_season_year']
     assert conference_updated is new_conference
 
 

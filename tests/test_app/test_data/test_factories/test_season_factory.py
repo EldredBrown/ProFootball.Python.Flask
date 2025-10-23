@@ -14,7 +14,9 @@ def test_app():
 
 def test_create_season_when_year_not_in_kwargs_should_raise_value_error():
     # Arrange
-    kwargs = {}
+    kwargs = {
+        'num_of_weeks_scheduled': 13,
+    }
 
     # Act
     with pytest.raises(ValueError) as err:
@@ -30,7 +32,8 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
 ):
     # Arrange
     kwargs = {
-        'year': 1,
+        'year': 1920,
+        'num_of_weeks_scheduled': 13,
     }
 
     error_message = f"Season already exists with year={kwargs['year']}."

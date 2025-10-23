@@ -28,7 +28,7 @@ class Game(sqla.Model):
     # winner = sqla.relationship('Team')
     # loser = sqla.relationship('Team')
 
-    @validates('season_year', 'week', 'guest_name', 'guest_score', 'host_name', 'host_score')
+    @validates('season_year', 'week', 'guest_name', 'guest_score', 'host_name', 'host_score', 'is_playoff')
     def validate_not_empty(self, key, value):
         if not value and value != 0:
             raise ValueError(f"{key} is required.")

@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.game import Game
 from app.data.sqla import sqla
+from app.data.factories import game_factory
 
 
 class GameRepository:
@@ -38,32 +39,57 @@ class GameRepository:
             return None
         return Game.query.get(id)
 
-    def add_game(self, game: Game) -> Game:
+    def get_game_by_name(self, short_name: str) -> Game | None:
+        """
+        Gets the game in the data store with the specified id.
+
+        :param short_name: The short_name of the game to fetch.
+
+        :return: The fetched game.
+        """
+        games = self.get_games()
+        if len(games) == 0:
+            return None
+        return Game.query.filter_by(short_name=short_name).first()
+
+    def add_game(self, **kwargs) -> Game:
         """
         Adds a game to the data store.
 
-        :param game: The game to add.
+        :param **kwargs: A keyword args dictionary containing values for the game to add.
 
         :return: The added game.
         """
+        game = game_factory.create_game(**kwargs)
         sqla.session.add(game)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return game
 
-    def add_games(self, games: tuple) -> tuple:
+    def add_games(self, game_args: tuple) -> List[Game]:
         """
-        Adds a collection of games to the data store.
+        Adds a collection of game_args dictionaries to the data store.
 
-        :param games: The games to add.
+        :param game_args: The tuple of game keyword args dictionaries to add.
 
         :return: The added games.
         """
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        games = []
+        try:
+            for kwargs in game_args:
+                game = game_factory.create_game(kwargs)
+                games.append(game)
+                sqla.session.add(game)
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return games
 
-    def update_game(self, game: Game) -> Game | None:
+    def update_game(self, **kwargs) -> Game | None:
         """
         Updates a game in the data store.
 
@@ -71,19 +97,32 @@ class GameRepository:
 
         :return: The updated game.
         """
-        if not self.game_exists(game.id):
-            return game
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing Game.")
 
-        game_to_update = self.get_game(game.id)
-        game_to_update.season_year = game.season_year
-        game_to_update.week = game.week
-        game_to_update.guest_name = game.guest_name
-        game_to_update.guest_score = game.guest_score
-        game_to_update.host_name = game.host_name
-        game_to_update.host_score = game.host_score
-        sqla.session.add(game_to_update)
-        sqla.session.commit()
-        return game
+        if not self.game_exists(kwargs['id']):
+            return Game(**kwargs)
+
+        old_game = self.get_game(kwargs['id'])
+        new_game = game_factory.create_game(**kwargs)
+
+        old_game.season_year = new_game.season_year
+        old_game.week = new_game.week
+        old_game.guest_name = new_game.guest_name
+        old_game.guest_score = new_game.guest_score
+        old_game.host_name = new_game.host_name
+        old_game.host_score = new_game.host_score
+        old_game.is_playoff = new_game.is_playoff
+        old_game.notes = new_game.notes
+
+        sqla.session.add(old_game)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return new_game
 
     def delete_game(self, id: int) -> Game | None:
         """
@@ -109,4 +148,4 @@ class GameRepository:
 
         :return: True if the game with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(Game.id == id)).scalar()
+        return self.get_game(id) is not None

@@ -14,7 +14,11 @@ def test_app():
 
 def test_create_league_when_short_name_not_in_kwargs_should_raise_value_error():
     # Arrange
-    kwargs = {}
+    kwargs = {
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
     # Act
     with pytest.raises(ValueError) as err:
@@ -31,6 +35,9 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_not_provided_
     # Arrange
     kwargs = {
         'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
     }
 
     error_message = f"League already exists with short_name={kwargs['short_name']}."
@@ -190,6 +197,8 @@ def test_create_league_when_long_name_not_in_kwargs_should_raise_value_error(fak
     # Arrange
     kwargs = {
         'short_name': "NFL",
+        'first_season_year': 1922,
+        'last_season_year': None,
     }
 
     fake_validate_is_unique.return_value = None
@@ -210,6 +219,8 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_not_provided_a
     kwargs = {
         'short_name': "NFL",
         'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
     }
 
     error_messages = (

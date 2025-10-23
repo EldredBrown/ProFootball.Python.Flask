@@ -1,0 +1,23 @@
+{% extends 'games/details_base.html' %}
+{% set active_page = 'details' %}
+{% block title %}Game{% endblock %}
+
+{% block header_content %}
+<h4>Details</h4>
+{% endblock %}
+
+{% block footer_content %}
+<div class="row">
+    <div class="col-lg-3 my-4">
+        <a class="btn btn-primary" href="{{ url_for('game.edit', id=game.id) }}">Edit</a>
+        <form class="delete-form" method="POST" action="{{ url_for('game.delete', id=game.id) }}">
+            {{ delete_game_form.hidden_tag() }}
+            {{
+                delete_game_form.submit(
+                    class='btn btn-danger', onclick='return confirm("Are you sure you want to delete this item?");'
+                )
+            }}
+        </form>
+    </div>
+</div>
+{% endblock %}

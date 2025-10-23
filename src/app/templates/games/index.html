@@ -1,0 +1,76 @@
+{% extends 'games/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Games{% endblock %}
+
+{% block content %}
+<h1>Games</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('game.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Season
+            </th>
+            <th class="text-left">
+                Week
+            </th>
+            <th class="text-left">
+                Guest
+            </th>
+            <th class="text-left">
+                Guest Score
+            </th>
+            <th class="text-left">
+                Host
+            </th>
+            <th class="text-left">
+                Host Score
+            </th>
+            <th class="text-left">
+                Is Playoff?
+            </th>
+            <th class="text-left">
+                Notes
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for game in games %}
+        <tr>
+            <td class="text-left">
+                {{ game.season_year }}
+            </td>
+            <td class="text-left">
+                {{ game.week }}
+            </td>
+            <td class="text-left">
+                {{ game.guest_name }}
+            </td>
+            <td class="text-left">
+                {{ game.guest_score }}
+            </td>
+            <td class="text-left">
+                {{ game.host_name }}
+            </td>
+            <td class="text-left">
+                {{ game.host_score }}
+            </td>
+            <td class="text-left">
+                {{ game.is_playoff }}
+            </td>
+            <td class="text-left">
+                {{ game.notes }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('game.details', id=game.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('game.edit', id=game.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('game.delete', id=game.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

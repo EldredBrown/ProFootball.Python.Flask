@@ -1,0 +1,45 @@
+{% extends 'games/edit_base.html' %}
+{% set active_page = 'edit' %}
+{% block title %}Edit Game{% endblock %}
+
+{% block h4 %}Edit{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('game.edit', id=game.id) }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.season_year.label }}
+        {{ form.season_year(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.week.label }}
+        {{ form.week(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.guest_name.label }}
+        {{ form.guest_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.guest_score.label }}
+        {{ form.guest_score(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.host_name.label }}
+        {{ form.host_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.host_score.label }}
+        {{ form.host_score(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.is_playoff.label }}
+        {{ form.is_playoff() }}
+    </div>
+    <div class="form-group">
+        {{ form.notes.label }}
+        {{ form.notes(class='form-control') }}
+    </div>
+    <hr>
+    {{ form.submit(class='btn btn-primary form-control') }}
+</form>
+{% endblock %}

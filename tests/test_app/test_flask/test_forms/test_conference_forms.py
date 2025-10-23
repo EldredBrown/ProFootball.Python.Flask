@@ -17,7 +17,7 @@ class TestForms(unittest.TestCase):
 
     # def test_valid_form(self):
     #     form = ConferenceForm(data={
-    #         'short_name': "NFL",
+    #         'short_name': "NFC",
     #         'long_name': "National Football Conference",
     #         'league_name': "NFL",
     #         'first_season_year': 1970,

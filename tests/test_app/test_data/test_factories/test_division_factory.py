@@ -14,7 +14,12 @@ def test_app():
 
 def test_create_division_when_name_not_in_kwargs_should_raise_value_error():
     # Arrange
-    kwargs = {}
+    kwargs = {
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
     # Act
     with pytest.raises(ValueError) as err:
@@ -31,6 +36,10 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_not_provided_an
     # Arrange
     kwargs = {
         'name': "NFC East",
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
     }
 
     error_message = f"Division already exists with name={kwargs['name']}."

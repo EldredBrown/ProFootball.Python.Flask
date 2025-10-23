@@ -1,6 +1,7 @@
 from unittest.mock import patch, call
 
 import pytest
+
 from sqlalchemy.exc import IntegrityError
 
 from test_app import create_app
@@ -90,7 +91,6 @@ def test_get_team_when_teams_is_not_empty_and_team_is_found_should_return_team(f
 
         # Act
         test_repo = TeamRepository()
-
         team_out = test_repo.get_team(id)
 
     # Assert
@@ -391,8 +391,8 @@ def test_update_team_when_id_is_in_kwargs_and_no_team_exists_with_id_should_retu
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(team_updated, Team)
-    assert team_updated.id == 1
-    assert team_updated.name == "Chicago Cardinals"
+    assert team_updated.id == kwargs['id']
+    assert team_updated.name == kwargs['name']
 
 
 @patch('app.data.repositories.team_repository.sqla')
@@ -434,8 +434,8 @@ def test_update_team_when_id_is_in_kwargs_and_team_exists_with_id_and_no_integri
     fake_sqla.session.add.assert_called_once_with(old_team)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(team_updated, Team)
-    assert team_updated.id == 2
-    assert team_updated.name == "Canton Bulldogs"
+    assert team_updated.id == kwargs['id']
+    assert team_updated.name == kwargs['name']
     assert team_updated is new_team
 
 

@@ -1,102 +1,201 @@
-import pytest
-
 from unittest.mock import patch, call
 
+import pytest
+
+from sqlalchemy.exc import IntegrityError
+
+from test_app import create_app
+
+from app.data.models.season import Season
 from app.data.models.game import Game
 from app.data.models.league_season import LeagueSeason
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.game_repository import GameRepository
-from test_app import create_app
+
+
+@pytest.fixture
+def test_app():
+    return create_app()
 
 
 @patch('app.data.repositories.game_repository.Game')
-def test_get_games_should_get_games(fake_game):
-    # Act
-    test_app = create_app()
-    with test_app.app_context():
-        test_repo = GameRepository()
-        games = test_repo.get_games()
-
-    # Assert
-    fake_game.query.all.assert_called_once()
-    assert games == fake_game.query.all.return_value
-
-
-@patch('app.data.repositories.game_repository.GameRepository.get_games')
-def test_get_game_when_games_is_empty_should_return_none(fake_get_games):
-    test_app = create_app()
+def test_get_games_should_get_games(fake_game, test_app):
     with test_app.app_context():
         # Arrange
-        games = []
-        fake_get_games.return_value = games
-
-        # Act
-        test_repo = GameRepository()
-        game = test_repo.get_game(id=1)
-
-    # Assert
-    assert game is None
-
-
-@patch('app.data.repositories.game_repository.Game')
-@patch('app.data.repositories.game_repository.GameRepository.get_games')
-def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_none(
-        fake_get_games, fake_game
-):
-    test_app = create_app()
-    with test_app.app_context():
-        # Arrange
-        games = [
-            Game(season_year=1, week=1, guest_name="Guest1", guest_score=1, host_name="Host1", host_score=2),
-            Game(season_year=1, week=1, guest_name="Guest2", guest_score=2, host_name="Host2", host_score=1),
-            Game(season_year=1, week=1, guest_name="Guest3", guest_score=2, host_name="Host3", host_score=2),
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
         ]
-        fake_get_games.return_value = games
-
-        id = len(games) + 1
+        fake_game.query.all.return_value = games_in
 
         # Act
         test_repo = GameRepository()
-        game = test_repo.get_game(id=id)
+        games_out = test_repo.get_games()
 
     # Assert
-    fake_game.query.get.assert_called_once_with(id)
-    assert game == fake_game.query.get.return_value
+    assert games_out == games_in
 
 
 @patch('app.data.repositories.game_repository.Game')
-@patch('app.data.repositories.game_repository.GameRepository.get_games')
-def test_get_game_when_games_is_not_empty_and_game_is_found_should_return_game(fake_get_games, fake_game):
-    test_app = create_app()
+def test_get_game_when_games_is_empty_should_return_none(fake_game, test_app):
     with test_app.app_context():
         # Arrange
-        games = [
-            Game(season_year=1, week=1, guest_name="Guest1", guest_score=1, host_name="Host1", host_score=2),
-            Game(season_year=1, week=1, guest_name="Guest2", guest_score=2, host_name="Host2", host_score=1),
-            Game(season_year=1, week=1, guest_name="Guest3", guest_score=2, host_name="Host3", host_score=2),
-        ]
-        fake_get_games.return_value = games
-
-        id = len(games) - 1
+        games_in = []
+        fake_game.query.all.return_value = games_in
 
         # Act
         test_repo = GameRepository()
-        game = test_repo.get_game(id=id)
+        game_out = test_repo.get_game(1)
 
     # Assert
-    fake_game.query.get.assert_called_once_with(id)
-    assert game == fake_game.query.get.return_value
+    assert game_out is None
+
+
+@patch('app.data.repositories.game_repository.Game')
+def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_none(fake_game, test_app):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+        fake_game.query.get.return_value = None
+
+        # Act
+        test_repo = GameRepository()
+
+        id = len(games_in) + 1
+        game_out = test_repo.get_game(id)
+
+    # Assert
+    assert game_out is None
+
+
+@patch('app.data.repositories.game_repository.Game')
+def test_get_game_when_games_is_not_empty_and_game_is_found_should_return_game(fake_game, test_app):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+
+        id = len(games_in) - 1
+        fake_game.query.get.return_value = games_in[id]
+
+        # Act
+        test_repo = GameRepository()
+        game_out = test_repo.get_game(id)
+
+    # Assert
+    assert game_out is games_in[id]
 
 
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_game_should_add_game(fake_sqla):
-    # Arrange
-    test_app = create_app()
+@patch('app.data.repositories.game_repository.game_factory')
+def test_add_game_when_no_integrity_error_caught_should_add_game(fake_game_factory, fake_sqla, test_app):
     with test_app.app_context():
+        # Arrange
+        game_in = Game(
+            season_year=1920,
+            week=1,
+            guest_name="St. Paul Ideals",
+            guest_score=0,
+            host_name="Rock Island Independents",
+            host_score=48,
+            is_playoff=False
+        )
+        fake_game_factory.create_game.return_value = game_in
+
         # Act
         test_repo = GameRepository()
-        game_in = Game(season_year=1, week=2, guest_name="Guest4", guest_score=3, host_name="Host4", host_score=3)
-        game_out = test_repo.add_game(game_in)
+        kwargs = {
+            'season_year': 1920,
+            'week': 1,
+            'guest_name': "St. Paul Ideals",
+            'guest_score': 0,
+            'host_name': "Rock Island Independents",
+            'host_score': 48,
+            'is_playoff': False,
+        }
+        game_out = test_repo.add_game(**kwargs)
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(game_in)
@@ -105,34 +204,129 @@ def test_add_game_should_add_game(fake_sqla):
 
 
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla):
+@patch('app.data.repositories.game_repository.game_factory')
+def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_game_factory, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        game_in = Game(
+            season_year=1920,
+            week=1,
+            guest_name="St. Paul Ideals",
+            guest_score=0,
+            host_name="Rock Island Independents",
+            host_score=48,
+            is_playoff=False
+        )
+        fake_game_factory.create_game.return_value = game_in
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = GameRepository()
+        kwargs = {
+            'season_year': 1920,
+            'week': 1,
+            'guest_name': "St. Paul Ideals",
+            'guest_score': 0,
+            'host_name': "Rock Island Independents",
+            'host_score': 48,
+            'is_playoff': False,
+        }
+        with pytest.raises(IntegrityError):
+            game_out = test_repo.add_game(**kwargs)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()
+
+
+@patch('app.data.repositories.game_repository.sqla')
+def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, test_app):
     # Arrange
-    test_app = create_app()
     with test_app.app_context():
         # Act
         test_repo = GameRepository()
-        games_in = ()
-        games_out = test_repo.add_games(games_in)
+
+        game_args = ()
+        games_out = test_repo.add_games(game_args)
 
     # Assert
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
-    assert games_out is games_in
+    assert games_out == []
 
 
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_games_when_games_arg_is_not_empty_should_add_games(fake_sqla):
-    # Arrange
-    test_app = create_app()
+@patch('app.data.repositories.game_repository.game_factory')
+def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_should_add_games(
+        fake_game_factory, fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game_factory.create_game.side_effect = games_in
+
         # Act
         test_repo = GameRepository()
-        games_in = (
-            Game(season_year=1, week=2, guest_name="Guest4", guest_score=1, host_name="Host4", host_score=2),
-            Game(season_year=1, week=2, guest_name="Guest5", guest_score=2, host_name="Host5", host_score=1),
-            Game(season_year=1, week=2, guest_name="Guest6", guest_score=2, host_name="Host6", host_score=2),
+
+        game_args = (
+            {
+                'season_year': 1920,
+                'week': 1,
+                'guest_name': "St. Paul Ideals",
+                'guest_score': 0,
+                'host_name': "Rock Island Independents",
+                'host_score': 48,
+                'is_playoff': False
+            },
+            {
+                'season_year': 1920,
+                'week': 2,
+                'guest_name': "Wheeling Stogies",
+                'guest_score': 0,
+                'host_name': "Akron Pros",
+                'host_score': 43,
+                'is_playoff': False
+            },
+            {
+                'season_year': 1920,
+                'week': 2,
+                'guest_name': "Muncie Flyers",
+                'guest_score': 0,
+                'host_name': "Rock Island Independents",
+                'host_score': 45,
+                'is_playoff': False
+            },
         )
-        games_out = test_repo.add_games(games_in)
+        games_out = test_repo.add_games(game_args)
 
     # Assert
     fake_sqla.session.add.assert_has_calls([
@@ -141,111 +335,507 @@ def test_add_games_when_games_arg_is_not_empty_should_add_games(fake_sqla):
         call(games_in[2]),
     ])
     fake_sqla.session.commit.assert_called_once()
-    assert games_out is games_in
+    assert games_out == games_in
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.exists')
-def test_game_exists_should_query_database(fake_exists, fake_sqla):
-    # Arrange
-    test_app = create_app()
+@patch('app.data.repositories.game_repository.game_factory')
+def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_game_factory, fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game_factory.create_game.side_effect = games_in
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = GameRepository()
+
+        game_args = (
+            {
+                'season_year': 1920,
+                'week': 1,
+                'guest_name': "St. Paul Ideals",
+                'guest_score': 0,
+                'host_name': "Rock Island Independents",
+                'host_score': 48,
+                'is_playoff': False
+            },
+            {
+                'season_year': 1920,
+                'week': 2,
+                'guest_name': "Wheeling Stogies",
+                'guest_score': 0,
+                'host_name': "Akron Pros",
+                'host_score': 43,
+                'is_playoff': False
+            },
+            {
+                'season_year': 1920,
+                'week': 2,
+                'guest_name': "Muncie Flyers",
+                'guest_score': 0,
+                'host_name': "Rock Island Independents",
+                'host_score': 45,
+                'is_playoff': False
+            },
+        )
+        with pytest.raises(IntegrityError):
+            games_out = test_repo.add_games(game_args)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()
+
+
+@patch('app.data.repositories.game_repository.Game')
+def test_game_exists_when_game_does_not_exist_should_return_false(fake_game, test_app):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+        fake_game.query.get.return_value = None
+
         # Act
         test_repo = GameRepository()
         game_exists = test_repo.game_exists(id=1)
 
     # Assert
-    fake_exists.assert_called_once()
-    fake_exists.return_value.where.assert_called_once()
-    fake_sqla.session.query.assert_called_once_with(fake_exists.return_value.where.return_value)
-    fake_sqla.session.query.return_value.scalar.assert_called_once()
-    assert game_exists == fake_sqla.session.query.return_value.scalar.return_value
+    assert not game_exists
 
 
-@patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_game_does_not_exist_should_return_game(fake_game_exists):
+@patch('app.data.repositories.game_repository.Game')
+def test_game_exists_when_game_exists_should_return_true(fake_game, test_app):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+        fake_game.query.get.return_value = games_in[1]
+
+        # Act
+        test_repo = GameRepository()
+        game_exists = test_repo.game_exists(id=1)
+
+    # Assert
+    assert game_exists
+
+
+def test_update_game_when_id_not_in_kwargs_should_raise_value_error(test_app):
     # Arrange
-    fake_game_exists.return_value = False
-
-    test_app = create_app()
     with test_app.app_context():
         # Act
         test_repo = GameRepository()
-        game_to_update = Game(season_year=1, week=2, guest_name="Guest4", guest_score=1, host_name="Host4", host_score=2)
-        game_updated = test_repo.update_game(game_to_update)
+        kwargs = {
+            'season_year': 1920,
+            'week': 1,
+            'guest_name': "St. Paul Ideals",
+            'guest_score': 0,
+            'host_name': "Rock Island Independents",
+            'host_score': 48,
+            'is_playoff': False,
+        }
+        with pytest.raises(ValueError) as err:
+            game_updated = test_repo.update_game(**kwargs)
 
     # Assert
-    fake_game_exists.assert_called_once_with(game_to_update.id)
-    assert game_updated is game_to_update
+    assert err.value.args[0] == "ID must be provided for existing Game."
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.GameRepository.get_game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_game_exists_should_update_and_return_game(
-        fake_game_exists, fake_get_game, fake_sqla
+def test_update_game_when_id_is_in_kwargs_and_no_game_exists_with_id_should_return_game_and_not_update_database(
+        fake_game_exists, fake_sqla, test_app
 ):
-    # Arrange
-    test_app = create_app()
     with test_app.app_context():
-        fake_game_exists.return_value = True
-        old_game = Game(season_year=1, week=1, guest_name="Guest1", guest_score=1, host_name="Host1", host_score=2)
-        fake_get_game.return_value = old_game
-
-        new_game = Game(season_year=99, week=99, guest_name="Guest99", guest_score=99, host_name="Host99", host_score=99)
+        # Arrange
+        fake_game_exists.return_value = False
 
         # Act
         test_repo = GameRepository()
-        game_updated = test_repo.update_game(new_game)
+        kwargs = {
+            'id': 1,
+            'season_year': 1920,
+            'week': 1,
+            'guest_name': "St. Paul Ideals",
+            'guest_score': 0,
+            'host_name': "Rock Island Independents",
+            'host_score': 48,
+            'is_playoff': False,
+        }
+        try:
+            game_updated = test_repo.update_game(**kwargs)
+        except ValueError as err:
+            assert False
 
     # Assert
-    fake_game_exists.assert_called_once_with(old_game.id)
-    fake_get_game.assert_called_once_with(old_game.id)
-    assert game_updated.season_year == new_game.season_year
-    assert game_updated.week == new_game.week
-    assert game_updated.guest_name == new_game.guest_name
-    assert game_updated.guest_score == new_game.guest_score
-    assert game_updated.host_name == new_game.host_name
-    assert game_updated.host_score == new_game.host_score
+    fake_sqla.session.add.assert_not_called()
+    fake_sqla.session.commit.assert_not_called()
+    assert isinstance(game_updated, Game)
+    assert game_updated.id == kwargs['id']
+    assert game_updated.season_year == kwargs['season_year']
+    assert game_updated.week == kwargs['week']
+    assert game_updated.guest_name == kwargs['guest_name']
+    assert game_updated.guest_score == kwargs['guest_score']
+    assert game_updated.host_name == kwargs['host_name']
+    assert game_updated.host_score == kwargs['host_score']
+    assert game_updated.is_playoff == kwargs['is_playoff']
+
+
+@patch('app.data.repositories.game_repository.sqla')
+@patch('app.data.repositories.game_repository.game_factory')
+@patch('app.data.repositories.game_repository.Game')
+@patch('app.data.repositories.game_repository.GameRepository.game_exists')
+def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_no_integrity_error_caught_should_return_game_and_update_database(
+        fake_game_exists, fake_game, fake_game_factory, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        fake_game_exists.return_value = True
+
+        games = [
+            Game(
+                id=1,
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                id=2,
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                id=3,
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games
+
+        old_game = games[1]
+        fake_game.query.get.return_value = old_game
+
+        new_game = Game(
+            id=2,
+            season_year=1920,
+            week=2,
+            guest_name="Columbus Panhandles",
+            guest_score=0,
+            host_name="Dayton Triangles",
+            host_score=14,
+            is_playoff=False
+        )
+
+        fake_game_factory.create_game.return_value = new_game
+
+        # Act
+        test_repo = GameRepository()
+        kwargs = {
+            'id': 2,
+            'season_year': 1920,
+            'week': 2,
+            'guest_name': "Columbus Panhandles",
+            'guest_score': 0,
+            'host_name': "Dayton Triangles",
+            'host_score': 14,
+            'is_playoff': False,
+        }
+        try:
+            game_updated = test_repo.update_game(**kwargs)
+        except ValueError:
+            assert False
+
+    # Assert
     fake_sqla.session.add.assert_called_once_with(old_game)
     fake_sqla.session.commit.assert_called_once()
+    assert isinstance(game_updated, Game)
+    assert game_updated.id == kwargs['id']
+    assert game_updated.season_year == kwargs['season_year']
+    assert game_updated.week == kwargs['week']
+    assert game_updated.guest_name == kwargs['guest_name']
+    assert game_updated.guest_score == kwargs['guest_score']
+    assert game_updated.host_name == kwargs['host_name']
+    assert game_updated.host_score == kwargs['host_score']
+    assert game_updated.is_playoff == kwargs['is_playoff']
     assert game_updated is new_game
 
 
+@patch('app.data.repositories.game_repository.sqla')
+@patch('app.data.repositories.game_repository.game_factory')
+@patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_delete_game_when_game_does_not_exist_should_return_none(fake_game_exists):
-    # Arrange
-    fake_game_exists.return_value = False
-    id = 1
-
-    test_app = create_app()
+def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_game_exists, fake_game, fake_game_factory, fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        fake_game_exists.return_value = True
+
+        games = [
+            Game(
+                id=1,
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                id=2,
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                id=3,
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games
+
+        old_game = games[1]
+        fake_game.query.get.return_value = old_game
+
+        new_game = Game(
+            id=2,
+            season_year=1920,
+            week=2,
+            guest_name="Columbus Panhandles",
+            guest_score=0,
+            host_name="Dayton Triangles",
+            host_score=14,
+            is_playoff=False
+        )
+        fake_game_factory.create_game.return_value = new_game
+
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
         # Act
         test_repo = GameRepository()
-        game_deleted = test_repo.delete_game(id=id)
+        kwargs = {
+            'id': 2,
+            'season_year': 1920,
+            'week': 2,
+            'guest_name': "Columbus Panhandles",
+            'guest_score': 0,
+            'host_name': "Dayton Triangles",
+            'host_score': 14,
+            'is_playoff': False,
+        }
+        with pytest.raises(IntegrityError):
+            game_updated = test_repo.update_game(**kwargs)
 
     # Assert
-    fake_game_exists.assert_called_once_with(id)
-    assert game_deleted is None
+    fake_sqla.session.rollback.assert_called_once()
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.GameRepository.get_game')
-@patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_delete_game_when_game_exists_should_return_game(fake_game_exists, fake_get_game, fake_sqla):
-    # Arrange
-    fake_game_exists.return_value = True
-    id = 1
-
-    test_app = create_app()
+@patch('app.data.repositories.game_repository.Game')
+def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_game_from_database(
+        fake_game, fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+        fake_game.query.get.return_value = None
+
+        id = 1
+
         # Act
         test_repo = GameRepository()
-        game_deleted = test_repo.delete_game(id=id)
+        game_deleted = test_repo.delete_game(id)
 
     # Assert
-    fake_game_exists.assert_called_once_with(id)
-    fake_get_game.assert_called_once_with(id)
-    fake_sqla.session.delete.assert_called_once_with(fake_get_game.return_value)
+    assert game_deleted is None
+    fake_sqla.session.delete.assert_not_called()
+    fake_sqla.session.commit.assert_not_called()
+
+
+@patch('app.data.repositories.game_repository.sqla')
+@patch('app.data.repositories.game_repository.Game')
+def test_delete_game_when_game_exists_should_return_game_and_delete_game_from_database(
+        fake_game, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+
+        id = 1
+        fake_game.query.get.return_value = games_in[id]
+
+        # Act
+        test_repo = GameRepository()
+        game_deleted = test_repo.delete_game(id)
+
+    # Assert
+    fake_sqla.session.delete.assert_called_once_with(game_deleted)
     fake_sqla.session.commit.assert_called_once()
-    return game_deleted is fake_get_game.return_value
+    assert game_deleted is games_in[id]

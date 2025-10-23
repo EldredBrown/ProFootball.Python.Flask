@@ -363,7 +363,6 @@ def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_shou
 ):
     with test_app.app_context():
         # Arrange
-        # Arrange
         team = Team(
             name="Chicago Cardinals"
         )
@@ -399,7 +398,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_team_repository, fake_render_template, test_app
 ):
     # Arrange
-    team = Team()
+    team = Team(name="Chicago Cardinals")
     fake_team_repository.get_team.return_value = team
 
     # Act
@@ -424,7 +423,7 @@ def test_delete_when_request_method_is_post_and_team_found_should_flash_success_
         fake_team_repository, fake_flash, fake_url_for, fake_redirect, test_app
 ):
     # Arrange
-    team = Team()
+    team = Team(name="Chicago Cardinals")
     fake_team_repository.get_team.return_value = team
 
     # Act
@@ -449,7 +448,7 @@ def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with
         fake_team_repository, test_app
 ):
     # Arrange
-    team = Team()
+    team = Team(name="Chicago Cardinals")
     fake_team_repository.get_team.return_value = team
     fake_team_repository.delete_team.side_effect = IndexError()
 

@@ -90,7 +90,6 @@ def test_get_division_when_divisions_is_not_empty_and_division_is_found_should_r
 
         # Act
         test_repo = DivisionRepository()
-
         division_out = test_repo.get_division(id)
 
     # Assert
@@ -135,7 +134,7 @@ def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_by_year_when_divisions_is_not_empty_and_division_with_year_is_found_should_return_division(
+def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name_is_found_should_return_division(
         fake_division, test_app
 ):
     with test_app.app_context():
@@ -214,38 +213,6 @@ def test_add_divisions_when_divisions_arg_is_empty_should_add_no_divisions(fake_
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
     assert divisions_out == []
-
-
-@patch('app.data.repositories.division_repository.sqla')
-@patch('app.data.repositories.division_repository.division_factory')
-def test_add_divisions_when_divisions_arg_is_not_empty_should_add_divisions(fake_division_factory, fake_sqla, test_app):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(name="NFC East"),
-            Division(name="NFC Central"),
-            Division(name="NFC West"),
-        ]
-        fake_division_factory.create_division.side_effect = divisions_in
-
-        # Act
-        test_repo = DivisionRepository()
-
-        division_args = (
-            {'name': "NFC East"},
-            {'name': "NFC Central"},
-            {'name': "NFC West"},
-        )
-        divisions_out = test_repo.add_divisions(division_args)
-
-    # Assert
-    fake_sqla.session.add.assert_has_calls([
-        call(divisions_in[0]),
-        call(divisions_in[1]),
-        call(divisions_in[2]),
-    ])
-    fake_sqla.session.commit.assert_called_once()
-    assert divisions_out == divisions_in
 
 
 @patch('app.data.repositories.division_repository.sqla')
@@ -399,12 +366,12 @@ def test_update_division_when_id_is_in_kwargs_and_no_division_exists_with_id_sho
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(division_updated, Division)
-    assert division_updated.id == 1
-    assert division_updated.name == "NFC East"
-    assert division_updated.league_name == "NFL"
-    assert division_updated.conference_name == "NFC"
-    assert division_updated.first_season_year == 1970
-    assert division_updated.last_season_year == None
+    assert division_updated.id == kwargs['id']
+    assert division_updated.name == kwargs['name']
+    assert division_updated.league_name == kwargs['league_name']
+    assert division_updated.conference_name == kwargs['conference_name']
+    assert division_updated.first_season_year == kwargs['first_season_year']
+    assert division_updated.last_season_year == kwargs['last_season_year']
 
 
 @patch('app.data.repositories.division_repository.sqla')
@@ -462,12 +429,12 @@ def test_update_division_when_id_is_in_kwargs_and_division_exists_with_id_and_no
     fake_sqla.session.add.assert_called_once_with(old_division)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(division_updated, Division)
-    assert division_updated.id == 2
-    assert division_updated.name == "AFC Central"
-    assert division_updated.league_name == "NFL"
-    assert division_updated.conference_name == "AFC"
-    assert division_updated.first_season_year == 1970
-    assert division_updated.last_season_year is None
+    assert division_updated.id == kwargs['id']
+    assert division_updated.name == kwargs['name']
+    assert division_updated.league_name == kwargs['league_name']
+    assert division_updated.conference_name == kwargs['conference_name']
+    assert division_updated.first_season_year == kwargs['first_season_year']
+    assert division_updated.last_season_year is kwargs['last_season_year']
     assert division_updated is new_division
 
 

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, SubmitField, StringField
-from wtforms.validators import DataRequired, InputRequired, NumberRange, ValidationError, Optional
+from wtforms import SubmitField, StringField
+from wtforms.validators import DataRequired, InputRequired, ValidationError
 
 
 def name_length_check(form, field):

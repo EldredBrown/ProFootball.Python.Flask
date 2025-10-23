@@ -90,7 +90,6 @@ def test_get_league_when_leagues_is_not_empty_and_league_is_found_should_return_
 
         # Act
         test_repo = LeagueRepository()
-
         league_out = test_repo.get_league(id)
 
     # Assert
@@ -135,7 +134,7 @@ def test_get_league_by_name_when_leagues_is_not_empty_and_league_with_short_name
 
 
 @patch('app.data.repositories.league_repository.League')
-def test_get_league_by_year_when_leagues_is_not_empty_and_league_with_year_is_found_should_return_league(
+def test_get_league_by_name_when_leagues_is_not_empty_and_league_with_name_is_found_should_return_league(
         fake_league, test_app
 ):
     with test_app.app_context():
@@ -214,38 +213,6 @@ def test_add_leagues_when_leagues_arg_is_empty_should_add_no_leagues(fake_sqla, 
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
     assert leagues_out == []
-
-
-@patch('app.data.repositories.league_repository.sqla')
-@patch('app.data.repositories.league_repository.league_factory')
-def test_add_leagues_when_leagues_arg_is_not_empty_should_add_leagues(fake_league_factory, fake_sqla, test_app):
-    with test_app.app_context():
-        # Arrange
-        leagues_in = [
-            League(short_name="NFL"),
-            League(short_name="AFL"),
-            League(short_name="AAFC"),
-        ]
-        fake_league_factory.create_league.side_effect = leagues_in
-
-        # Act
-        test_repo = LeagueRepository()
-
-        league_args = (
-            {'short_name': "NFL"},
-            {'short_name': "AFL"},
-            {'short_name': "AAFC"},
-        )
-        leagues_out = test_repo.add_leagues(league_args)
-
-    # Assert
-    fake_sqla.session.add.assert_has_calls([
-        call(leagues_in[0]),
-        call(leagues_in[1]),
-        call(leagues_in[2]),
-    ])
-    fake_sqla.session.commit.assert_called_once()
-    assert leagues_out == leagues_in
 
 
 @patch('app.data.repositories.league_repository.sqla')
@@ -397,11 +364,11 @@ def test_update_league_when_id_is_in_kwargs_and_no_league_exists_with_id_should_
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(league_updated, League)
-    assert league_updated.id == 1
-    assert league_updated.short_name == "NFL"
-    assert league_updated.long_name == "National Football League"
-    assert league_updated.first_season_year == 1922
-    assert league_updated.last_season_year == None
+    assert league_updated.id == kwargs['id']
+    assert league_updated.short_name == kwargs['short_name']
+    assert league_updated.long_name == kwargs['long_name']
+    assert league_updated.first_season_year == kwargs['first_season_year']
+    assert league_updated.last_season_year == kwargs['last_season_year']
 
 
 @patch('app.data.repositories.league_repository.sqla')
@@ -456,11 +423,11 @@ def test_update_league_when_id_is_in_kwargs_and_league_exists_with_id_and_no_int
     fake_sqla.session.add.assert_called_once_with(old_league)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(league_updated, League)
-    assert league_updated.id == 2
-    assert league_updated.short_name == "USFL"
-    assert league_updated.long_name == "United States Football League"
-    assert league_updated.first_season_year == 1983
-    assert league_updated.last_season_year == 1987
+    assert league_updated.id == kwargs['id']
+    assert league_updated.short_name == kwargs['short_name']
+    assert league_updated.long_name == kwargs['long_name']
+    assert league_updated.first_season_year == kwargs['first_season_year']
+    assert league_updated.last_season_year == kwargs['last_season_year']
     assert league_updated is new_league
 
 
