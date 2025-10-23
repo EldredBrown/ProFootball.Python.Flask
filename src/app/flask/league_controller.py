@@ -2,7 +2,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from sqlalchemy.exc import IntegrityError
 
 from app.data.repositories.league_repository import LeagueRepository
-from app.flask.forms.league import NewLeagueForm, EditLeagueForm, DeleteLeagueForm
+from app.flask.forms.league_forms import NewLeagueForm, EditLeagueForm, DeleteLeagueForm
 
 blueprint = Blueprint('league', __name__)
 

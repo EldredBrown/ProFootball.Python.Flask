@@ -1,6 +1,6 @@
 import unittest
 
-from app.flask.forms.conference import ConferenceForm
+from app.flask.forms.conference_forms import ConferenceForm
 from test_app import create_app
 
 
@@ -29,7 +29,7 @@ class TestForms(unittest.TestCase):
         form = ConferenceForm(data={
             'long_name': "National Football Conference",
             'league_name': "NFL",
-            'first_season_year': 1922,
+            'first_season_year': 1970,
             'last_season_year': None,
         })
         self.assertFalse(form.validate())
@@ -50,7 +50,7 @@ class TestForms(unittest.TestCase):
         form = ConferenceForm(data={
             'short_name': "NFC",
             'league_name': "NFL",
-            'first_season_year': 1922,
+            'first_season_year': 1970,
             'last_season_year': None,
         })
         self.assertFalse(form.validate())

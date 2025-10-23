@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from app.data.repositories.season_repository import SeasonRepository
-from app.flask.forms.season import NewSeasonForm, EditSeasonForm, DeleteSeasonForm
+from app.flask.forms.season_forms import NewSeasonForm, EditSeasonForm, DeleteSeasonForm
 
 blueprint = Blueprint('season', __name__)
 

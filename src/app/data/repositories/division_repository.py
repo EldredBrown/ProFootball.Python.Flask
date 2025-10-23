@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.division import Division
 from app.data.sqla import sqla
+from app.data.factories import division_factory
 
 
 class DivisionRepository:
@@ -38,45 +39,57 @@ class DivisionRepository:
             return None
         return Division.query.get(id)
 
-    def get_division_by_name(self, name: str) -> Division | None:
+    def get_division_by_name(self, short_name: str) -> Division | None:
         """
         Gets the division in the data store with the specified id.
 
-        :param name: The year of the division to fetch.
+        :param short_name: The short_name of the division to fetch.
 
         :return: The fetched division.
         """
         divisions = self.get_divisions()
         if len(divisions) == 0:
             return None
-        return Division.query.filter_by(name=name).first()
+        return Division.query.filter_by(short_name=short_name).first()
 
-    def add_division(self, division: Division) -> Division:
+    def add_division(self, **kwargs) -> Division:
         """
         Adds a division to the data store.
 
-        :param division: The division to add.
+        :param **kwargs: A keyword args dictionary containing values for the division to add.
 
         :return: The added division.
         """
+        division = division_factory.create_division(**kwargs)
         sqla.session.add(division)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return division
 
-    def add_divisions(self, divisions: tuple) -> tuple:
+    def add_divisions(self, division_args: tuple) -> List[Division]:
         """
-        Adds a collection of divisions to the data store.
+        Adds a collection of division_args dictionaries to the data store.
 
-        :param divisions: The divisions to add.
+        :param division_args: The tuple of division keyword args dictionaries to add.
 
         :return: The added divisions.
         """
-        for division in divisions:
-            sqla.session.add(division)
-        sqla.session.commit()
+        divisions = []
+        try:
+            for kwargs in division_args:
+                division = division_factory.create_division(kwargs)
+                divisions.append(division)
+                sqla.session.add(division)
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return divisions
 
-    def update_division(self, division: Division) -> Division | None:
+    def update_division(self, **kwargs) -> Division | None:
         """
         Updates a division in the data store.
 
@@ -84,18 +97,29 @@ class DivisionRepository:
 
         :return: The updated division.
         """
-        if not self.division_exists(division.id):
-            return division
+        if 'id' not in kwargs:
+            raise ValueError("ID must be provided for existing Division.")
 
-        division_to_update = self.get_division(division.id)
-        division_to_update.name = division.name
-        division_to_update.league_name = division.league_name
-        division_to_update.conference_name = division.conference_name
-        division_to_update.first_season_year = division.first_season_year
-        division_to_update.last_season_year = division.last_season_year
-        sqla.session.add(division_to_update)
-        sqla.session.commit()
-        return division
+        if not self.division_exists(kwargs['id']):
+            return Division(**kwargs)
+
+        old_division = self.get_division(kwargs['id'])
+        new_division = division_factory.create_division(old_division, **kwargs)
+
+        old_division.name = new_division.name
+        old_division.league_name = new_division.league_name
+        old_division.conference_name = new_division.conference_name
+        old_division.first_season_year = new_division.first_season_year
+        old_division.last_season_year = new_division.last_season_year
+
+        sqla.session.add(old_division)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return new_division
 
     def delete_division(self, id: int) -> Division | None:
         """
@@ -121,4 +145,4 @@ class DivisionRepository:
 
         :return: True if the division with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(Division.id == id)).scalar()
+        return self.get_division(id) is not None

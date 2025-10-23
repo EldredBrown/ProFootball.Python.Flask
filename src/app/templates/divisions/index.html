@@ -1,0 +1,58 @@
+{% extends 'divisions/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Divisions{% endblock %}
+
+{% block content %}
+<h1>Divisions</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('division.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Name
+            </th>
+            <th class="text-left">
+                League Name
+            </th>
+            <th class="text-left">
+                Conference Name
+            </th>
+            <th class="text-right">
+                First Season
+            </th>
+            <th class="text-right">
+                Last Season
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for division in divisions %}
+        <tr>
+            <td class="text-left">
+                {{ division.name }}
+            </td>
+            <td class="text-left">
+                {{ division.league_name }}
+            </td>
+            <td class="text-left">
+                {{ division.conference_name }}
+            </td>
+            <td class="text-right">
+                {{ division.first_season_year }}
+            </td>
+            <td class="text-right">
+                {{ division.last_season_year }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('division.details', id=division.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('division.edit', id=division.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('division.delete', id=division.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

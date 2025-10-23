@@ -1,23 +1,23 @@
-{% extends 'conferences/edit_base.html' %}
+{% extends 'divisions/edit_base.html' %}
 {% set active_page = 'edit' %}
-{% block title %}Edit Conference{% endblock %}
+{% block title %}Edit Division{% endblock %}
 
 {% block h4 %}Edit{% endblock %}
 
 {% block form %}
-<form method="POST" action="{{ url_for('conference.edit', id=conference.id) }}">
+<form method="POST" action="{{ url_for('division.edit', id=division.id) }}">
     {{ form.hidden_tag() }}
     <div class="form-group">
-        {{ form.short_name.label }}
-        {{ form.short_name(class='form-control') }}
-    </div>
-    <div class="form-group">
-        {{ form.long_name.label }}
-        {{ form.long_name(class='form-control') }}
+        {{ form.name.label }}
+        {{ form.name(class='form-control') }}
     </div>
     <div class="form-group">
         {{ form.league_name.label }}
         {{ form.league_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.conference_name.label }}
+        {{ form.conference_name(class='form-control') }}
     </div>
     <div class="form-group">
         {{ form.first_season_year.label }}

@@ -1,6 +1,6 @@
 import unittest
 
-from app.flask.forms.league import LeagueForm
+from app.flask.forms.league_forms import LeagueForm
 from test_app import create_app
 
 

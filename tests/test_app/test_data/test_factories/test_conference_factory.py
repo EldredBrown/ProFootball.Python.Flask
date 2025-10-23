@@ -103,7 +103,7 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provi
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act
@@ -142,7 +142,7 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provi
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act
@@ -183,7 +183,7 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provi
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act
@@ -298,7 +298,7 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provid
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act
@@ -337,7 +337,7 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provid
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act
@@ -378,7 +378,7 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provid
 
         old_conference = Conference(
             id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1922, last_season_year=None
+            first_season_year=1970, last_season_year=None
         )
 
         # Act

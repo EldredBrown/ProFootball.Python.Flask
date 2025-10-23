@@ -2,7 +2,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from sqlalchemy.exc import IntegrityError
 
 from app.data.repositories.conference_repository import ConferenceRepository
-from app.flask.forms.conference import NewConferenceForm, EditConferenceForm, DeleteConferenceForm
+from app.flask.forms.conference_forms import NewConferenceForm, EditConferenceForm, DeleteConferenceForm
 
 blueprint = Blueprint('conference', __name__)
 

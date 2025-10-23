@@ -1,6 +1,6 @@
 import unittest
 
-from app.flask.forms.season import SeasonForm
+from app.flask.forms.season_forms import SeasonForm
 from test_app import create_app
 
 
