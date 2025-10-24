@@ -371,10 +371,18 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
         fake_game_repository.get_game.return_value = game
 
         fake_edit_game_form.return_value.validate_on_submit.return_value = True
-        fake_edit_game_form.return_value.name.data = "Chicago Cardinals"
+        fake_edit_game_form.return_value.season_year.data = 1920
+        fake_edit_game_form.return_value.week.data = 1
+        fake_edit_game_form.return_value.guest_name.data = "St. Paul Ideals"
+        fake_edit_game_form.return_value.guest_score.data = 0
+        fake_edit_game_form.return_value.host_name.data = "Rock Island Independents"
+        fake_edit_game_form.return_value.host_score.data = 48
+        fake_edit_game_form.return_value.is_playoff.data = False
+        fake_edit_game_form.return_value.notes.data = None
 
         id = 1
         kwargs = {
+            'id': id,
             'season_year': 1920,
             'week': 1,
             'guest_name': "St. Paul Ideals",
@@ -391,7 +399,7 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
     # Assert
     fake_game_repository.update_game.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(
-        f"Game for season={fake_edit_game_form.return_value.season_year.data} with guest={fake_edit_game_form.return_value.guest_name.data} and host={fake_edit_game_form.return_value.host_name} has been successfully updated.",
+        f"Game for season={fake_edit_game_form.return_value.season_year.data} with guest={fake_edit_game_form.return_value.guest_name.data} and host={fake_edit_game_form.return_value.host_name.data} has been successfully updated.",
         'success'
     )
     fake_url_for.assert_called_once_with('game.details', id=id)
@@ -421,13 +429,21 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
         fake_game_repository.get_game.return_value = game
 
         fake_edit_game_form.return_value.validate_on_submit.return_value = True
-        fake_edit_game_form.return_value.name.data = "Chicago Cardinals"
+        fake_edit_game_form.return_value.season_year.data = 1920
+        fake_edit_game_form.return_value.week.data = 1
+        fake_edit_game_form.return_value.guest_name.data = "St. Paul Ideals"
+        fake_edit_game_form.return_value.guest_score.data = 0
+        fake_edit_game_form.return_value.host_name.data = "Rock Island Independents"
+        fake_edit_game_form.return_value.host_score.data = 48
+        fake_edit_game_form.return_value.is_playoff.data = False
+        fake_edit_game_form.return_value.notes.data = None
 
         err = ValueError()
         fake_game_repository.update_game.side_effect = err
 
         id = 1
         kwargs = {
+            'id': id,
             'season_year': 1920,
             'week': 1,
             'guest_name': "St. Paul Ideals",
@@ -472,13 +488,21 @@ def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_shou
         fake_game_repository.get_game.return_value = game
 
         fake_edit_game_form.return_value.validate_on_submit.return_value = True
-        fake_edit_game_form.return_value.name.data = "Chicago Cardinals"
+        fake_edit_game_form.return_value.season_year.data = 1920
+        fake_edit_game_form.return_value.week.data = 1
+        fake_edit_game_form.return_value.guest_name.data = "St. Paul Ideals"
+        fake_edit_game_form.return_value.guest_score.data = 0
+        fake_edit_game_form.return_value.host_name.data = "Rock Island Independents"
+        fake_edit_game_form.return_value.host_score.data = 48
+        fake_edit_game_form.return_value.is_playoff.data = False
+        fake_edit_game_form.return_value.notes.data = None
 
         err = IntegrityError('statement', 'params', Exception())
         fake_game_repository.update_game.side_effect = err
 
         id = 1
         kwargs = {
+            'id': id,
             'season_year': 1920,
             'week': 1,
             'guest_name': "St. Paul Ideals",

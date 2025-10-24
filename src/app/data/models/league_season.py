@@ -7,11 +7,11 @@ class LeagueSeason(sqla.Model):
     """
     Class to represent the association between one pro football league and one pro football season.
     """
-    __tablename__ = 'league_season'
+    __tablename__ = 'LeagueSeason'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    league_name = sqla.Column(sqla.String(5), sqla.ForeignKey('league.short_name'), nullable=False)
-    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('season.year'), nullable=False)
+    league_name = sqla.Column(sqla.String(5), sqla.ForeignKey('League.short_name'), nullable=False)
+    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
     total_games = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     total_points = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     average_points = sqla.Column(sqla.Float, nullable=True)

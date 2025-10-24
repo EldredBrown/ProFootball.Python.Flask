@@ -1,0 +1,149 @@
+{% extends 'team_seasons/base.html' %}
+{% set active_page = 'index' %}
+{% block title %}TeamSeasons{% endblock %}
+
+{% block content %}
+<h1>TeamSeasons</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Team
+            </th>
+            <th class="text-left">
+                Season
+            </th>
+            <th class="text-left">
+                League
+            </th>
+            <th class="text-left">
+                Conference
+            </th>
+            <th class="text-left">
+                Division
+            </th>
+            <th class="text-left">
+                G
+            </th>
+            <th class="text-left">
+                W
+            </th>
+            <th class="text-left">
+                L
+            </th>
+            <th class="text-left">
+                T
+            </th>
+            <th class="text-left">
+                W%
+            </th>
+            <th class="text-left">
+                PF
+            </th>
+            <th class="text-left">
+                PA
+            </th>
+            <th class="text-left">
+                Exp W
+            </th>
+            <th class="text-left">
+                Exp L
+            </th>
+            <th class="text-left">
+                Off. Avg.
+            </th>
+            <th class="text-left">
+                Off. Factor
+            </th>
+            <th class="text-left">
+                Off. Index
+            </th>
+            <th class="text-left">
+                Def. Avg.
+            </th>
+            <th class="text-left">
+                Def. Factor
+            </th>
+            <th class="text-left">
+                Def. Index
+            </th>
+            <th class="text-left">
+                Final Exp W%
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team_season in team_seasons %}
+        <tr>
+            <td class="text-left">
+                {{ team_season.team_name }}
+            </td>
+            <td class="text-left">
+                {{ team_season.season_year }}
+            </td>
+            <td class="text-left">
+                {{ team_season.league_name }}
+            </td>
+            <td class="text-left">
+                {{ team_season.conference_name }}
+            </td>
+            <td class="text-left">
+                {{ team_season.division_name }}
+            </td>
+            <td class="text-left">
+                {{ team_season.games }}
+            </td>
+            <td class="text-left">
+                {{ team_season.wins }}
+            </td>
+            <td class="text-left">
+                {{ team_season.losses }}
+            </td>
+            <td class="text-left">
+                {{ team_season.ties }}
+            </td>
+            <td class="text-left">
+                {{ team_season.winning_percentage | round(3) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.points_for }}
+            </td>
+            <td class="text-left">
+                {{ team_season.points_against }}
+            </td>
+            <td class="text-left">
+                {{ team_season.expected_wins | round(1) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.expected_losses | round(1) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.offensive_average or 0 | round(2) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.offensive_factor or 0 | round(3) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.offensive_index or 0 | round(2) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.defensive_average or 0 | round(2) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.defensive_factor or 0 | round(3) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.defensive_index or 0 | round(2) }}
+            </td>
+            <td class="text-left">
+                {{ team_season.final_expected_winning_percentage or 0 | round(3) }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('team_season.details', id=team_season.id) }}">Details</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

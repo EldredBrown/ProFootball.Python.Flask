@@ -1,45 +1,38 @@
-from sqlalchemy.orm import validates
+from decimal import Decimal
 
 from app.data.sqla import sqla
 
-EXPONENT = 2.37
+EXPONENT = Decimal('2.37')
 
 
 class TeamSeason(sqla.Model):
     """
     Class to represent the association between one pro football team and one pro football season.
     """
-    __tablename__ = 'team_season'
+    __tablename__ = 'TeamSeason'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    team_name = sqla.Column(sqla.String(50), sqla.ForeignKey('team.name'), nullable=False)
-    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('season.year'), nullable=False)
-    league_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('league.short_name'), nullable=False)
-    conference_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('conference.short_name'))
-    division_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('division.name'))
+    team_name = sqla.Column(sqla.String(50), sqla.ForeignKey('Team.name'), nullable=False)
+    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
+    league_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('League.short_name'), nullable=False)
+    conference_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Conference.short_name'))
+    division_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Division.name'))
     games = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     wins = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     losses = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     ties = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    winning_percentage = sqla.Column(sqla.Float)
+    winning_percentage = sqla.Column(sqla.Numeric(precision=18, scale=17), nullable=False, default=0)
     points_for = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     points_against = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    expected_wins = sqla.Column(sqla.Float, nullable=False, default=0)
-    expected_losses = sqla.Column(sqla.Float, nullable=False, default=0)
-    offensive_average = sqla.Column(sqla.Float)
-    offensive_factor = sqla.Column(sqla.Float)
-    offensive_index = sqla.Column(sqla.Float)
-    defensive_average = sqla.Column(sqla.Float)
-    defensive_factor = sqla.Column(sqla.Float)
-    defensive_index = sqla.Column(sqla.Float)
-    final_expected_winning_percentage = sqla.Column(sqla.Float)
-
-    @validates('team_name', 'season_year', 'league_name')
-    def validate_not_empty(self, key, value):
-        if not value and value != 0:
-            raise ValueError(f"{key} is required.")
-
-        return value
+    expected_wins = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
+    expected_losses = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
+    offensive_average = sqla.Column(sqla.Numeric(precision=18, scale=16))
+    offensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=15))
+    offensive_index = sqla.Column(sqla.Numeric(precision=18, scale=16))
+    defensive_average = sqla.Column(sqla.Numeric(precision=18, scale=16))
+    defensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=15))
+    defensive_index = sqla.Column(sqla.Numeric(precision=18, scale=16))
+    final_expected_winning_percentage = sqla.Column(sqla.Numeric(precision=18, scale=17))
 
     def calculate_expected_wins_and_losses(self) -> None:
         """

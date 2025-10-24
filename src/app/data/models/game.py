@@ -10,7 +10,7 @@ class Game(sqla.Model):
     __tablename__ = 'game'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('season.year'), nullable=False)
+    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
     week = sqla.Column(sqla.SmallInteger, nullable=False)
     guest_name = sqla.Column(sqla.String(50), nullable=False)
     guest_score = sqla.Column(sqla.SmallInteger, nullable=False)

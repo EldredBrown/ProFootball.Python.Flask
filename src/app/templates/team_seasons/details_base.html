@@ -1,0 +1,145 @@
+{% extends 'team_seasons/base.html' %}
+
+{% block content %}
+<h1>TeamSeason</h1>
+
+    {% block header_content %}{% endblock %}
+    <hr>
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">
+                Team
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.team_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Season
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.season_year }}
+            </dd>
+            <dt class="col-sm-2">
+                League
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.league_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Conference
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.conference_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Division
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.division_name }}
+            </dd>
+            <dt class="col-sm-2">
+                G
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.games }}
+            </dd>
+            <dt class="col-sm-2">
+                W
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.wins }}
+            </dd>
+            <dt class="col-sm-2">
+                L
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.losses }}
+            </dd>
+            <dt class="col-sm-2">
+                T
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.ties }}
+            </dd>
+            <dt class="col-sm-2">
+                W%
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.winning_percentage | round(3) }}
+            </dd>
+            <dt class="col-sm-2">
+                PF
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.points_for }}
+            </dd>
+            <dt class="col-sm-2">
+                PA
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.points_against }}
+            </dd>
+            <dt class="col-sm-2">
+                Exp. W
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.expected_wins | round(1) }}
+            </dd>
+            <dt class="col-sm-2">
+                Exp. L
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.expected_losses | round(1) }}
+            </dd>
+            <dt class="col-sm-2">
+                Off. Avg.
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.offensive_average or 0 | round(2) }}
+            </dd>
+            <dt class="col-sm-2">
+                Off. Factor
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.offensive_factor or 0 | round(3) }}
+            </dd>
+            <dt class="col-sm-2">
+                Off. Index
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.offensive_index or 0 | round(2) }}
+            </dd>
+            <dt class="col-sm-2">
+                Def. Avg.
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.defensive_average or 0 | round(2) }}
+            </dd>
+            <dt class="col-sm-2">
+                Def. Factor
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.defensive_factor or 0 | round(3) }}
+            </dd>
+            <dt class="col-sm-2">
+                Def. Index
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.defensive_index or 0 | round(2) }}
+            </dd>
+            <dt class="col-sm-2">
+                Fin Exp W%
+            </dt>
+            <dd class="col-sm-10">
+                {{ team_season.final_expected_winning_percentage or 0 | round(3) }}
+            </dd>
+        </dl>
+    </div>
+
+    <div>
+        {% block footer_content %}{% endblock %}
+        <p>
+            <a href="{{ url_for('team_season.index') }}">Back to List</a>
+        </p>
+    </div>
+{% endblock %}

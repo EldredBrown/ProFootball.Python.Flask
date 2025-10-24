@@ -10,7 +10,7 @@ class Season(sqla.Model):
     """
     Model to represent a pro football season.
     """
-    __tablename__ = 'season'
+    __tablename__ = 'Season'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
     year = sqla.Column(sqla.SmallInteger, unique=True, nullable=False)
