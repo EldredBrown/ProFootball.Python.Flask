@@ -4,20 +4,24 @@
 
 {% block content %}
 <h1>Games</h1>
-<form method="POST" action="/games/submit_season">
+<form method="POST" action="/games/select_season">
     <label for="season_dropdown">Choose a season:</label>
     <select id="season_dropdown" name="season_dropdown">
         {% for season in seasons %}
-            <option value="{{ season.year }}">{{ season.year }}</option>
+            <option value="{{ season.year }}" {% if season.year == selected_season.year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
         {% endfor %}
     </select>
     <button type="submit">Submit</button>
 </form>
-<form method="POST" action="/games/submit_week">
+<form method="POST" action="/games/select_week">
     <label for="week_dropdown">Choose a week:</label>
     <select id="week_dropdown" name="week_dropdown">
-        {% for week in range(1, season.num_of_weeks_completed + 1) %}
-            <option value="{{ week }}">{{ week }}</option>
+        {% for week in range(1, selected_season.num_of_weeks_completed + 1) %}
+            <option value="{{ week }}" {% if week == selected_week %}selected='selected'{% endif %}>
+                {{ week }}
+            </option>
         {% endfor %}
     </select>
     <button type="submit">Submit</button>

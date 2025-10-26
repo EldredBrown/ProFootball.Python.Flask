@@ -52,7 +52,7 @@ def test_get_team_seasons_should_get_team_seasons(fake_team_season, test_app):
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_get_team_seasons_by_season_year_should_get_team_seasons_for_the_specified_season_year(
+def test_get_team_seasons_by_season_year_when_season_year_is_none_should_get_empty_list(
         fake_team_season, test_app
 ):
     with test_app.app_context():
@@ -106,7 +106,73 @@ def test_get_team_seasons_by_season_year_should_get_team_seasons_for_the_specifi
         ]
         filter_year = 1921
         fake_team_season.query.filter_by.return_value.all.return_value = [
-            x for x in team_seasons_in if x.season_year == 1921
+            x for x in team_seasons_in if x.season_year == filter_year
+        ]
+
+        # Act
+        test_repo = TeamSeasonRepository()
+        team_seasons_out = test_repo.get_team_seasons_by_season_year(season_year=None)
+
+    # Assert
+    assert team_seasons_out == []
+
+
+@patch('app.data.repositories.team_season_repository.TeamSeason')
+def test_get_team_seasons_by_season_year_when_season_year_is_not_none_should_get_team_seasons_for_the_specified_season_year(
+        fake_team_season, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        team_seasons_in = [
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1922,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1922,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1922,
+                league_name="APFA"
+            ),
+        ]
+        filter_year = 1921
+        fake_team_season.query.filter_by.return_value.all.return_value = [
+            x for x in team_seasons_in if x.season_year == filter_year
         ]
 
         # Act

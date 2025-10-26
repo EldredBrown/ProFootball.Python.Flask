@@ -25,7 +25,7 @@ class TeamSeasonRepository:
         """
         return TeamSeason.query.all()
 
-    def get_team_seasons_by_season_year(self, season_year: int) -> List[TeamSeason]:
+    def get_team_seasons_by_season_year(self, season_year: int | None) -> List[TeamSeason]:
         """
         Gets all the team_seasons in the data store filtered by season_year.
 
@@ -33,6 +33,8 @@ class TeamSeasonRepository:
 
         :return: A list of all fetched team_seasons.
         """
+        if season_year is None:
+            return []
         return TeamSeason.query.filter_by(season_year=season_year).all()
 
     def get_team_season(self, id: int) -> TeamSeason | None:

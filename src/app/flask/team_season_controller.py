@@ -1,5 +1,4 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from sqlalchemy.exc import IntegrityError
+from flask import Blueprint, abort, render_template, request
 
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.flask.season_controller import season_repository
@@ -9,14 +8,20 @@ blueprint = Blueprint('team_season', __name__)
 team_season_repository = TeamSeasonRepository()
 
 seasons = None
+selected_year = None
 
 
 @blueprint.route('/')
 def index():
     global seasons
+    global selected_year
+
     seasons = season_repository.get_seasons()
-    team_seasons = team_season_repository.get_team_seasons()
-    return render_template('team_seasons/index.html', seasons=seasons, team_seasons=team_seasons)
+    team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)
+    return render_template(
+        'team_seasons/index.html',
+        seasons=seasons, selected_year=selected_year, team_seasons=team_seasons
+    )
 
 
 @blueprint.route('/details/<int:id>')
@@ -28,9 +33,14 @@ def details(id: int):
         abort(404)
 
 
-@blueprint.route('/submit', methods=['POST'])
-def submit():
+@blueprint.route('/select_season', methods=['POST'])
+def select_season():
     global seasons
-    selected_value = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_value)
-    return render_template('team_seasons/index.html', seasons=seasons, team_seasons=team_seasons)
+    global selected_year
+
+    selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)
+    return render_template(
+        'team_seasons/index.html',
+        seasons=seasons, selected_year=selected_year, team_seasons=team_seasons
+    )

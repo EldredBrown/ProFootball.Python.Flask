@@ -66,7 +66,110 @@ def test_get_games_should_get_games(test_app):
     assert games_out == games_in
 
 
-def test_get_games_by_season_year_should_get_games_for_specified_season_year(test_app):
+def test_get_games_by_season_year_when_season_year_arg_is_none_should_return_empty_list(test_app):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        filter_year = 1921
+        test_repo = GameRepository()
+        games_out = test_repo.get_games_by_season_year(None)
+
+    # Assert
+    assert games_out == []
+
+
+def test_get_games_by_season_year_when_season_year_arg_is_not_none_should_return_games_for_specified_season_year(
+        test_app
+):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
@@ -168,7 +271,217 @@ def test_get_games_by_season_year_should_get_games_for_specified_season_year(tes
         assert game.season_year == filter_year
 
 
-def test_get_games_by_season_year_and_week_should_get_games_for_specified_season_year_and_week(test_app):
+def test_get_games_by_season_year_and_week_when_season_year_arg_is_none_should_return_empty_list(
+        test_app
+):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        filter_year = None
+        filter_week = 2
+        test_repo = GameRepository()
+        games_out = test_repo.get_games_by_season_year_and_week(filter_year, filter_week)
+
+    # Assert
+    assert games_out == []
+
+
+def test_get_games_by_season_year_and_week_when_week_arg_is_none_should_return_empty_list(
+        test_app
+):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        filter_year = 1921
+        filter_week = None
+        test_repo = GameRepository()
+        games_out = test_repo.get_games_by_season_year_and_week(filter_year, filter_week)
+
+    # Assert
+    assert games_out == []
+
+
+def test_get_games_by_season_year_and_week_when_args_are_not_none_should_return_games_for_specified_season_year_and_week(
+        test_app
+):
     with test_app.app_context():
         # Arrange
         db_init.init_db()

@@ -1,14 +1,16 @@
 {% extends 'base.html' %}
 {% set active_page = 'index' %}
-{% block title %}TeamSeasons{% endblock %}
+{% block title %}Team Seasons{% endblock %}
 
 {% block content %}
-<h1>TeamSeasons</h1>
-<form method="POST" action="/team_seasons/submit">
+<h1>Team Seasons</h1>
+<form method="POST" action="/team_seasons/select_season">
     <label for="dropdown">Choose a season:</label>
     <select id="dropdown" name="season_dropdown">
         {% for season in seasons %}
-            <option value="{{ season.year }}">{{ season.year }}</option>
+            <option value="{{ season.year }}" {% if season.year == selected_year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
         {% endfor %}
     </select>
     <button type="submit">Submit</button>
@@ -37,7 +39,7 @@
             <th class="text-right align-right-override">
                 W
             </th>
-            <th class="text-right align-right-override-left">
+            <th class="text-right align-right-override">
                 L
             </th>
             <th class="text-right align-right-override">
@@ -59,22 +61,22 @@
                 Exp L
             </th>
             <th class="text-right align-right-override">
-                Off. Avg.
+                Off Avg.
             </th>
             <th class="text-right align-right-override">
-                Off. Factor
+                Off Factor
             </th>
             <th class="text-right align-right-override">
-                Off. Index
+                Off Index
             </th>
             <th class="text-right align-right-override">
-                Def. Avg.
+                Def Avg.
             </th>
             <th class="text-right align-right-override">
-                Def. Factor
+                Def Factor
             </th>
             <th class="text-right align-right-override">
-                Def. Index
+                Def Index
             </th>
             <th class="text-right align-right-override">
                 Final Exp W%

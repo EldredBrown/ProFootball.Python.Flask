@@ -2,25 +2,32 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.season import Season
+from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.game_repository import GameRepository
 from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm
-from app.flask.season_controller import season_repository
 
 blueprint = Blueprint('game', __name__)
 
+season_repository = SeasonRepository()
 game_repository = GameRepository()
 
 seasons = None
-season = Season(year=1, num_of_weeks_scheduled=0, num_of_weeks_completed=0)
+selected_season = Season(year=0, num_of_weeks_scheduled=17, num_of_weeks_completed=17)
+selected_week = 0
 
 
 @blueprint.route('/')
 def index():
     global seasons
-    global season
+    global selected_season
+    global selected_week
+
     seasons = season_repository.get_seasons()
-    games = game_repository.get_games()
-    return render_template('games/index.html', seasons=seasons, season=season, games=games)
+    games = game_repository.get_games_by_season_year(season_year=None)
+    return render_template(
+        'games/index.html',
+        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+    )
 
 
 @blueprint.route('/details/<int:id>')
@@ -120,23 +127,33 @@ def delete(id: int):
         abort(404)
 
 
-@blueprint.route('/submit_season', methods=['POST'])
-def submit_season():
+@blueprint.route('/select_season', methods=['POST'])
+def select_season():
     global seasons
-    global season
+    global selected_season
+    global selected_week
+
     selected_value = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    season = season_repository.get_season_by_year(selected_value)
+    selected_season = season_repository.get_season_by_year(selected_value)
     games = game_repository.get_games_by_season_year(season_year=selected_value)
-    return render_template('games/index.html', seasons=seasons, season=season, games=games)
+    return render_template(
+        'games/index.html',
+        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+    )
 
 
-@blueprint.route('/submit_week', methods=['POST'])
-def submit_week():
+@blueprint.route('/select_week', methods=['POST'])
+def select_week():
     global seasons
-    global season
-    selected_value = int(request.form.get('week_dropdown'))  # Fetch the selected week.
-    games = game_repository.get_games_by_season_year_and_week(season_year=season.year, week=selected_value)
-    return render_template('games/index.html', seasons=seasons, season=season, games=games)
+    global selected_season
+    global selected_week
+
+    selected_week = int(request.form.get('week_dropdown'))  # Fetch the selected week.
+    games = game_repository.get_games_by_season_year_and_week(season_year=selected_season.year, week=selected_week)
+    return render_template(
+        'games/index.html',
+        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+    )
 
 
 def _handle_error(err, template_name_or_list, form, game=None):

@@ -20,17 +20,25 @@ def test_app():
     return create_app()
 
 
+@patch('app.flask.game_controller.selected_season')
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.game_repository')
-def test_index_should_render_game_index_template(fake_game_repository, fake_render_template, test_app):
+@patch('app.flask.game_controller.season_repository')
+def test_index_should_render_game_index_template(
+        fake_season_repository, fake_game_repository, fake_render_template, fake_selected_season, test_app
+):
     # Act
     with test_app.app_context():
         result = game_controller.index()
 
     # Assert
-    fake_game_repository.get_games.assert_called_once()
+    fake_season_repository.get_seasons.assert_called_once()
+    fake_game_repository.get_games_by_season_year.assert_called_once_with(season_year=None)
     fake_render_template.assert_called_once_with(
-        'games/index.html', games=fake_game_repository.get_games.return_value
+        'games/index.html',
+        seasons=fake_season_repository.get_seasons.return_value,
+        selected_season=fake_selected_season,
+        selected_week=0, games=fake_game_repository.get_games_by_season_year.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -617,3 +625,60 @@ def test_delete_when_request_method_is_post_and_game_not_found_should_abort_with
         with test_app.app_context():
             with pytest.raises(NotFound):
                 result = game_controller.delete(1)
+
+
+@pytest.mark.skip('WIP')
+@patch('app.flask.game_controller.render_template')
+def test_select_season_should_render_game_index_template_for_selected_season(fake_render_template, test_app):
+    with test_app.app_context():
+        with test_app.test_request_context(
+                '/season_standings/select_season',
+                method='POST'
+        ):
+            # Arrange
+            selected_year = 0
+
+            # Act
+            result = game_controller.select_season()
+
+    # Assert
+    # fake_request.form.get.assert_called_once_with('season_dropdown'))  # Fetch the selected season.
+    # selected_season = fake_season_repository.get_season_by_year.assert_called_once_with(
+    #     fake_request.form.get.return_value
+    # )
+    # games = fake_game_repository.get_games_by_season_year.assert_called_once_with(
+    #     season_year=fake_request.form.get.return_value
+    # )
+    # fake_render_template.assert_called_once_with(
+    #     'games/index.html',
+    #     seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+    # )
+    assert result is fake_render_template.return_value
+
+
+@pytest.mark.skip('WIP')
+@patch('app.flask.game_controller.render_template')
+def test_select_week_should_render_game_index_template_for_selected_season_and_selected_week(
+        fake_render_template, test_app
+):
+    with test_app.app_context():
+        with test_app.test_request_context(
+                '/season_standings/select_season',
+                method='POST'
+        ):
+            # Arrange
+            selected_year = 0
+
+            # Act
+            result = game_controller.select_season()
+
+    # Assert
+    # fake_request.form.get.assert_called_once_with('week_dropdown'))  # Fetch the selected week.
+    # games = fake_game_repository.get_games_by_season_year_and_week.assert_called_once_with(
+    #     season_year=selected_season.year, week=selected_week
+    # )
+    # fake_render_template.assert_called_once_with(
+    #     'games/index.html',
+    #     seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+    # )
+    assert result is fake_render_template.return_value

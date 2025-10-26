@@ -26,7 +26,7 @@ class GameRepository:
         """
         return Game.query.all()
 
-    def get_games_by_season_year(self, season_year: int) -> List[Game]:
+    def get_games_by_season_year(self, season_year: int | None) -> List[Game]:
         """
         Gets all the games in the data store filtered by season_year.
 
@@ -34,9 +34,11 @@ class GameRepository:
 
         :return: A list of all fetched games.
         """
+        if season_year is None:
+            return []
         return Game.query.filter_by(season_year=season_year).all()
 
-    def get_games_by_season_year_and_week(self, season_year: int, week: int) -> List[Game]:
+    def get_games_by_season_year_and_week(self, season_year: int | None, week: int | None) -> List[Game]:
         """
         Gets all the games in the data store filtered by season_year.
 
@@ -44,6 +46,8 @@ class GameRepository:
 
         :return: A list of all fetched games.
         """
+        if season_year is None or week is None:
+            return []
         return Game.query.filter_by(season_year=season_year, week=week).all()
 
     def get_game(self, id: int) -> Game | None:
