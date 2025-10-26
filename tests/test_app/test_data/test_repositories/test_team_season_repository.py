@@ -4,6 +4,8 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
+from app import sqla
+from instance.test_db import db_init
 from test_app import create_app
 
 from app.data.models.season import Season
@@ -47,6 +49,73 @@ def test_get_team_seasons_should_get_team_seasons(fake_team_season, test_app):
 
     # Assert
     assert team_seasons_out == team_seasons_in
+
+
+@patch('app.data.repositories.team_season_repository.TeamSeason')
+def test_get_team_seasons_by_season_year_should_get_team_seasons_for_the_specified_season_year(
+        fake_team_season, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        team_seasons_in = [
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1920,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1921,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Chicago Cardinals",
+                season_year=1922,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Decatur Staleys",
+                season_year=1922,
+                league_name="APFA"
+            ),
+            TeamSeason(
+                team_name="Akron Pros",
+                season_year=1922,
+                league_name="APFA"
+            ),
+        ]
+        filter_year = 1921
+        fake_team_season.query.filter_by.return_value.all.return_value = [
+            x for x in team_seasons_in if x.season_year == 1921
+        ]
+
+        # Act
+        test_repo = TeamSeasonRepository()
+        team_seasons_out = test_repo.get_team_seasons_by_season_year(season_year=filter_year)
+
+    # Assert
+    for team_season in team_seasons_out:
+        assert team_season.season_year == filter_year
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')

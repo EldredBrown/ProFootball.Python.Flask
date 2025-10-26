@@ -26,6 +26,26 @@ class GameRepository:
         """
         return Game.query.all()
 
+    def get_games_by_season_year(self, season_year: int) -> List[Game]:
+        """
+        Gets all the games in the data store filtered by season_year.
+
+        :param season_year: The season_year to filter.
+
+        :return: A list of all fetched games.
+        """
+        return Game.query.filter_by(season_year=season_year).all()
+
+    def get_games_by_season_year_and_week(self, season_year: int, week: int) -> List[Game]:
+        """
+        Gets all the games in the data store filtered by season_year.
+
+        :param season_year: The season_year to filter.
+
+        :return: A list of all fetched games.
+        """
+        return Game.query.filter_by(season_year=season_year, week=week).all()
+
     def get_game(self, id: int) -> Game | None:
         """
         Gets the game in the data store with the specified id.
@@ -38,19 +58,6 @@ class GameRepository:
         if len(games) == 0:
             return None
         return Game.query.get(id)
-
-    def get_game_by_name(self, short_name: str) -> Game | None:
-        """
-        Gets the game in the data store with the specified id.
-
-        :param short_name: The short_name of the game to fetch.
-
-        :return: The fetched game.
-        """
-        games = self.get_games()
-        if len(games) == 0:
-            return None
-        return Game.query.filter_by(short_name=short_name).first()
 
     def add_game(self, **kwargs) -> Game:
         """

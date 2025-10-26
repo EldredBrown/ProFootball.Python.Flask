@@ -1,16 +1,25 @@
-{% extends 'team_seasons/base.html' %}
+{% extends 'base.html' %}
 {% set active_page = 'index' %}
 {% block title %}TeamSeasons{% endblock %}
 
 {% block content %}
 <h1>TeamSeasons</h1>
+<form method="POST" action="/team_seasons/submit">
+    <label for="dropdown">Choose a season:</label>
+    <select id="dropdown" name="season_dropdown">
+        {% for season in seasons %}
+            <option value="{{ season.year }}">{{ season.year }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
 <table class="table">
     <thead>
         <tr>
             <th class="text-left">
                 Team
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Season
             </th>
             <th class="text-left">
@@ -22,52 +31,52 @@
             <th class="text-left">
                 Division
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 G
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 W
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override-left">
                 L
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 T
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 W%
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 PF
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 PA
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Exp W
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Exp L
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Off. Avg.
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Off. Factor
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Off. Index
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Def. Avg.
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Def. Factor
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Def. Index
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Final Exp W%
             </th>
             <th></th>
@@ -79,7 +88,7 @@
             <td class="text-left">
                 {{ team_season.team_name }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.season_year }}
             </td>
             <td class="text-left">
@@ -91,52 +100,52 @@
             <td class="text-left">
                 {{ team_season.division_name }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.games }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.wins }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.losses }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.ties }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.winning_percentage | round(3) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.points_for }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.points_against }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.expected_wins | round(1) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.expected_losses | round(1) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.offensive_average or 0 | round(2) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.offensive_factor or 0 | round(3) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.offensive_index or 0 | round(2) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.defensive_average or 0 | round(2) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.defensive_factor or 0 | round(3) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.defensive_index or 0 | round(2) }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ team_season.final_expected_winning_percentage or 0 | round(3) }}
             </td>
             <td>

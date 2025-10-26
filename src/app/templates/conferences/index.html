@@ -1,4 +1,4 @@
-{% extends 'conferences/base.html' %}
+{% extends 'base.html' %}
 {% set active_page = 'index' %}
 {% block title %}Conferences{% endblock %}
 
@@ -19,10 +19,10 @@
             <th class="text-left">
                 League Name
             </th>
-            <th class="text-right">
+            <th class="text-right align-right-override">
                 First Season
             </th>
-            <th class="text-right">
+            <th class="text-right align-right-override">
                 Last Season
             </th>
             <th></th>
@@ -40,10 +40,10 @@
             <td class="text-left">
                 {{ conference.league_name }}
             </td>
-            <td class="text-right">
+            <td class="text-right align-right-override">
                 {{ conference.first_season_year }}
             </td>
-            <td class="text-right">
+            <td class="text-right align-right-override">
                 {{ conference.last_season_year }}
             </td>
             <td>

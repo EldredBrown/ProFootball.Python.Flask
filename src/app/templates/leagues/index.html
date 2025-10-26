@@ -1,4 +1,4 @@
-{% extends 'leagues/base.html' %}
+{% extends 'base.html' %}
 {% set active_page = 'index' %}
 {% block title %}Leagues{% endblock %}
 
@@ -16,10 +16,10 @@
             <th class="text-left">
                 Long Name
             </th>
-            <th class="text-right">
+            <th class="text-right align-right-override">
                 First Season
             </th>
-            <th class="text-right">
+            <th class="text-right align-right-override">
                 Last Season
             </th>
             <th></th>
@@ -34,10 +34,10 @@
             <td class="text-left">
                 {{ league.long_name }}
             </td>
-            <td class="text-right">
+            <td class="text-right align-right-override">
                 {{ league.first_season_year }}
             </td>
-            <td class="text-right">
+            <td class="text-right align-right-override">
                 {{ league.last_season_year }}
             </td>
             <td>

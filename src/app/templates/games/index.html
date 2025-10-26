@@ -1,34 +1,52 @@
-{% extends 'games/base.html' %}
+{% extends 'base.html' %}
 {% set active_page = 'index' %}
 {% block title %}Games{% endblock %}
 
 {% block content %}
 <h1>Games</h1>
+<form method="POST" action="/games/submit_season">
+    <label for="season_dropdown">Choose a season:</label>
+    <select id="season_dropdown" name="season_dropdown">
+        {% for season in seasons %}
+            <option value="{{ season.year }}">{{ season.year }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/games/submit_week">
+    <label for="week_dropdown">Choose a week:</label>
+    <select id="week_dropdown" name="week_dropdown">
+        {% for week in range(1, season.num_of_weeks_completed + 1) %}
+            <option value="{{ week }}">{{ week }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
 <p>
     <a class="btn btn-primary" href="{{ url_for('game.create') }}">Create New</a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Season
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Week
             </th>
             <th class="text-left">
                 Guest
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Guest Score
             </th>
             <th class="text-left">
                 Host
             </th>
-            <th class="text-left">
+            <th class="text-right align-right-override">
                 Host Score
             </th>
-            <th class="text-left">
+            <th class="text-center">
                 Is Playoff?
             </th>
             <th class="text-left">
@@ -40,25 +58,25 @@
     <tbody>
         {% for game in games %}
         <tr>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ game.season_year }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ game.week }}
             </td>
             <td class="text-left">
                 {{ game.guest_name }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ game.guest_score }}
             </td>
             <td class="text-left">
                 {{ game.host_name }}
             </td>
-            <td class="text-left">
+            <td class="text-right align-right-override">
                 {{ game.host_score }}
             </td>
-            <td class="text-left">
+            <td class="text-center">
                 {{ game.is_playoff }}
             </td>
             <td class="text-left">

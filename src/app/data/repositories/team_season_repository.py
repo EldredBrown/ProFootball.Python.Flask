@@ -25,6 +25,16 @@ class TeamSeasonRepository:
         """
         return TeamSeason.query.all()
 
+    def get_team_seasons_by_season_year(self, season_year: int) -> List[TeamSeason]:
+        """
+        Gets all the team_seasons in the data store filtered by season_year.
+
+        :param season_year: The season_year to filter.
+
+        :return: A list of all fetched team_seasons.
+        """
+        return TeamSeason.query.filter_by(season_year=season_year).all()
+
     def get_team_season(self, id: int) -> TeamSeason | None:
         """
         Gets the team_season in the data store with the specified id.

@@ -23,3 +23,7 @@ button a {
 .delete-form {
     display: inline;
 }
+
+.align-right-override {
+    text-align: right;
+}

@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template
 
+from app.flask.season_controller import season_repository
+
 blueprint = Blueprint('home', __name__)
 
 

@@ -4,6 +4,8 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
+from app import sqla
+from instance.test_db import db_init
 from test_app import create_app
 
 from app.data.models.season import Season
@@ -18,10 +20,11 @@ def test_app():
     return create_app()
 
 
-@patch('app.data.repositories.game_repository.Game')
-def test_get_games_should_get_games(fake_game, test_app):
+def test_get_games_should_get_games(test_app):
     with test_app.app_context():
         # Arrange
+        db_init.init_db()
+
         games_in = [
             Game(
                 season_year=1920,
@@ -51,7 +54,9 @@ def test_get_games_should_get_games(fake_game, test_app):
                 is_playoff=False
             ),
         ]
-        fake_game.query.all.return_value = games_in
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
 
         # Act
         test_repo = GameRepository()
@@ -59,6 +64,211 @@ def test_get_games_should_get_games(fake_game, test_app):
 
     # Assert
     assert games_out == games_in
+
+
+def test_get_games_by_season_year_should_get_games_for_specified_season_year(test_app):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        filter_year = 1921
+        test_repo = GameRepository()
+        games_out = test_repo.get_games_by_season_year(filter_year)
+
+    # Assert
+    for game in games_out:
+        assert game.season_year == filter_year
+
+
+def test_get_games_by_season_year_and_week_should_get_games_for_specified_season_year_and_week(test_app):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1921,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1922,
+                week=3,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        for game in games_in:
+            sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        filter_year = 1921
+        filter_week = 2
+        test_repo = GameRepository()
+        games_out = test_repo.get_games_by_season_year_and_week(filter_year, filter_week)
+
+    # Assert
+    for game in games_out:
+        assert game.season_year == filter_year and game.week == filter_week
 
 
 @patch('app.data.repositories.game_repository.Game')
