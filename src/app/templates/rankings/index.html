@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Rankings{% endblock %}
+
+{% block content %}
+<form method="POST" action="/rankings/select_season">
+    <label for="season_dropdown">Choose a season:</label>
+    <select id="season_dropdown" name="season_dropdown">
+        {% for season in seasons %}
+            <option value="{{ season.year }}" {% if season.year == selected_year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/rankings/select_type">
+    <label for="ranking_type_dropdown">Choose a ranking type:</label>
+    <select id="ranking_type_dropdown" name="ranking_type_dropdown">
+        {% for type in types %}
+            <option value="{{ type }}" {% if type == selected_type %}selected='selected'{% endif %}>
+                {{ type }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+{% block table_content %}{% endblock %}
+{% endblock %}

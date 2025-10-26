@@ -1,0 +1,86 @@
+{% extends 'rankings/index.html' %}
+{% set active_page = 'offense' %}
+{% block title %}Total Rankings{% endblock %}
+
+{% block table_content %}
+<h1>Total Rankings</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Team
+            </th>
+            <th class="text-right align-right-override">
+                W
+            </th>
+            <th class="text-right align-right-override">
+                L
+            </th>
+            <th class="text-right align-right-override">
+                T
+            </th>
+            <th class="text-right align-right-override">
+                Off Avg
+            </th>
+            <th class="text-right align-right-override">
+                Off Factor
+            </th>
+            <th class="text-right align-right-override">
+                Off Index
+            </th>
+            <th class="text-right align-right-override">
+                Def Avg
+            </th>
+            <th class="text-right align-right-override">
+                Def Factor
+            </th>
+            <th class="text-right align-right-override">
+                Def Index
+            </th>
+            <th class="text-right align-right-override">
+                Final Exp W%
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team_season in rankings %}
+        <tr>
+            <td class="text-left">
+                {{ team_season.team_name }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.wins }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.losses }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.ties }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.offensive_average or 0 | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.offensive_factor or 0 | round(3) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.offensive_index or 0 | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.defensive_average or 0 | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.defensive_factor or 0 | round(3) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.defensive_index or 0 | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ team_season.final_expected_winning_percentage or 0 | round(3) }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
