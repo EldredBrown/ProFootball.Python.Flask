@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Season Standings{% endblock %}
+
+{% block content %}
+<h1>Season Standings</h1>
+<form method="POST" action="/season_standings/select_season">
+    <label for="dropdown">Choose a season:</label>
+    <select id="dropdown" name="season_dropdown">
+        {% for season in seasons %}
+            <option value="{{ season.year }}" {% if season.year == selected_year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Team
+            </th>
+            <th class="text-right align-right-override">
+                W
+            </th>
+            <th class="text-right align-right-override">
+                L
+            </th>
+            <th class="text-right align-right-override">
+                T
+            </th>
+            <th class="text-right align-right-override">
+                W%
+            </th>
+            <th class="text-right align-right-override">
+                PF
+            </th>
+            <th class="text-right align-right-override">
+                PA
+            </th>
+            <th class="text-right align-right-override">
+                Avg PF
+            </th>
+            <th class="text-right align-right-override">
+                Avg PA
+            </th>
+            <th class="text-right align-right-override">
+                Exp W
+            </th>
+            <th class="text-right align-right-override">
+                Exp L
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for standings_team_season in season_standings %}
+        <tr>
+            <td class="text-left">
+                {{ standings_team_season.team_name }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.wins }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.losses }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.ties }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.winning_percentage | round(3) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.points_for }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.points_against }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.avg_points_for | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.avg_points_against | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.expected_wins | round(1) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ standings_team_season.expected_losses | round(1) }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
