@@ -1,15 +1,18 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
+from app.data.factories import game_factory
 from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.game_repository import GameRepository
 from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm
+from app.services.game_service.game_service import GameService
 
 blueprint = Blueprint('game', __name__)
 
 season_repository = SeasonRepository()
 game_repository = GameRepository()
+game_service = GameService()
 
 seasons = None
 selected_season = Season(year=0, num_of_weeks_scheduled=17, num_of_weeks_completed=17)
@@ -56,7 +59,8 @@ def create():
             'notes': form.notes.data,
         }
         try:
-            game_repository.add_game(**kwargs)
+            new_game = game_factory.create_game(**kwargs)
+            game_service.add_game(new_game)
             flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name} has been successfully submitted.", 'success')
             return redirect(url_for('game.index'))
         except ValueError as err:
@@ -72,8 +76,8 @@ def create():
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int):
-    game = game_repository.get_game(id)
-    if game:
+    old_game = game_repository.get_game(id)
+    if old_game:
         form = EditGameForm()
         if form.validate_on_submit():
             kwargs = {
@@ -88,7 +92,8 @@ def edit(id: int):
                 'notes': form.notes.data,
             }
             try:
-                game_repository.update_game(**kwargs)
+                new_game = game_factory.create_game(**kwargs)
+                game_service.update_game(new_game, old_game)
                 flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('game.details', id=id))
             except ValueError as err:
@@ -96,19 +101,19 @@ def edit(id: int):
             except IntegrityError as err:
                 return _handle_error(err, 'games/edit.html', form, game=game)
         else:
-            form.season_year.data = game.season_year
-            form.week.data = game.week
-            form.guest_name.data = game.guest_name
-            form.guest_score.data = game.guest_score
-            form.host_name.data = game.host_name
-            form.host_score.data = game.host_score
-            form.is_playoff.data = game.is_playoff
-            form.notes.data = game.notes
+            form.season_year.data = old_game.season_year
+            form.week.data = old_game.week
+            form.guest_name.data = old_game.guest_name
+            form.guest_score.data = old_game.guest_score
+            form.host_name.data = old_game.host_name
+            form.host_score.data = old_game.host_score
+            form.is_playoff.data = old_game.is_playoff
+            form.notes.data = old_game.notes
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
-            return render_template('games/edit.html', game=game, form=form)
+            return render_template('games/edit.html', game=old_game, form=form)
     else:
         abort(404)
 
@@ -118,7 +123,7 @@ def delete(id: int):
     game = game_repository.get_game(id)
     try:
         if request.method == 'POST':
-            game_repository.delete_game(id)
+            game_service.delete_game(id)
             flash(f"Game for season={game.season_year} with guest={game.guest_name} and host={game.host_name} has been successfully deleted.", 'success')
             return redirect(url_for('game.index'))
         else:

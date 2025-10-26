@@ -14,10 +14,12 @@ class GameService:
     A service to handle the more complicated actions of adding, editing, or deleting games in the data store.
     """
 
-    def __init__(self,
-                 game_repository: GameRepository = None,
-                 team_season_repository: TeamSeasonRepository = None,
-                 process_game_strategy_factory: ProcessGameStrategyFactory = None):
+    def __init__(
+            self,
+            game_repository: GameRepository = None,
+            team_season_repository: TeamSeasonRepository = None,
+            process_game_strategy_factory: ProcessGameStrategyFactory = None
+    ):
         """
         Initializes a new instance of the GameService class.
 
@@ -49,18 +51,18 @@ class GameService:
         guard.raise_if_none(new_game, f"{type(self).__name__}.add_game: new_game")
 
         if not (
-            self._team_season_repository.team_season_exists_with_team_and_season(new_game.guest_name,
-                                                                                 new_game.season_year)
-            or self._team_season_repository.team_season_exists_with_team_and_season(new_game.host_name,
-                                                                                    new_game.season_year)
+            self._team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.guest_name,
+                                                                                           new_game.season_year)
+            or self._team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.host_name,
+                                                                                              new_game.season_year)
         ):
             raise EntityNotFoundError()
 
         new_game.decide_winner_and_loser()
         self._game_repository.add_game(new_game)
-        self._edit_teams(Direction.UP, new_game)
+        self._edit_team_seasons(Direction.UP, new_game)
 
-    def edit_game(self, new_game: Game | None, old_game: Game | None) -> None:
+    def update_game(self, new_game: Game | None, old_game: Game | None) -> None:
         """
         Edits a game in the data store.
 
@@ -72,18 +74,18 @@ class GameService:
         :raises EntityNotFoundError: If the selected game cannot be found in the data store.
         :raises ValueError: If the new_game or old_game argument is None.
         """
-        guard.raise_if_none(new_game, f"{type(self).__name__}.edit_game: new_game")
-        guard.raise_if_none(old_game, f"{type(self).__name__}.edit_game: old_game")
+        guard.raise_if_none(new_game, f"{type(self).__name__}.update_game: new_game")
+        guard.raise_if_none(old_game, f"{type(self).__name__}.update_game: old_game")
 
         selected_game = self._game_repository.get_game(old_game.id)
         if selected_game is None:
             raise EntityNotFoundError(
-                f"{type(self).__name__}.edit_game: A game with id={id} could not be found.")
+                f"{type(self).__name__}.update_game: A game with id={id} could not be found.")
 
         new_game.decide_winner_and_loser()
         self._game_repository.update_game(new_game)
-        self._edit_teams(Direction.DOWN, old_game)
-        self._edit_teams(Direction.UP, new_game)
+        self._edit_team_seasons(Direction.DOWN, old_game)
+        self._edit_team_seasons(Direction.UP, new_game)
 
     def delete_game(self, id: int) -> None:
         """
@@ -101,10 +103,10 @@ class GameService:
             raise EntityNotFoundError(
                 f"{type(self).__name__}.delete_game: A game with id={id} could not be found.")
 
-        self._edit_teams(Direction.DOWN, old_game)
+        self._edit_team_seasons(Direction.DOWN, old_game)
         self._game_repository.delete_game(id)
 
-    def _edit_teams(self, direction: int, game: Game) -> None:
+    def _edit_team_seasons(self, direction: int, game: Game) -> None:
         process_game_strategy = self._process_game_strategy_factory.create_strategy(direction)
         process_game_strategy.process_game(game)
 

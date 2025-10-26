@@ -33,8 +33,8 @@ class ProcessGameStrategy:
         guard.raise_if_none(game, f"{type(self).__name__}.process_game: game")
 
         season_year = game.season_year
-        guest_season = self._team_season_repository.get_team_season_by_team_and_season(game.guest_name, season_year)
-        host_season = self._team_season_repository.get_team_season_by_team_and_season(game.host_name, season_year)
+        guest_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.guest_name, season_year)
+        host_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.host_name, season_year)
 
         self._edit_win_loss_data(guest_season, host_season, game)
         self._edit_scoring_data(guest_season, host_season, game.guest_score, game.host_score)

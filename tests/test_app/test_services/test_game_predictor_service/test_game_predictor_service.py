@@ -15,7 +15,7 @@ def test_predict_game_score_should_return_none_when_guest_season_is_none(fake_te
     host_season_year = 1
     host_season = None
 
-    fake_team_season_repository.get_team_season_by_team_and_season.side_effect = (guest_season, host_season)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
 
     # Act
     test_service = GamePredictorService(fake_team_season_repository)
@@ -23,8 +23,8 @@ def test_predict_game_score_should_return_none_when_guest_season_is_none(fake_te
                                                                                   host_name, host_season_year)
 
     # Assert
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(guest_name, guest_season_year)
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(host_name, host_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(guest_name, guest_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(host_name, host_season_year)
 
     assert predicted_guest_score is None
     assert predicted_host_score is None
@@ -47,7 +47,7 @@ def test_predict_game_score_should_return_none_when_host_season_is_none(fake_tea
     host_season_year = 1
     host_season = None
 
-    fake_team_season_repository.get_team_season_by_team_and_season.side_effect = (guest_season, host_season)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
 
     # Act
     test_service = GamePredictorService(fake_team_season_repository)
@@ -55,8 +55,8 @@ def test_predict_game_score_should_return_none_when_host_season_is_none(fake_tea
                                                                                   host_name, host_season_year)
 
     # Assert
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(guest_name, guest_season_year)
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(host_name, host_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(guest_name, guest_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(host_name, host_season_year)
 
     assert predicted_guest_score is None
     assert predicted_host_score is None
@@ -85,7 +85,7 @@ def test_predict_game_score_should_return_correctly_calculated_prediction_when_g
     host_season.defensive_average = 7.000
     host_season.defensive_factor = 8.000
 
-    fake_team_season_repository.get_team_season_by_team_and_season.side_effect = (guest_season, host_season)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
 
     # Act
     test_service = GamePredictorService(fake_team_season_repository)
@@ -93,8 +93,8 @@ def test_predict_game_score_should_return_correctly_calculated_prediction_when_g
                                                                                   host_name, host_season_year)
 
     # Assert
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(guest_name, guest_season_year)
-    fake_team_season_repository.get_team_season_by_team_and_season.assert_any_call(host_name, host_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(guest_name, guest_season_year)
+    fake_team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(host_name, host_season_year)
 
     assert predicted_guest_score == round(((guest_season.offensive_factor * host_season.defensive_average
                                             + host_season.defensive_factor * guest_season.offensive_average) / 2), 1)

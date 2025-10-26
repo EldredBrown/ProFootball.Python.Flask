@@ -268,7 +268,7 @@ class IntegrationTestGameService(unittest.TestCase):
 
         # Act
         test_service = GameService()
-        test_service.edit_game(new_game, old_game)
+        test_service.update_game(new_game, old_game)
     
         # Assert
         verify_game_record(new_game)
@@ -320,7 +320,7 @@ class IntegrationTestGameService(unittest.TestCase):
         test_service.add_game(old_game)
 
         # Act
-        test_service.edit_game(new_game, old_game)
+        test_service.update_game(new_game, old_game)
 
         # Assert
         verify_game_record(new_game)
@@ -386,7 +386,7 @@ class IntegrationTestGameService(unittest.TestCase):
         test_service.add_game(old_game)
 
         # Act
-        test_service.edit_game(new_game, old_game)
+        test_service.update_game(new_game, old_game)
 
         # Assert
         verify_game_record(new_game)
@@ -464,7 +464,7 @@ class IntegrationTestGameService(unittest.TestCase):
         test_service.add_game(old_game)
 
         # Act
-        test_service.edit_game(new_game, old_game)
+        test_service.update_game(new_game, old_game)
 
         # Assert
         verify_game_record(new_game)

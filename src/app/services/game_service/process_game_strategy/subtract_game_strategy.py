@@ -49,12 +49,12 @@ class SubtractGameStrategy(ProcessGameStrategy):
         else:
             season_year = game.season_year
 
-            winner_season = self._team_season_repository.get_team_season_by_team_and_season(game.winner_name,
-                                                                                            season_year)
+            winner_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.winner_name,
+                                                                                                      season_year)
             if winner_season is not None:
                 winner_season.wins -= 1
 
-            loser_season = self._team_season_repository.get_team_season_by_team_and_season(game.loser_name,
-                                                                                           season_year)
+            loser_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.loser_name,
+                                                                                                     season_year)
             if loser_season is not None:
                 loser_season.losses -= 1

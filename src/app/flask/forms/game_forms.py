@@ -41,7 +41,6 @@ class GameForm(FlaskForm):
         "Guest Score",
         validators=[
             InputRequired("Please enter a guest score."),
-            DataRequired("Please enter a guest score."),
             NumberRange(min=0, message="Please enter a non-negative guest score.")
         ]
     )
@@ -57,7 +56,6 @@ class GameForm(FlaskForm):
         "Host Score",
         validators=[
             InputRequired("Please enter a host score."),
-            DataRequired("Please enter a hose score."),
             NumberRange(min=0, message="Please enter a non-negative hose score.")
         ]
     )

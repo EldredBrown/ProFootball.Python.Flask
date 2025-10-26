@@ -63,7 +63,7 @@ class GameRepository:
             return None
         return Game.query.get(id)
 
-    def add_game(self, **kwargs) -> Game:
+    def add_game(self, game: Game) -> Game:
         """
         Adds a game to the data store.
 
@@ -71,7 +71,6 @@ class GameRepository:
 
         :return: The added game.
         """
-        game = game_factory.create_game(**kwargs)
         sqla.session.add(game)
         try:
             sqla.session.commit()
@@ -100,7 +99,7 @@ class GameRepository:
             raise
         return games
 
-    def update_game(self, **kwargs) -> Game | None:
+    def update_game(self, game: Game) -> Game | None:
         """
         Updates a game in the data store.
 
@@ -108,23 +107,18 @@ class GameRepository:
 
         :return: The updated game.
         """
-        if 'id' not in kwargs:
-            raise ValueError("ID must be provided for existing Game.")
+        if not self.game_exists(game.id):
+            return game
 
-        if not self.game_exists(kwargs['id']):
-            return Game(**kwargs)
-
-        old_game = self.get_game(kwargs['id'])
-        new_game = game_factory.create_game(**kwargs)
-
-        old_game.season_year = new_game.season_year
-        old_game.week = new_game.week
-        old_game.guest_name = new_game.guest_name
-        old_game.guest_score = new_game.guest_score
-        old_game.host_name = new_game.host_name
-        old_game.host_score = new_game.host_score
-        old_game.is_playoff = new_game.is_playoff
-        old_game.notes = new_game.notes
+        old_game = self.get_game(game.id)
+        old_game.season_year = game.season_year
+        old_game.week = game.week
+        old_game.guest_name = game.guest_name
+        old_game.guest_score = game.guest_score
+        old_game.host_name = game.host_name
+        old_game.host_score = game.host_score
+        old_game.is_playoff = game.is_playoff
+        old_game.notes = game.notes
 
         sqla.session.add(old_game)
         try:
@@ -133,7 +127,7 @@ class GameRepository:
             sqla.session.rollback()
             raise
 
-        return new_game
+        return game
 
     def delete_game(self, id: int) -> Game | None:
         """

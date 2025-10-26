@@ -40,16 +40,16 @@ def test_process_game_when_game_is_a_tie_should_update_ties_for_team_seasons(tes
     host_season.points_for = 0
     host_season.points_against = 0
 
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.side_effect = (guest_season, host_season)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
 
     # Act
     test_strategy.process_game(game)
 
     # Assert
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.guest_name,
-                                                                                             game.season_year)
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.host_name,
-                                                                                             game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.guest_name,
+                                                                                                       game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.host_name,
+                                                                                                       game.season_year)
     assert guest_season.games == 1
     assert guest_season.wins == 0
     assert guest_season.losses == 0
@@ -99,21 +99,21 @@ def test_process_game_when_game_is_not_a_tie_should_update_wins_and_losses_for_t
     host_season.points_for = 0
     host_season.points_against = 0
 
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.side_effect = (guest_season, host_season,
-                                                                                   host_season, guest_season)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season,
+                                                                                                      host_season, guest_season)
 
     # Act
     test_strategy.process_game(game)
 
     # Assert
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.guest_name,
-                                                                                             game.season_year)
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.host_name,
-                                                                                             game.season_year)
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.winner_name,
-                                                                                             game.season_year)
-    test_strategy._team_season_repository.get_team_season_by_team_and_season.assert_any_call(game.loser_name,
-                                                                                             game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.guest_name,
+                                                                                                       game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.host_name,
+                                                                                                       game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.winner_name,
+                                                                                                       game.season_year)
+    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.loser_name,
+                                                                                                       game.season_year)
     assert guest_season.games == 1
     assert guest_season.wins == 0
     assert guest_season.losses == 1

@@ -49,3 +49,56 @@ class TeamSeasonRepository:
         if len(team_seasons) == 0:
             return None
         return TeamSeason.query.get(id)
+
+    def get_team_season_by_team_name_and_season_year(self, team_name: str, season_year: int) -> TeamSeason:
+        team_season = TeamSeason.query.filter_by(team_name=team_name, season_year=season_year).first()
+        return team_season
+
+    def update_team_season(self, team_season: TeamSeason) -> None:
+        if not self.team_season_exists(team_season.id):
+            return team_season
+
+        old_team_season = self.get_team_season(team_season.id)
+        old_team_season.team_name = team_season.team_name
+        old_team_season.season_year = team_season.season_year
+        old_team_season.league_name = team_season.league_name
+        old_team_season.conference_name = team_season.conference_name
+        old_team_season.division_name = team_season.division_name
+        old_team_season.games = team_season.games
+        old_team_season.wins = team_season.wins
+        old_team_season.losses = team_season.losses
+        old_team_season.ties = team_season.ties
+        old_team_season.winning_percentage = team_season.winning_percentage
+        old_team_season.points_for = team_season.points_for
+        old_team_season.points_against = team_season.points_against
+        old_team_season.expected_wins = team_season.expected_wins
+        old_team_season.expected_losses = team_season.expected_losses
+        old_team_season.offensive_average = team_season.offensive_average
+        old_team_season.offensive_factor = team_season.offensive_factor
+        old_team_season.offensive_index = team_season.offensive_index
+        old_team_season.defensive_average = team_season.defensive_average
+        old_team_season.defensive_factor = team_season.defensive_factor
+        old_team_season.defensive_index = team_season.defensive_index
+        old_team_season.final_expected_winning_percentage = team_season.final_expected_winning_percentage
+
+        sqla.session.add(old_team_season)
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
+
+        return team_season
+
+    def team_season_exists(self, id: int) -> bool:
+        """
+        Checks to verify whether a specific game exists in the data store.
+
+        :param id: The id of the game to verify.
+
+        :return: True if the game with the specified id exists in the data store; otherwise false.
+        """
+        return self.get_team_season(id) is not None
+
+    def team_season_exists_with_team_name_and_season_year(self, team_name: str, season_year: int) -> bool:
+        return self.get_team_season_by_team_name_and_season_year(team_name, season_year) is not None
