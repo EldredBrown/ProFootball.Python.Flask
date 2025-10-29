@@ -692,8 +692,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_found_should_return_game(f
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
-def test_add_game_when_no_integrity_error_caught_should_add_game(fake_game_factory, fake_sqla, test_app):
+def test_add_game_when_no_integrity_error_caught_should_add_game(fake_sqla, test_app):
     with test_app.app_context():
         # Arrange
         game_in = Game(
@@ -705,20 +704,10 @@ def test_add_game_when_no_integrity_error_caught_should_add_game(fake_game_facto
             host_score=48,
             is_playoff=False
         )
-        fake_game_factory.create_game.return_value = game_in
 
         # Act
         test_repo = GameRepository()
-        kwargs = {
-            'season_year': 1920,
-            'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
-            'is_playoff': False,
-        }
-        game_out = test_repo.add_game(**kwargs)
+        game_out = test_repo.add_game(game_in)
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(game_in)
@@ -727,9 +716,8 @@ def test_add_game_when_no_integrity_error_caught_should_add_game(fake_game_facto
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
 def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_game_factory, fake_sqla, test_app
+        fake_sqla, test_app
 ):
     with test_app.app_context():
         # Arrange
@@ -742,22 +730,12 @@ def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_re
             host_score=48,
             is_playoff=False
         )
-        fake_game_factory.create_game.return_value = game_in
         fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         test_repo = GameRepository()
-        kwargs = {
-            'season_year': 1920,
-            'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
-            'is_playoff': False,
-        }
         with pytest.raises(IntegrityError):
-            game_out = test_repo.add_game(**kwargs)
+            game_out = test_repo.add_game(game_in)
 
     # Assert
     fake_sqla.session.rollback.assert_called_once()
@@ -776,17 +754,16 @@ def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, test_a
     # Assert
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
-    assert games_out == []
+    assert games_out == tuple()
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
 def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_should_add_games(
-        fake_game_factory, fake_sqla, test_app
+        fake_sqla, test_app
 ):
     with test_app.app_context():
         # Arrange
-        games_in = [
+        games_in = (
             Game(
                 season_year=1920,
                 week=1,
@@ -814,42 +791,12 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
                 host_score=45,
                 is_playoff=False
             ),
-        ]
-        fake_game_factory.create_game.side_effect = games_in
+        )
 
         # Act
         test_repo = GameRepository()
 
-        game_args = (
-            {
-                'season_year': 1920,
-                'week': 1,
-                'guest_name': "St. Paul Ideals",
-                'guest_score': 0,
-                'host_name': "Rock Island Independents",
-                'host_score': 48,
-                'is_playoff': False
-            },
-            {
-                'season_year': 1920,
-                'week': 2,
-                'guest_name': "Wheeling Stogies",
-                'guest_score': 0,
-                'host_name': "Akron Pros",
-                'host_score': 43,
-                'is_playoff': False
-            },
-            {
-                'season_year': 1920,
-                'week': 2,
-                'guest_name': "Muncie Flyers",
-                'guest_score': 0,
-                'host_name': "Rock Island Independents",
-                'host_score': 45,
-                'is_playoff': False
-            },
-        )
-        games_out = test_repo.add_games(game_args)
+        games_out = test_repo.add_games(games_in)
 
     # Assert
     fake_sqla.session.add.assert_has_calls([
@@ -862,13 +809,12 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
 def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_game_factory, fake_sqla, test_app
+        fake_sqla, test_app
 ):
     with test_app.app_context():
         # Arrange
-        games_in = [
+        games_in = (
             Game(
                 season_year=1920,
                 week=1,
@@ -896,44 +842,14 @@ def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should
                 host_score=45,
                 is_playoff=False
             ),
-        ]
-        fake_game_factory.create_game.side_effect = games_in
+        )
         fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         test_repo = GameRepository()
 
-        game_args = (
-            {
-                'season_year': 1920,
-                'week': 1,
-                'guest_name': "St. Paul Ideals",
-                'guest_score': 0,
-                'host_name': "Rock Island Independents",
-                'host_score': 48,
-                'is_playoff': False
-            },
-            {
-                'season_year': 1920,
-                'week': 2,
-                'guest_name': "Wheeling Stogies",
-                'guest_score': 0,
-                'host_name': "Akron Pros",
-                'host_score': 43,
-                'is_playoff': False
-            },
-            {
-                'season_year': 1920,
-                'week': 2,
-                'guest_name': "Muncie Flyers",
-                'guest_score': 0,
-                'host_name': "Rock Island Independents",
-                'host_score': 45,
-                'is_playoff': False
-            },
-        )
         with pytest.raises(IntegrityError):
-            games_out = test_repo.add_games(game_args)
+            games_out = test_repo.add_games(games_in)
 
     # Assert
     fake_sqla.session.rollback.assert_called_once()
@@ -1027,30 +943,9 @@ def test_game_exists_when_game_exists_should_return_true(fake_game, test_app):
     assert game_exists
 
 
-def test_update_game_when_id_not_in_kwargs_should_raise_value_error(test_app):
-    # Arrange
-    with test_app.app_context():
-        # Act
-        test_repo = GameRepository()
-        kwargs = {
-            'season_year': 1920,
-            'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
-            'is_playoff': False,
-        }
-        with pytest.raises(ValueError) as err:
-            game_updated = test_repo.update_game(**kwargs)
-
-    # Assert
-    assert err.value.args[0] == "ID must be provided for existing Game."
-
-
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_id_is_in_kwargs_and_no_game_exists_with_id_should_return_game_and_not_update_database(
+def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_update_database(
         fake_game_exists, fake_sqla, test_app
 ):
     with test_app.app_context():
@@ -1059,41 +954,40 @@ def test_update_game_when_id_is_in_kwargs_and_no_game_exists_with_id_should_retu
 
         # Act
         test_repo = GameRepository()
-        kwargs = {
-            'id': 1,
-            'season_year': 1920,
-            'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
-            'is_playoff': False,
-        }
+        game = Game(
+            id=1,
+            season_year=1920,
+            week=1,
+            guest_name="St. Paul Ideals",
+            guest_score=0,
+            host_name="Rock Island Independents",
+            host_score=48,
+            is_playoff=False,
+        )
         try:
-            game_updated = test_repo.update_game(**kwargs)
-        except ValueError as err:
+            game_updated = test_repo.update_game(game)
+        except ValueError:
             assert False
 
     # Assert
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_not_called()
     assert isinstance(game_updated, Game)
-    assert game_updated.id == kwargs['id']
-    assert game_updated.season_year == kwargs['season_year']
-    assert game_updated.week == kwargs['week']
-    assert game_updated.guest_name == kwargs['guest_name']
-    assert game_updated.guest_score == kwargs['guest_score']
-    assert game_updated.host_name == kwargs['host_name']
-    assert game_updated.host_score == kwargs['host_score']
-    assert game_updated.is_playoff == kwargs['is_playoff']
+    assert game_updated.id == game.id
+    assert game_updated.season_year == game.season_year
+    assert game_updated.week == game.week
+    assert game_updated.guest_name == game.guest_name
+    assert game_updated.guest_score == game.guest_score
+    assert game_updated.host_name == game.host_name
+    assert game_updated.host_score == game.host_score
+    assert game_updated.is_playoff == game.is_playoff
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
 @patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_no_integrity_error_caught_should_return_game_and_update_database(
-        fake_game_exists, fake_game, fake_game_factory, fake_sqla, test_app
+def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_should_return_game_and_update_database(
+        fake_game_exists, fake_game, fake_sqla, test_app
 ):
     with test_app.app_context():
         # Arrange
@@ -1147,22 +1041,10 @@ def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_no_integri
             is_playoff=False
         )
 
-        fake_game_factory.create_game.return_value = new_game
-
         # Act
         test_repo = GameRepository()
-        kwargs = {
-            'id': 2,
-            'season_year': 1920,
-            'week': 2,
-            'guest_name': "Columbus Panhandles",
-            'guest_score': 0,
-            'host_name': "Dayton Triangles",
-            'host_score': 14,
-            'is_playoff': False,
-        }
         try:
-            game_updated = test_repo.update_game(**kwargs)
+            game_updated = test_repo.update_game(new_game)
         except ValueError:
             assert False
 
@@ -1170,23 +1052,22 @@ def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_no_integri
     fake_sqla.session.add.assert_called_once_with(old_game)
     fake_sqla.session.commit.assert_called_once()
     assert isinstance(game_updated, Game)
-    assert game_updated.id == kwargs['id']
-    assert game_updated.season_year == kwargs['season_year']
-    assert game_updated.week == kwargs['week']
-    assert game_updated.guest_name == kwargs['guest_name']
-    assert game_updated.guest_score == kwargs['guest_score']
-    assert game_updated.host_name == kwargs['host_name']
-    assert game_updated.host_score == kwargs['host_score']
-    assert game_updated.is_playoff == kwargs['is_playoff']
+    assert game_updated.id == new_game.id
+    assert game_updated.season_year == new_game.season_year
+    assert game_updated.week == new_game.week
+    assert game_updated.guest_name == new_game.guest_name
+    assert game_updated.guest_score == new_game.guest_score
+    assert game_updated.host_name == new_game.host_name
+    assert game_updated.host_score == new_game.host_score
+    assert game_updated.is_playoff == new_game.is_playoff
     assert game_updated is new_game
 
 
 @patch('app.data.repositories.game_repository.sqla')
-@patch('app.data.repositories.game_repository.game_factory')
 @patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_game_exists, fake_game, fake_game_factory, fake_sqla, test_app
+def test_update_game_when_and_game_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_game_exists, fake_game, fake_sqla, test_app
 ):
     with test_app.app_context():
         # Arrange
@@ -1239,24 +1120,13 @@ def test_update_game_when_id_is_in_kwargs_and_game_exists_with_id_and_integrity_
             host_score=14,
             is_playoff=False
         )
-        fake_game_factory.create_game.return_value = new_game
 
         fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         test_repo = GameRepository()
-        kwargs = {
-            'id': 2,
-            'season_year': 1920,
-            'week': 2,
-            'guest_name': "Columbus Panhandles",
-            'guest_score': 0,
-            'host_name': "Dayton Triangles",
-            'host_score': 14,
-            'is_playoff': False,
-        }
         with pytest.raises(IntegrityError):
-            game_updated = test_repo.update_game(**kwargs)
+            game_updated = test_repo.update_game(new_game)
 
     # Assert
     fake_sqla.session.rollback.assert_called_once()

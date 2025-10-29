@@ -41,19 +41,21 @@ class Game(sqla.Model):
 
         :return: None
         """
-        if self.guest_score > self.host_score:
-            self.winner_name = self.guest_name
-            self.winner_score = self.guest_score
-            self.loser_name = self.host_name
-            self.loser_score = self.host_score
-        elif self.guest_score < self.host_score:
+        if self.host_score > self.guest_score:
             self.winner_name = self.host_name
             self.winner_score = self.host_score
             self.loser_name = self.guest_name
             self.loser_score = self.guest_score
-        else:
+        elif self.guest_score > self.host_score:
+            self.winner_name = self.guest_name
+            self.winner_score = self.guest_score
+            self.loser_name = self.host_name
+            self.loser_score = self.host_score
+        else:   # Game is a tie.
             self.winner_name = None
+            self.winner_score = None
             self.loser_name = None
+            self.loser_score = None
 
     def is_tie(self) -> bool:
         """

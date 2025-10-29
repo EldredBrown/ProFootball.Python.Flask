@@ -7,14 +7,14 @@ from app.data.models.rankings_team_season \
 from app.data.sqla import sqla
 
 
-class RankingsRepository:
+class SeasonRankingsRepository:
     """
     Provides CRUD access to an external data store.
     """
 
     def __init__(self) -> None:
         """
-        Initializes a new instance of the RankingsRepository class.
+        Initializes a new instance of the SeasonRankingsRepository class.
         """
         pass
 

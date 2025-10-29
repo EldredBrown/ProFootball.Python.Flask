@@ -1,11 +1,10 @@
-from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 
 from app.data.models.rankings_team_season \
     import OffensiveRankingsTeamSeason, DefensiveRankingsTeamSeason, TotalRankingsTeamSeason
-from app.data.repositories.rankings_repository import RankingsRepository
+from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 from test_app import create_app
 
 
@@ -14,8 +13,8 @@ def test_app():
     return create_app()
 
 
-@patch('app.data.repositories.rankings_repository.sqla')
-@patch('app.data.repositories.rankings_repository.SQLQuery')
+@patch('app.data.repositories.season_rankings_repository.sqla')
+@patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_offensive_rankings_by_season_year_should_get_offensive_rankings_for_specified_season_year(
         fake_SQLQuery, fake_sqla, test_app
 ):
@@ -26,7 +25,7 @@ def test_get_offensive_rankings_by_season_year_should_get_offensive_rankings_for
         fake_sqla.session.execute.return_value = team_seasons_in
 
         # Act
-        test_repo = RankingsRepository()
+        test_repo = SeasonRankingsRepository()
         team_seasons_out = test_repo.get_offensive_rankings_by_season_year(season_year=1)
 
     # Assert
@@ -44,8 +43,8 @@ def test_get_offensive_rankings_by_season_year_should_get_offensive_rankings_for
         assert team_seasons_out[i].offensive_index == team_seasons_in[i][6]
 
 
-@patch('app.data.repositories.rankings_repository.sqla')
-@patch('app.data.repositories.rankings_repository.SQLQuery')
+@patch('app.data.repositories.season_rankings_repository.sqla')
+@patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_defensive_rankings_by_season_year_should_get_defensive_rankings_for_specified_season_year(
         fake_SQLQuery, fake_sqla, test_app
 ):
@@ -56,7 +55,7 @@ def test_get_defensive_rankings_by_season_year_should_get_defensive_rankings_for
         fake_sqla.session.execute.return_value = team_seasons_in
 
         # Act
-        test_repo = RankingsRepository()
+        test_repo = SeasonRankingsRepository()
         team_seasons_out = test_repo.get_defensive_rankings_by_season_year(season_year=1)
 
     # Assert
@@ -74,8 +73,8 @@ def test_get_defensive_rankings_by_season_year_should_get_defensive_rankings_for
         assert team_seasons_out[i].defensive_index == team_seasons_in[i][6]
 
 
-@patch('app.data.repositories.rankings_repository.sqla')
-@patch('app.data.repositories.rankings_repository.SQLQuery')
+@patch('app.data.repositories.season_rankings_repository.sqla')
+@patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_total_rankings_by_season_year_should_get_total_rankings_for_specified_season_year(
         fake_SQLQuery, fake_sqla, test_app
 ):
@@ -86,7 +85,7 @@ def test_get_total_rankings_by_season_year_should_get_total_rankings_for_specifi
         fake_sqla.session.execute.return_value = team_seasons_in
 
         # Act
-        test_repo = RankingsRepository()
+        test_repo = SeasonRankingsRepository()
         team_seasons_out = test_repo.get_total_rankings_by_season_year(season_year=1)
 
     # Assert

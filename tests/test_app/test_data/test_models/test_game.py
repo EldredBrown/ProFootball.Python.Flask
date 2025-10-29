@@ -448,6 +448,141 @@ def test_validate_not_empty_when_is_playoff_is_not_none_should_not_raise_value_e
     assert err is None
 
 
+def test_decide_winner_and_loser_when_host_score_greater_than_guest_score_should_declare_host_the_winner_and_guest_the_loser(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=1,
+        host_name="Host",
+        host_score=2,
+        is_playoff=False
+    )
+
+    # Act
+    test_game.decide_winner_and_loser()
+
+    # Assert
+    assert test_game.winner_name == test_game.host_name
+    assert test_game.winner_score == test_game.host_score
+    assert test_game.loser_name == test_game.guest_name
+    assert test_game.loser_score == test_game.guest_score
+
+
+def test_decide_winner_and_loser_when_guest_score_greater_than_host_score_should_declare_guest_the_winner_and_host_the_loser(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=2,
+        host_name="Host",
+        host_score=1,
+        is_playoff=False
+    )
+
+    # Act
+    test_game.decide_winner_and_loser()
+
+    # Assert
+    assert test_game.winner_name == test_game.guest_name
+    assert test_game.winner_score == test_game.guest_score
+    assert test_game.loser_name == test_game.host_name
+    assert test_game.loser_score == test_game.host_score
+
+
+def test_decide_winner_and_loser_when_guest_score_equals_host_score_should_declare_none_the_winner_and_none_the_loser(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=2,
+        host_name="Host",
+        host_score=2,
+        is_playoff=False
+    )
+
+    # Act
+    test_game.decide_winner_and_loser()
+
+    # Assert
+    assert test_game.winner_name is None
+    assert test_game.winner_score is None
+    assert test_game.loser_name is None
+    assert test_game.loser_score is None
+
+
+def test_is_tie_when_host_score_greater_than_guest_score_should_return_false(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=1,
+        host_name="Host",
+        host_score=2,
+        is_playoff=False
+    )
+
+    # Act
+    is_tie = test_game.is_tie()
+
+    # Assert
+    assert not is_tie
+
+
+def test_is_tie_when_guest_score_greater_than_host_score_should_return_false(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=2,
+        host_name="Host",
+        host_score=1,
+        is_playoff=False
+    )
+
+    # Act
+    is_tie = test_game.is_tie()
+
+    # Assert
+    assert not is_tie
+
+
+def test_is_tie_when_guest_equals_host_score_should_return_true(
+        test_app
+):
+    # Arrange
+    test_game = Game(
+        season_year=1920,
+        week=1,
+        guest_name="Guest",
+        guest_score=2,
+        host_name="Host",
+        host_score=2,
+        is_playoff=False
+    )
+
+    # Act
+    is_tie = test_game.is_tie()
+
+    # Assert
+    assert is_tie
+
+
 def _init_and_populate_test_db():
     init_db()
     conn = sqlite3.connect(

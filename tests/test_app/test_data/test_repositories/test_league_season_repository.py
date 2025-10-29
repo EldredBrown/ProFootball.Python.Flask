@@ -96,7 +96,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_empty_sho
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season = test_repo.get_league_season_by_league_and_season(league_name="A", season_year=1)
+        league_season = test_repo.get_league_season_by_league_name_and_season_year(league_name="A", season_year=1)
 
     # Assert
     assert league_season is None
@@ -119,7 +119,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season = test_repo.get_league_season_by_league_and_season(league_name=3, season_year=3)
+        league_season = test_repo.get_league_season_by_league_name_and_season_year(league_name=3, season_year=3)
 
     # Assert
     fake_league_season.query.filter_by.assert_called_once_with(league_name=3, season_year=3)
@@ -142,7 +142,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season = test_repo.get_league_season_by_league_and_season(league_name=1, season_year=1)
+        league_season = test_repo.get_league_season_by_league_name_and_season_year(league_name=1, season_year=1)
 
     # Assert
     fake_league_season.query.filter_by.assert_called_once_with(league_name=1, season_year=1)

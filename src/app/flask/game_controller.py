@@ -97,9 +97,9 @@ def edit(id: int):
                 flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('game.details', id=id))
             except ValueError as err:
-                return _handle_error(err, 'games/edit.html', form, game=game)
+                return _handle_error(err, 'games/edit.html', form, game=old_game)
             except IntegrityError as err:
-                return _handle_error(err, 'games/edit.html', form, game=game)
+                return _handle_error(err, 'games/edit.html', form, game=old_game)
         else:
             form.season_year.data = old_game.season_year
             form.week.data = old_game.week

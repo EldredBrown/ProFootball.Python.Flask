@@ -79,7 +79,7 @@ class GameRepository:
             raise
         return game
 
-    def add_games(self, game_args: tuple) -> List[Game]:
+    def add_games(self, games: tuple) -> tuple:
         """
         Adds a collection of game_args dictionaries to the data store.
 
@@ -87,12 +87,9 @@ class GameRepository:
 
         :return: The added games.
         """
-        games = []
+        for game in games:
+            sqla.session.add(game)
         try:
-            for kwargs in game_args:
-                game = game_factory.create_game(kwargs)
-                games.append(game)
-                sqla.session.add(game)
             sqla.session.commit()
         except IntegrityError:
             sqla.session.rollback()
