@@ -38,7 +38,7 @@ class LeagueSeasonRepository:
             return None
         return LeagueSeason.query.get(id)
 
-    def get_league_season_by_league_and_season(self, league_name: int, season_year: int) -> LeagueSeason | None:
+    def get_league_season_by_league_name_and_season_year(self, league_name: str, season_year: int) -> LeagueSeason | None:
         """
         Gets the league_season in the data store with the specified league_name and season_year.
 
@@ -122,4 +122,4 @@ class LeagueSeasonRepository:
 
         :return: True if the league_season with the specified id exists in the data store; otherwise false.
         """
-        return sqla.session.query(exists().where(LeagueSeason.id == id)).scalar()
+        return self.get_league_season(id) is not None

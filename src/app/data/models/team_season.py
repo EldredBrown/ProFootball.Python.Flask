@@ -26,12 +26,12 @@ class TeamSeason(sqla.Model):
     points_against = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     expected_wins = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
     expected_losses = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
-    offensive_average = sqla.Column(sqla.Numeric(precision=18, scale=16))
-    offensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    offensive_index = sqla.Column(sqla.Numeric(precision=18, scale=16))
-    defensive_average = sqla.Column(sqla.Numeric(precision=18, scale=16))
-    defensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    defensive_index = sqla.Column(sqla.Numeric(precision=18, scale=16))
+    offensive_average = sqla.Column(sqla.Numeric(precision=18, scale=15))
+    offensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=14))
+    offensive_index = sqla.Column(sqla.Numeric(precision=18, scale=15))
+    defensive_average = sqla.Column(sqla.Numeric(precision=18, scale=15))
+    defensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=14))
+    defensive_index = sqla.Column(sqla.Numeric(precision=18, scale=15))
     final_expected_winning_percentage = sqla.Column(sqla.Numeric(precision=18, scale=17))
 
     def calculate_expected_wins_and_losses(self) -> None:
@@ -54,14 +54,14 @@ class TeamSeason(sqla.Model):
 
         :return: None
         """
-        if self.games == 0:
-            self.winning_percentage = None
-        else:
-            self.winning_percentage = (2 * self.wins + self.ties) / (2 * self.games)
+        self.winning_percentage = divide(2 * self.wins + self.ties, 2 * self.games)
 
-    def update_rankings(self, team_season_schedule_average_points_for: float,
-                        team_season_schedule_average_points_against: float,
-                        league_season_average_points: float) -> None:
+    def update_rankings(
+            self,
+            team_season_schedule_average_points_for: Decimal,
+            team_season_schedule_average_points_against: Decimal,
+            league_season_average_points: Decimal
+    ) -> None:
         """
         Updates the current TeamSeason object's offensive and defensive averages, factors, and indices.
 
@@ -72,12 +72,14 @@ class TeamSeason(sqla.Model):
         :return: None
         """
         self.offensive_average, self.offensive_factor, self.offensive_index = \
-            update_rankings(self.points_for, self.games, team_season_schedule_average_points_against,
-                            league_season_average_points)
+            update_rankings(
+                self.points_for, self.games, team_season_schedule_average_points_against, league_season_average_points
+            )
 
         self.defensive_average, self.defensive_factor, self.defensive_index = \
-            update_rankings(self.points_against, self.games, team_season_schedule_average_points_for,
-                            league_season_average_points)
+            update_rankings(
+                self.points_against, self.games, team_season_schedule_average_points_for, league_season_average_points
+            )
 
         self._calculate_final_expected_winning_percentage()
 
@@ -89,21 +91,22 @@ class TeamSeason(sqla.Model):
             calculate_expected_winning_percentage(self.offensive_index, self.defensive_index)
 
 
-def calculate_expected_winning_percentage(points_for: float, points_against: float) -> float | None:
+def calculate_expected_winning_percentage(points_for: Decimal, points_against: Decimal) -> Decimal | None:
     o = pow(points_for, EXPONENT)
     d = pow(points_against, EXPONENT)
     return divide(o, o + d)
 
 
-def divide(numerator: int | float, denominator: int | float) -> float | None:
+def divide(numerator: int | Decimal, denominator: int | Decimal) -> Decimal | None:
     if denominator == 0:
         return None
 
-    return numerator / denominator
+    return Decimal(numerator) / Decimal(denominator)
 
 
-def update_rankings(points: int, games: int, team_season_schedule_average_points: float,
-                    league_season_average_points: float) -> tuple[float | None, float | None, float | None]:
+def update_rankings(
+        points: int, games: int, team_season_schedule_average_points: Decimal, league_season_average_points: Decimal
+) -> tuple[Decimal | None, Decimal | None, Decimal | None]:
     if games == 0:
         return None, None, None
 

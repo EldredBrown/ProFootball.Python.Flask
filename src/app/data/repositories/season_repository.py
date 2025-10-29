@@ -1,5 +1,7 @@
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from app.data.models.season import Season
 from app.data.sqla import sqla
 from app.data.factories import season_factory
@@ -50,7 +52,7 @@ class SeasonRepository:
             return None
         return Season.query.filter_by(year=year).first()
 
-    def add_season(self, **kwargs) -> Season:
+    def add_season(self, season: Season) -> Season:
         """
         Adds a season to the data store.
 
@@ -58,12 +60,15 @@ class SeasonRepository:
 
         :return: The added season.
         """
-        season = season_factory.create_season(**kwargs)
         sqla.session.add(season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return season
 
-    def add_seasons(self, season_args: tuple) -> List[Season]:
+    def add_seasons(self, seasons: tuple) -> tuple:
         """
         Adds a collection of season_args dictionaries to the data store.
 
@@ -71,15 +76,16 @@ class SeasonRepository:
 
         :return: The added seasons.
         """
-        seasons = []
-        for kwargs in season_args:
-            season = season_factory.create_season(kwargs)
-            seasons.append(season)
+        for season in seasons:
             sqla.session.add(season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return seasons
 
-    def update_season(self, **kwargs) -> Season | None:
+    def update_season(self, season: Season) -> Season | None:
         """
         Updates a season in the data store.
 
@@ -87,23 +93,22 @@ class SeasonRepository:
 
         :return: The updated season.
         """
-        if 'id' not in kwargs:
-            raise ValueError("ID must be provided for existing Season.")
+        if not self.season_exists(season.id):
+            return season
 
-        if not self.season_exists(kwargs['id']):
-            return Season(**kwargs)
-
-        old_season = self.get_season(kwargs['id'])
-        new_season = season_factory.create_season(old_season, **kwargs)
-
-        old_season.year = new_season.year
-        old_season.num_of_weeks_scheduled = new_season.num_of_weeks_scheduled
-        old_season.num_of_weeks_completed = new_season.num_of_weeks_completed
+        old_season = self.get_season(season.id)
+        old_season.year = season.year
+        old_season.num_of_weeks_scheduled = season.num_of_weeks_scheduled
+        old_season.num_of_weeks_completed = season.num_of_weeks_completed
 
         sqla.session.add(old_season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
 
-        return new_season
+        return season
 
     def delete_season(self, id: int) -> Season | None:
         """

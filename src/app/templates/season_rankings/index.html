@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% set active_page = 'index' %}
-{% block title %}Rankings{% endblock %}
+{% block title %}Season Rankings{% endblock %}
 
 {% block content %}
-<form method="POST" action="/rankings/select_season">
+<h1>Season Rankings</h1>
+<form method="POST" action="/season_rankings/select_season">
     <label for="season_dropdown">Choose a season:</label>
     <select id="season_dropdown" name="season_dropdown">
         {% for season in seasons %}
@@ -14,7 +15,19 @@
     </select>
     <button type="submit">Submit</button>
 </form>
-<form method="POST" action="/rankings/select_type">
+<form method="POST" action="/season_rankings/select_league">
+    <label for="league_dropdown">Choose a league:</label>
+    <select id="league_dropdown" name="league_dropdown">
+        {% for league in leagues %}
+            <option value="{{ league.short_name }}"
+                    {% if league.short_name == selected_league_name %}selected='selected'{% endif %}>
+                {{ league.short_name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/season_rankings/select_type">
     <label for="ranking_type_dropdown">Choose a ranking type:</label>
     <select id="ranking_type_dropdown" name="ranking_type_dropdown">
         {% for type in types %}
@@ -24,6 +37,9 @@
         {% endfor %}
     </select>
     <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/season_rankings/weekly_update">
+    <button type="submit">Run Weekly Update</button>
 </form>
 {% block table_content %}{% endblock %}
 {% endblock %}

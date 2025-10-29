@@ -1,3 +1,5 @@
+from sqlalchemy.sql import text as SQLQuery
+
 from app.data.models.league_season_totals import LeagueSeasonTotals
 from app.data.sqla import sqla
 
@@ -21,12 +23,9 @@ class LeagueSeasonTotalsRepository:
 
         :return: The fetched league_season_totals.
         """
-        statement = f"CALL sp_GetLeagueSeasonTotals('{league_name}', {season_year});"
-        totals = sqla.session.execute(statement).first()
-        return LeagueSeasonTotals(total_games=totals[0], total_points=totals[1])
-
-
-if __name__ == '__main__':
-    repo = LeagueSeasonTotalsRepository()
-    league_season_totals = repo.get_league_season_totals("A", 1)
-    print(league_season_totals)
+        querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_name}', {season_year};"
+        sql = SQLQuery(querystring)
+        totals = sqla.session.execute(sql).first()
+        return LeagueSeasonTotals(
+            total_games=totals[0], total_points=totals[1], average_points=totals[2], week_count=totals[3]
+        )

@@ -86,7 +86,9 @@ class WeeklyUpdateService:
         ):
             return
 
-        league_season = self._league_season_repository.get_league_season_by_league_and_season(league_name, season_year)
+        league_season = (
+            self._league_season_repository.get_league_season_by_league_name_and_season_year(league_name, season_year)
+        )
         if league_season is None:
             return
 
@@ -103,7 +105,7 @@ class WeeklyUpdateService:
         except ValueError:
             return 0
 
-        dest_season = self._season_repository.get_season(season_year)
+        dest_season = self._season_repository.get_season_by_year(season_year)
         if dest_season is not None:
             dest_season.num_of_weeks_completed = src_week_count
 
@@ -111,7 +113,7 @@ class WeeklyUpdateService:
         return src_week_count
 
     def _update_rankings(self, season_year: int) -> None:
-        team_seasons = self._team_season_repository.get_team_seasons_by_season(season_year)
+        team_seasons = self._team_season_repository.get_team_seasons_by_season_year(season_year)
         if team_seasons is None:
             return
 
@@ -126,8 +128,9 @@ class WeeklyUpdateService:
             return
 
         team_season_schedule_averages = \
-            self._team_season_schedule_repository.get_team_season_schedule_averages(team_season.team_name,
-                                                                                    team_season.season_year)
+            self._team_season_schedule_repository.get_team_season_schedule_averages(
+                team_season.team_name, team_season.season_year
+            )
         if (
                 team_season_schedule_averages is None
                 or team_season_schedule_averages.points_for is None
@@ -135,7 +138,7 @@ class WeeklyUpdateService:
         ):
             return
 
-        league_season = self._league_season_repository.get_league_season_by_league_and_season(
+        league_season = self._league_season_repository.get_league_season_by_league_name_and_season_year(
             team_season.league_name, team_season.season_year
         )
         if (league_season is None) or (league_season.average_points is None):

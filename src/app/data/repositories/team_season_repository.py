@@ -51,8 +51,7 @@ class TeamSeasonRepository:
         return TeamSeason.query.get(id)
 
     def get_team_season_by_team_name_and_season_year(self, team_name: str, season_year: int) -> TeamSeason:
-        team_season = TeamSeason.query.filter_by(team_name=team_name, season_year=season_year).first()
-        return team_season
+        return TeamSeason.query.filter_by(team_name=team_name, season_year=season_year).first()
 
     def update_team_season(self, team_season: TeamSeason) -> None:
         if not self.team_season_exists(team_season.id):

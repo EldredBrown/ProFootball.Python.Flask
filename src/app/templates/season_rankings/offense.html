@@ -1,9 +1,9 @@
-{% extends 'rankings/index.html' %}
-{% set active_page = 'defense' %}
-{% block title %}Defensive Rankings{% endblock %}
+{% extends 'season_rankings/index.html' %}
+{% set active_page = 'offense' %}
+{% block title %}Offensive Rankings{% endblock %}
 
 {% block table_content %}
-<h1>Defensive Rankings</h1>
+<h1>Offensive Rankings</h1>
 <table class="table">
     <thead>
         <tr>
@@ -20,19 +20,19 @@
                 T
             </th>
             <th class="text-right align-right-override">
-                Def Avg
+                Off Avg
             </th>
             <th class="text-right align-right-override">
-                Def Factor
+                Off Factor
             </th>
             <th class="text-right align-right-override">
-                Def Index
+                Off Index
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        {% for team_season in rankings %}
+        {% for team_season in season_rankings %}
         <tr>
             <td class="text-left">
                 {{ team_season.team_name }}
@@ -47,13 +47,13 @@
                 {{ team_season.ties }}
             </td>
             <td class="text-right align-right-override">
-                {{ team_season.defensive_average or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.offensive_average | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ team_season.defensive_factor or 0 | round(3) }}
+                {{ "%.3f" | format((team_season.offensive_factor | default(0) | float) | round(3)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ team_season.defensive_index or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.offensive_index | default(0) | float) | round(2)) }}
             </td>
         </tr>
         {% endfor %}

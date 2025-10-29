@@ -95,43 +95,43 @@
                 Off. Avg.
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.offensive_average or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.offensive_average | default(0) | float) | round(2)) }}
             </dd>
             <dt class="col-sm-2">
                 Off. Factor
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.offensive_factor or 0 | round(3) }}
+                {{ "%.3f" | format((team_season.offensive_factor | default(0) | float) | round(3)) }}
             </dd>
             <dt class="col-sm-2">
                 Off. Index
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.offensive_index or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.offensive_index | default(0) | float) | round(2)) }}
             </dd>
             <dt class="col-sm-2">
                 Def. Avg.
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.defensive_average or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.defensive_average | default(0) | float) | round(2)) }}
             </dd>
             <dt class="col-sm-2">
                 Def. Factor
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.defensive_factor or 0 | round(3) }}
+                {{ "%.3f" | format((team_season.defensive_factor | default(0) | float) | round(3)) }}
             </dd>
             <dt class="col-sm-2">
                 Def. Index
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.defensive_index or 0 | round(2) }}
+                {{ "%.2f" | format((team_season.defensive_index | default(0) | float) | round(2)) }}
             </dd>
             <dt class="col-sm-2">
                 Fin Exp W%
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.final_expected_winning_percentage or 0 | round(3) }}
+                {{ "%.3f" | format((team_season.final_expected_winning_percentage | default(0) | float) | round(3)) }}
             </dd>
         </dl>
     </div>
