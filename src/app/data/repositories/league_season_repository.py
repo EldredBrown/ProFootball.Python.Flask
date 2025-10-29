@@ -1,6 +1,7 @@
 from typing import List
 
 from sqlalchemy import exists
+from sqlalchemy.exc import IntegrityError
 
 from app.data.models.league_season import LeagueSeason
 from app.data.sqla import sqla
@@ -61,7 +62,11 @@ class LeagueSeasonRepository:
         :return: The added league_season.
         """
         sqla.session.add(league_season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return league_season
 
     def add_league_seasons(self, league_seasons: tuple) -> tuple:
@@ -74,7 +79,11 @@ class LeagueSeasonRepository:
         """
         for league_season in league_seasons:
             sqla.session.add(league_season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return league_seasons
 
     def update_league_season(self, league_season: LeagueSeason) -> LeagueSeason | None:
@@ -95,7 +104,11 @@ class LeagueSeasonRepository:
         league_season_to_update.total_points = league_season.total_points
         league_season_to_update.average_points = league_season.average_points
         sqla.session.add(league_season_to_update)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return league_season
 
     def delete_league_season(self, id: int) -> LeagueSeason | None:
@@ -111,7 +124,11 @@ class LeagueSeasonRepository:
 
         league_season = self.get_league_season(id)
         sqla.session.delete(league_season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return league_season
 
     def league_season_exists(self, id: int) -> bool:

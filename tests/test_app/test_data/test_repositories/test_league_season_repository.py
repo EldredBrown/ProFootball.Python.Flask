@@ -1,5 +1,8 @@
 from unittest.mock import patch, call
 
+import pytest
+from sqlalchemy.exc import IntegrityError
+
 from app.data.models.game import Game
 from app.data.models.league_season import LeagueSeason
 from app.data.models.team_season import TeamSeason
@@ -7,11 +10,15 @@ from app.data.repositories.league_season_repository import LeagueSeasonRepositor
 from test_app import create_app
 
 
+@pytest.fixture
+def test_app():
+    return create_app()
+
+
 @patch('app.data.repositories.league_season_repository.LeagueSeason')
-def test_get_league_seasons_should_get_league_seasons(fake_league_season):
-    # Act
-    test_app = create_app()
+def test_get_league_seasons_should_get_league_seasons(fake_league_season, test_app):
     with test_app.app_context():
+        # Act
         test_repo = LeagueSeasonRepository()
         league_seasons = test_repo.get_league_seasons()
 
@@ -21,8 +28,7 @@ def test_get_league_seasons_should_get_league_seasons(fake_league_season):
 
 
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
-def test_get_league_season_when_league_seasons_is_empty_should_return_none(fake_get_league_seasons):
-    test_app = create_app()
+def test_get_league_season_when_league_seasons_is_empty_should_return_none(fake_get_league_seasons, test_app):
     with test_app.app_context():
         # Arrange
         league_seasons = []
@@ -39,15 +45,14 @@ def test_get_league_season_when_league_seasons_is_empty_should_return_none(fake_
 @patch('app.data.repositories.league_season_repository.LeagueSeason')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
 def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is_not_found_should_return_none(
-        fake_get_league_seasons, fake_league_season
+        fake_get_league_seasons, fake_league_season, test_app
 ):
-    test_app = create_app()
     with test_app.app_context():
         # Arrange
         league_seasons = [
-            LeagueSeason(league_name=1, season_year=1),
-            LeagueSeason(league_name=2, season_year=1),
-            LeagueSeason(league_name=1, season_year=2),
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=1),
+            LeagueSeason(league_name="League 1", season_year=2),
         ]
         fake_get_league_seasons.return_value = league_seasons
 
@@ -64,14 +69,15 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
 
 @patch('app.data.repositories.league_season_repository.LeagueSeason')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
-def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is_found_should_return_league_season(fake_get_league_seasons, fake_league_season):
-    test_app = create_app()
+def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is_found_should_return_league_season(
+        fake_get_league_seasons, fake_league_season, test_app
+):
     with test_app.app_context():
         # Arrange
         league_seasons = [
-            LeagueSeason(league_name=1, season_year=1),
-            LeagueSeason(league_name=2, season_year=1),
-            LeagueSeason(league_name=1, season_year=2),
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=1),
+            LeagueSeason(league_name="League 1", season_year=2),
         ]
         fake_get_league_seasons.return_value = league_seasons
 
@@ -87,8 +93,9 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
 
 
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
-def test_get_league_season_by_league_and_season_when_league_seasons_is_empty_should_return_none(fake_get_league_seasons):
-    test_app = create_app()
+def test_get_league_season_by_league_name_and_season_year_when_league_seasons_is_empty_should_return_none(
+        fake_get_league_seasons, test_app
+):
     with test_app.app_context():
         # Arrange
         league_seasons = []
@@ -104,96 +111,120 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_empty_sho
 
 @patch('app.data.repositories.league_season_repository.LeagueSeason')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
-def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty_and_league_season_is_not_found_should_return_none(
-        fake_get_league_seasons, fake_league_season
+def test_get_league_season_by_league_name_and_season_year_when_league_seasons_is_not_empty_and_league_season_is_not_found_should_return_none(
+        fake_get_league_seasons, fake_league_season, test_app
 ):
-    test_app = create_app()
     with test_app.app_context():
         # Arrange
         league_seasons = [
-            LeagueSeason(league_name=1, season_year=1),
-            LeagueSeason(league_name=2, season_year=1),
-            LeagueSeason(league_name=1, season_year=2),
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=1),
+            LeagueSeason(league_name="League 1", season_year=2),
         ]
         fake_get_league_seasons.return_value = league_seasons
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season = test_repo.get_league_season_by_league_name_and_season_year(league_name=3, season_year=3)
+        league_season = test_repo.get_league_season_by_league_name_and_season_year(
+            league_name="League 1", season_year=3
+        )
 
     # Assert
-    fake_league_season.query.filter_by.assert_called_once_with(league_name=3, season_year=3)
+    fake_league_season.query.filter_by.assert_called_once_with(league_name="League 1", season_year=3)
     fake_league_season.query.filter_by.return_value.first.assert_called_once()
     assert league_season == fake_league_season.query.filter_by.return_value.first.return_value
 
 
 @patch('app.data.repositories.league_season_repository.LeagueSeason')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_seasons')
-def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty_and_league_season_is_found_should_return_league_season(fake_get_league_seasons, fake_league_season):
-    test_app = create_app()
+def test_get_league_season_by_league_name_and_season_year_when_league_seasons_is_not_empty_and_league_season_is_found_should_return_league_season(
+        fake_get_league_seasons, fake_league_season, test_app
+):
     with test_app.app_context():
         # Arrange
         league_seasons = [
-            LeagueSeason(league_name=1, season_year=1),
-            LeagueSeason(league_name=2, season_year=1),
-            LeagueSeason(league_name=1, season_year=2),
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=1),
+            LeagueSeason(league_name="League 1", season_year=2),
         ]
         fake_get_league_seasons.return_value = league_seasons
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season = test_repo.get_league_season_by_league_name_and_season_year(league_name=1, season_year=1)
+        league_season = test_repo.get_league_season_by_league_name_and_season_year(
+            league_name="League 1", season_year=1
+        )
 
     # Assert
-    fake_league_season.query.filter_by.assert_called_once_with(league_name=1, season_year=1)
+    fake_league_season.query.filter_by.assert_called_once_with(league_name="League 1", season_year=1)
     fake_league_season.query.filter_by.return_value.first.assert_called_once()
     assert league_season == fake_league_season.query.filter_by.return_value.first.return_value
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-def test_add_league_season_should_add_league_season(fake_sqla):
-    # Arrange
-    test_app = create_app()
+def test_add_league_season_when_no_integrity_error_caught_should_add_league_season(fake_sqla, test_app):
     with test_app.app_context():
+        # Arrange
+        league_season_in = LeagueSeason(league_name="League 1", season_year=1)
+
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season_in = LeagueSeason(league_name=3, season_year=3)
         league_season_out = test_repo.add_league_season(league_season_in)
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(league_season_in)
     fake_sqla.session.commit.assert_called_once()
-    assert league_season_out is league_season_in
+    assert league_season_in is league_season_in
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-def test_add_league_seasons_when_league_seasons_arg_is_empty_should_add_no_league_seasons(fake_sqla):
-    # Arrange
-    test_app = create_app()
+def test_add_league_season_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        league_season_in = LeagueSeason(league_name="League 1", season_year=1)
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
         # Act
         test_repo = LeagueSeasonRepository()
+        with pytest.raises(IntegrityError):
+            league_season_out = test_repo.add_league_season(league_season_in)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()
+
+
+@patch('app.data.repositories.league_season_repository.sqla')
+def test_add_league_seasons_when_league_seasons_arg_is_empty_should_add_no_league_seasons(fake_sqla, test_app):
+    # Arrange
+    with test_app.app_context():
         league_seasons_in = ()
+
+        # Act
+        test_repo = LeagueSeasonRepository()
         league_seasons_out = test_repo.add_league_seasons(league_seasons_in)
 
     # Assert
     fake_sqla.session.add.assert_not_called()
     fake_sqla.session.commit.assert_called_once()
-    assert league_seasons_out is league_seasons_in
+    assert league_seasons_out == tuple()
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-def test_add_league_seasons_when_league_seasons_arg_is_not_empty_should_add_league_seasons(fake_sqla):
-    # Arrange
-    test_app = create_app()
+def test_add_league_seasons_when_games_arg_is_not_empty_and_no_integrity_error_caught_should_add_league_seasons(
+        fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        league_seasons_in = (
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        )
+
         # Act
         test_repo = LeagueSeasonRepository()
-        league_seasons_in = (
-            LeagueSeason(league_name=3, season_year=4),
-            LeagueSeason(league_name=4, season_year=3),
-            LeagueSeason(league_name=4, season_year=4),
-        )
         league_seasons_out = test_repo.add_league_seasons(league_seasons_in)
 
     # Assert
@@ -203,113 +234,255 @@ def test_add_league_seasons_when_league_seasons_arg_is_not_empty_should_add_leag
         call(league_seasons_in[2]),
     ])
     fake_sqla.session.commit.assert_called_once()
-    assert league_seasons_out is league_seasons_in
+    assert league_seasons_out == league_seasons_in
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-@patch('app.data.repositories.league_season_repository.exists')
-def test_league_season_exists_should_query_database(fake_exists, fake_sqla):
-    # Arrange
-    test_app = create_app()
+def test_add_league_seasons_when_games_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        league_seasons_in = (
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        )
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = LeagueSeasonRepository()
+        with pytest.raises(IntegrityError):
+            league_seasons_out = test_repo.add_league_seasons(league_seasons_in)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()
+
+
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+def test_league_season_exists_when_league_season_does_not_exist_should_return_false(fake_league_season, test_app):
+    with test_app.app_context():
+        # Arrange
+        league_seasons_in = (
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        )
+        fake_league_season.query.all.return_value = league_seasons_in
+        fake_league_season.query.get.return_value = None
+
         # Act
         test_repo = LeagueSeasonRepository()
         league_season_exists = test_repo.league_season_exists(id=1)
 
     # Assert
-    fake_exists.assert_called_once()
-    fake_exists.return_value.where.assert_called_once()
-    fake_sqla.session.query.assert_called_once_with(fake_exists.return_value.where.return_value)
-    fake_sqla.session.query.return_value.scalar.assert_called_once()
-    assert league_season_exists == fake_sqla.session.query.return_value.scalar.return_value
+    assert not league_season_exists
 
 
-@patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.league_season_exists')
-def test_update_league_season_when_league_season_does_not_exist_should_return_league_season(fake_league_season_exists):
-    # Arrange
-    fake_league_season_exists.return_value = False
-
-    test_app = create_app()
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+def test_league_season_exists_when_league_season_exists_should_return_true(fake_league_season, test_app):
     with test_app.app_context():
+        # Arrange
+        league_seasons_in = (
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        )
+        fake_league_season.query.all.return_value = league_seasons_in
+        fake_league_season.query.get.return_value = league_seasons_in[1]
+
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season_to_update = LeagueSeason(
-            league_name=3, season_year=3, total_games=100, total_points=2000, average_points=20
-        )
-        league_season_updated = test_repo.update_league_season(league_season_to_update)
+        league_season_exists = test_repo.league_season_exists(id=1)
 
     # Assert
-    fake_league_season_exists.assert_called_once_with(league_season_to_update.id)
-    assert league_season_updated is league_season_to_update
+    assert league_season_exists
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-@patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_season')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.league_season_exists')
-def test_update_league_season_when_league_season_exists_should_update_and_return_league_season(
-        fake_league_season_exists, fake_get_league_season, fake_sqla
+def test_update_league_season_when_no_league_season_exists_with_id_should_return_league_season_and_not_update_database(
+        fake_league_season_exists, fake_sqla, test_app
 ):
-    # Arrange
-    test_app = create_app()
     with test_app.app_context():
-        fake_league_season_exists.return_value = True
-        old_league_season = LeagueSeason(
-            league_name=1, season_year=1, total_games=100, total_points=2000, average_points=20
-        )
-        fake_get_league_season.return_value = old_league_season
-
-        new_league_season = LeagueSeason(
-            league_name=2, season_year=2, total_games=200, total_points=5000, average_points=25
-        )
+        # Arrange
+        fake_league_season_exists.return_value = False
 
         # Act
         test_repo = LeagueSeasonRepository()
-        league_season_updated = test_repo.update_league_season(new_league_season)
+        league_season = LeagueSeason(
+            league_name="League 1",
+            season_year=1
+        )
+        try:
+            league_season_updated = test_repo.update_league_season(league_season)
+        except ValueError:
+            assert False
 
     # Assert
-    fake_league_season_exists.assert_called_once_with(old_league_season.id)
-    fake_get_league_season.assert_called_once_with(old_league_season.id)
-    assert league_season_updated.league_name == new_league_season.league_name
-    assert league_season_updated.season_year == new_league_season.season_year
+    fake_sqla.session.add.assert_not_called()
+    fake_sqla.session.commit.assert_not_called()
+    assert isinstance(league_season_updated, LeagueSeason)
+    assert league_season_updated.league_name == league_season.league_name
+    assert league_season_updated.season_year == league_season.season_year
+    assert league_season_updated.total_games == league_season.total_games
+    assert league_season_updated.total_points == league_season.total_points
+    assert league_season_updated.average_points == league_season.average_points
+
+
+@patch('app.data.repositories.league_season_repository.sqla')
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+@patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.league_season_exists')
+def test_update_league_season_when_league_season_exists_with_id_and_no_integrity_error_caught_should_return_league_season_and_update_database(
+        fake_league_season_exists, fake_league_season, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        fake_league_season_exists.return_value = True
+
+        league_seasons_in = [
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        ]
+        fake_league_season.query.all.return_value = league_seasons_in
+
+        old_league_season = league_seasons_in[1]
+        fake_league_season.query.get.return_value = old_league_season
+
+        new_league_season = LeagueSeason(id=2, league_name="League 4", season_year=4)
+
+        # Act
+        test_repo = LeagueSeasonRepository()
+        try:
+            league_season_updated = test_repo.update_league_season(new_league_season)
+        except IntegrityError:
+            assert False
+
+    # Assert
     fake_sqla.session.add.assert_called_once_with(old_league_season)
     fake_sqla.session.commit.assert_called_once()
-    assert league_season_updated is new_league_season
-
-
-@patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.league_season_exists')
-def test_delete_league_season_when_league_season_does_not_exist_should_return_none(fake_league_season_exists):
-    # Arrange
-    fake_league_season_exists.return_value = False
-    id = 1
-
-    test_app = create_app()
-    with test_app.app_context():
-        # Act
-        test_repo = LeagueSeasonRepository()
-        league_season_deleted = test_repo.delete_league_season(id)
-
-    # Assert
-    fake_league_season_exists.assert_called_once_with(id)
-    assert league_season_deleted is None
+    assert isinstance(league_season_updated, LeagueSeason)
+    assert league_season_updated.league_name == new_league_season.league_name
+    assert league_season_updated.season_year == new_league_season.season_year
+    assert league_season_updated.total_games == new_league_season.total_games
+    assert league_season_updated.total_points == new_league_season.total_points
+    assert league_season_updated.average_points == new_league_season.average_points
 
 
 @patch('app.data.repositories.league_season_repository.sqla')
-@patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.get_league_season')
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
 @patch('app.data.repositories.league_season_repository.LeagueSeasonRepository.league_season_exists')
-def test_delete_league_season_when_league_season_exists_should_return_league_season(fake_league_season_exists, fake_get_league_season, fake_sqla):
-    # Arrange
-    fake_league_season_exists.return_value = True
-    id = 1
-
-    test_app = create_app()
+def test_update_league_season_when_and_league_season_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_league_season_exists, fake_league_season, fake_sqla, test_app
+):
     with test_app.app_context():
+        # Arrange
+        fake_league_season_exists.return_value = True
+
+        league_seasons_in = [
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        ]
+        fake_league_season.query.all.return_value = league_seasons_in
+
+        old_league_season = league_seasons_in[1]
+        fake_league_season.query.get.return_value = old_league_season
+
+        new_league_season = LeagueSeason(id=2, league_name="League 4", season_year=4)
+
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = LeagueSeasonRepository()
+        with pytest.raises(IntegrityError):
+            league_season_updated = test_repo.update_league_season(new_league_season)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()
+
+
+@patch('app.data.repositories.league_season_repository.sqla')
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+def test_delete_league_season_when_league_season_does_not_exist_should_return_none_and_not_delete_league_season_from_database(
+        fake_league_season, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        league_seasons_in = [
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        ]
+        fake_league_season.query.all.return_value = league_seasons_in
+        fake_league_season.query.get.return_value = None
+
+        id = 1
+
         # Act
         test_repo = LeagueSeasonRepository()
         league_season_deleted = test_repo.delete_league_season(id)
 
     # Assert
-    fake_league_season_exists.assert_called_once_with(id)
-    fake_get_league_season.assert_called_once_with(id)
-    fake_sqla.session.delete.assert_called_once_with(fake_get_league_season.return_value)
+    assert league_season_deleted is None
+    fake_sqla.session.delete.assert_not_called()
+    fake_sqla.session.commit.assert_not_called()
+
+
+@patch('app.data.repositories.league_season_repository.sqla')
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+def test_delete_league_season_when_league_season_exists_and_integrity_error_not_caught_should_return_league_season_and_delete_league_season_from_database(
+        fake_league_season, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        league_seasons_in = [
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        ]
+        fake_league_season.query.all.return_value = league_seasons_in
+
+        id = 1
+        fake_league_season.query.get.return_value = league_seasons_in[id]
+
+        # Act
+        test_repo = LeagueSeasonRepository()
+        try:
+            league_season_deleted = test_repo.delete_league_season(id)
+        except IntegrityError:
+            assert False
+
+    # Assert
+    fake_sqla.session.delete.assert_called_once_with(league_season_deleted)
     fake_sqla.session.commit.assert_called_once()
-    return league_season_deleted is fake_get_league_season.return_value
+    assert league_season_deleted is league_seasons_in[id]
+
+
+@patch('app.data.repositories.league_season_repository.sqla')
+@patch('app.data.repositories.league_season_repository.LeagueSeason')
+def test_delete_league_season_when_league_season_exists_and_integrity_error_caught_should_rollback_commit(
+        fake_league_season, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        league_seasons_in = [
+            LeagueSeason(league_name="League 1", season_year=1),
+            LeagueSeason(league_name="League 2", season_year=2),
+            LeagueSeason(league_name="League 3", season_year=3),
+        ]
+        fake_league_season.query.all.return_value = league_seasons_in
+
+        id = 1
+        fake_league_season.query.get.return_value = league_seasons_in[id]
+
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = LeagueSeasonRepository()
+        with pytest.raises(IntegrityError):
+            league_season_deleted = test_repo.delete_league_season(id)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()

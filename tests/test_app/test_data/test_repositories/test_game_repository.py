@@ -743,13 +743,13 @@ def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_re
 
 @patch('app.data.repositories.game_repository.sqla')
 def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, test_app):
-    # Arrange
     with test_app.app_context():
+        # Arrange
+        games_in = ()
+
         # Act
         test_repo = GameRepository()
-
-        game_args = ()
-        games_out = test_repo.add_games(game_args)
+        games_out = test_repo.add_games(games_in)
 
     # Assert
     fake_sqla.session.add.assert_not_called()
@@ -795,7 +795,6 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
 
         # Act
         test_repo = GameRepository()
-
         games_out = test_repo.add_games(games_in)
 
     # Assert
@@ -847,7 +846,6 @@ def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should
 
         # Act
         test_repo = GameRepository()
-
         with pytest.raises(IntegrityError):
             games_out = test_repo.add_games(games_in)
 
@@ -1045,7 +1043,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
         test_repo = GameRepository()
         try:
             game_updated = test_repo.update_game(new_game)
-        except ValueError:
+        except IntegrityError:
             assert False
 
     # Assert
@@ -1185,7 +1183,7 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
 
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
-def test_delete_game_when_game_exists_should_return_game_and_delete_game_from_database(
+def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_return_game_and_delete_game_from_database(
         fake_game, fake_sqla, test_app
 ):
     with test_app.app_context():
@@ -1226,9 +1224,64 @@ def test_delete_game_when_game_exists_should_return_game_and_delete_game_from_da
 
         # Act
         test_repo = GameRepository()
-        game_deleted = test_repo.delete_game(id)
+        try:
+            game_deleted = test_repo.delete_game(id)
+        except IntegrityError:
+            assert False
 
     # Assert
     fake_sqla.session.delete.assert_called_once_with(game_deleted)
     fake_sqla.session.commit.assert_called_once()
     assert game_deleted is games_in[id]
+
+
+@patch('app.data.repositories.game_repository.sqla')
+@patch('app.data.repositories.game_repository.Game')
+def test_delete_game_when_game_exists_and_integrity_error_caught_should_rollback_commit(
+        fake_game, fake_sqla, test_app
+):
+    with test_app.app_context():
+        # Arrange
+        games_in = [
+            Game(
+                season_year=1920,
+                week=1,
+                guest_name="St. Paul Ideals",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=48,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Wheeling Stogies",
+                guest_score=0,
+                host_name="Akron Pros",
+                host_score=43,
+                is_playoff=False
+            ),
+            Game(
+                season_year=1920,
+                week=2,
+                guest_name="Muncie Flyers",
+                guest_score=0,
+                host_name="Rock Island Independents",
+                host_score=45,
+                is_playoff=False
+            ),
+        ]
+        fake_game.query.all.return_value = games_in
+
+        id = 1
+        fake_game.query.get.return_value = games_in[id]
+
+        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+        # Act
+        test_repo = GameRepository()
+        with pytest.raises(IntegrityError):
+            game_deleted = test_repo.delete_game(id)
+
+    # Assert
+    fake_sqla.session.rollback.assert_called_once()

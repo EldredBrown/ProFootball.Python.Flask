@@ -13,8 +13,9 @@ def test_repository() -> TeamSeasonScheduleRepository:
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empty_team_season_schedule_totals(
-        fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repository
 ):
     # Arrange
     totals = None
@@ -27,8 +28,9 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
     result = test_repository.get_team_season_schedule_totals(team_name, season_year)
 
     # Assert
-    statement = f"CALL sp_GetTeamSeasonScheduleTotals('{team_name}', {season_year});"
-    fake_sqla.session.execute.assert_called_once_with(statement)
+    querystring = f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
     fake_sqla.session.execute.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleTotals)
@@ -45,8 +47,9 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_totals(
-        fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repository
 ):
     # Arrange
     games = 0
@@ -71,9 +74,11 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
     result = test_repository.get_team_season_schedule_totals(team_name, season_year)
 
     # Assert
-    statement = f"CALL sp_GetTeamSeasonScheduleTotals('{team_name}', {season_year});"
-    fake_sqla.session.execute.assert_called_once_with(statement)
-    fake_sqla.session.execute.return_value.first.assert_called()
+    querystring = f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
+    fake_sqla.session.execute.return_value.first.assert_called_once()
+
     assert isinstance(result, TeamSeasonScheduleTotals)
     assert result.games == games
     assert result.points_for == points_for
@@ -88,8 +93,9 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_averages_when_query_returns_none_should_get_empty_team_season_schedule_averages(
-        fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repository
 ):
     # Arrange
     averages = None
@@ -102,9 +108,11 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
     result = test_repository.get_team_season_schedule_averages(team_name, season_year)
 
     # Assert
-    statement = f"CALL sp_GetTeamSeasonScheduleAverages('{team_name}', {season_year});"
-    fake_sqla.session.execute.assert_called_once_with(statement)
+    querystring = f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
     fake_sqla.session.execute.return_value.first.assert_called_once()
+
     assert isinstance(result, TeamSeasonScheduleAverages)
     assert result.points_for is None
     assert result.points_against is None
@@ -113,8 +121,9 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_averages_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_averages(
-        fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repository
 ):
     # Arrange
     points_for = 1
@@ -133,9 +142,11 @@ def test_get_team_season_schedule_averages_when_query_does_not_return_none_shoul
     result = test_repository.get_team_season_schedule_averages(team_name, season_year)
 
     # Assert
-    statement = f"CALL sp_GetTeamSeasonScheduleAverages('{team_name}', {season_year});"
-    fake_sqla.session.execute.assert_called_once_with(statement)
+    querystring = f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
     fake_sqla.session.execute.return_value.first.assert_called_once()
+
     assert isinstance(result, TeamSeasonScheduleAverages)
     assert result.points_for == points_for
     assert result.points_against == points_against

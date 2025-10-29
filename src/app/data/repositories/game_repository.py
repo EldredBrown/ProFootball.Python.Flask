@@ -139,7 +139,11 @@ class GameRepository:
 
         game = self.get_game(id)
         sqla.session.delete(game)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return game
 
     def game_exists(self, id: int) -> bool:

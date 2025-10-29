@@ -26,12 +26,14 @@ def test_service(
         fake_season_repository, fake_game_repository, fake_league_season_repository, fake_team_season_repository,
         fake_league_season_totals_repository, fake_team_season_schedule_repository
 ):
-    test_service = WeeklyUpdateService(fake_season_repository,
-                                       fake_game_repository,
-                                       fake_league_season_repository,
-                                       fake_team_season_repository,
-                                       fake_league_season_totals_repository,
-                                       fake_team_season_schedule_repository)
+    test_service = WeeklyUpdateService(
+        fake_season_repository,
+        fake_game_repository,
+        fake_league_season_repository,
+        fake_team_season_repository,
+        fake_league_season_totals_repository,
+        fake_team_season_schedule_repository
+    )
     return test_service
 
 
@@ -46,7 +48,7 @@ def test_run_weekly_update_when_league_season_totals_is_none_and_games_is_none_s
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -72,14 +74,14 @@ def test_run_weekly_update_when_league_season_totals_total_games_is_none_and_gam
 ):
     # Arrange
     test_service._league_season_totals_repository.get_league_season_totals.return_value \
-        = LeagueSeasonTotals(total_games=None, total_points=None)
+        = LeagueSeasonTotals(total_games=None, total_points=None, average_points=None, week_count=None)
 
     fake_league_season = Mock(LeagueSeason)
     test_service._league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -105,14 +107,14 @@ def test_run_weekly_update_when_league_season_totals_total_points_is_none_and_ga
 ):
     # Arrange
     test_service._league_season_totals_repository.get_league_season_totals.return_value \
-        = LeagueSeasonTotals(total_games=0, total_points=None)
+        = LeagueSeasonTotals(total_games=0, total_points=None, average_points=None, week_count=None)
 
     fake_league_season = Mock(LeagueSeason)
     test_service._league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -135,14 +137,15 @@ def test_run_weekly_update_when_league_season_totals_total_points_is_none_and_ga
 
 def test_run_weekly_update_when_league_season_is_none_and_games_is_none_should_not_update_anything(test_service):
     # Arrange
-    test_service._league_season_totals_repository.get_league_season_totals.return_value = LeagueSeasonTotals()
+    test_service._league_season_totals_repository.get_league_season_totals.return_value \
+        = LeagueSeasonTotals(total_games=0, total_points=0, average_points=Decimal('0'), week_count=0)
 
     fake_league_season = Mock(LeagueSeason)
     test_service._league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -179,7 +182,7 @@ def test_run_weekly_update_when_league_season_totals_and_league_season_are_not_n
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -216,7 +219,7 @@ def test_run_weekly_update_when_games_is_none_should_not_update_week_count(test_
     test_service._game_repository.get_games.return_value = None
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -253,7 +256,7 @@ def test_run_weekly_update_when_games_is_empty_should_not_update_week_count(test
     test_service._game_repository.get_games.return_value = []
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
 
     # Act
@@ -295,7 +298,7 @@ def test_run_weekly_update_when_games_has_no_games_for_specified_year_should_not
 
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -310,9 +313,9 @@ def test_run_weekly_update_when_games_has_no_games_for_specified_year_should_not
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_called_once_with(season_year)
+    test_service._season_repository.get_season_by_year.assert_called_once_with(season_year)
     test_service._season_repository.update_season.assert_called_once_with(
-        test_service._season_repository.get_season.return_value
+        test_service._season_repository.get_season_by_year.return_value
     )
     test_service._team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
@@ -343,7 +346,7 @@ def test_run_weekly_update_when_games_has_games_for_specified_year_and_season_fo
 
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -358,10 +361,10 @@ def test_run_weekly_update_when_games_has_games_for_specified_year_and_season_fo
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == 0
     test_service._season_repository.update_season.assert_called_once_with(
-        test_service._season_repository.get_season.return_value
+        test_service._season_repository.get_season_by_year.return_value
     )
     test_service._team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
@@ -389,11 +392,11 @@ def test_run_weekly_update_when_games_has_games_for_specified_year_and_season_fo
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -408,7 +411,7 @@ def test_run_weekly_update_when_games_has_games_for_specified_year_and_season_fo
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
     test_service._team_season_repository.get_team_seasons_by_season.assert_not_called()
@@ -435,11 +438,11 @@ def test_run_weekly_update_when_week_count_is_less_than_three_should_not_update_
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -454,7 +457,7 @@ def test_run_weekly_update_when_week_count_is_less_than_three_should_not_update_
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
     test_service._team_season_repository.get_team_seasons_by_season.assert_not_called()
@@ -481,12 +484,12 @@ def test_run_weekly_update_when_week_count_is_three_should_update_rankings(test_
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     test_service._team_season_repository.get_team_seasons_by_season.return_value = None
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -501,10 +504,10 @@ def test_run_weekly_update_when_week_count_is_three_should_update_rankings(test_
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
@@ -528,12 +531,12 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_should_update_r
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = None
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = None
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -548,10 +551,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_should_update_r
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
@@ -577,12 +580,12 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = None
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = None
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -596,10 +599,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
                                                                league_season_totals.total_points)
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
@@ -625,12 +628,12 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = []
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = []
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -645,10 +648,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_not_called()
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
@@ -674,16 +677,16 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value = None
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -698,10 +701,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -729,18 +732,18 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=None)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
         = team_season_schedule_totals
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -755,10 +758,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -786,12 +789,12 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
@@ -799,7 +802,7 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
 
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value = None
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -814,10 +817,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -847,12 +850,12 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
@@ -862,7 +865,7 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value \
         = team_season_schedule_averages
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -877,10 +880,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -910,22 +913,22 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
         = team_season_schedule_totals
 
-    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=0.00, points_against=None)
+    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=Decimal('0'), points_against=None)
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value \
         = team_season_schedule_averages
 
-    league_name = "NFL"
+    league_name = "APFA"
 
     # Act
     test_service.run_weekly_update(league_name, season_year)
@@ -940,10 +943,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -975,21 +978,21 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
 
-    league_name = "NFL"
+    league_name = "APFA"
     fake_team_season.league_name = league_name
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
         = team_season_schedule_totals
 
-    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=0.00, points_against=0.00)
+    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=Decimal('0'), points_against=Decimal('0'))
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value \
         = team_season_schedule_averages
 
@@ -1007,10 +1010,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -1031,7 +1034,7 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     test_service._league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
     fake_league_season = Mock(LeagueSeason)
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
     league_season = LeagueSeason(league_name=league_name, season_year=season_year, average_points=None)
     test_service._league_season_repository.get_league_season_by_league_name_and_season_year.side_effect = (fake_league_season,
@@ -1043,19 +1046,19 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
     fake_team_season.league_name = league_name
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
         = team_season_schedule_totals
 
-    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=0.00, points_against=0.00)
+    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=Decimal('0'), points_against=Decimal('0'))
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value \
         = team_season_schedule_averages
 
@@ -1073,10 +1076,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )
@@ -1097,7 +1100,7 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     test_service._league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
     fake_league_season = Mock(LeagueSeason)
-    league_name = "NFL"
+    league_name = "APFA"
     season_year = 1
     league_season = LeagueSeason(league_name=league_name, season_year=season_year, average_points=0.00)
     test_service._league_season_repository.get_league_season_by_league_name_and_season_year.side_effect = (fake_league_season,
@@ -1109,19 +1112,19 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     ]
 
     season = Season(id=season_year, num_of_weeks_completed=0)
-    test_service._season_repository.get_season.return_value = season
+    test_service._season_repository.get_season_by_year.return_value = season
 
     fake_team_season = Mock(TeamSeason)
     fake_team_season.team_name = "Team"
     fake_team_season.season_year = season_year
     fake_team_season.league_name = league_name
-    test_service._team_season_repository.get_team_seasons_by_season.return_value = [fake_team_season]
+    test_service._team_season_repository.get_team_seasons_by_season_year.return_value = [fake_team_season]
 
     team_season_schedule_totals = TeamSeasonScheduleTotals(schedule_games=3)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.return_value \
         = team_season_schedule_totals
 
-    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=1.00, points_against=2.00)
+    team_season_schedule_averages = TeamSeasonScheduleAverages(points_for=Decimal('1'), points_against=Decimal('2'))
     test_service._team_season_schedule_repository.get_team_season_schedule_averages.return_value \
         = team_season_schedule_averages
 
@@ -1139,10 +1142,10 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
     )
     test_service._league_season_repository.update_league_season.assert_any_call(fake_league_season)
     test_service._game_repository.get_games.assert_called()
-    test_service._season_repository.get_season.assert_any_call(season_year)
+    test_service._season_repository.get_season_by_year.assert_any_call(season_year)
     assert season.num_of_weeks_completed == week_count
     test_service._season_repository.update_season.assert_any_call(season)
-    test_service._team_season_repository.get_team_seasons_by_season.assert_any_call(season_year)
+    test_service._team_season_repository.get_team_seasons_by_season_year.assert_any_call(season_year)
     test_service._team_season_schedule_repository.get_team_season_schedule_totals.assert_any_call(
         fake_team_season.team_name, fake_team_season.season_year
     )

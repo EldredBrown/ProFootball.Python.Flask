@@ -123,7 +123,11 @@ class SeasonRepository:
 
         season = self.get_season(id)
         sqla.session.delete(season)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return season
 
     def season_exists(self, id: int) -> bool:

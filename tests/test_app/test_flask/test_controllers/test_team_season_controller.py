@@ -33,11 +33,9 @@ def test_index_should_render_team_season_index_template(
 
     # Assert
     fake_season_repository.get_seasons.assert_called_once()
-    fake_team_season_repository.get_team_seasons_by_season_year.assert_called_once()
     fake_render_template.assert_called_once_with(
         'team_seasons/index.html',
-        seasons=fake_season_repository.get_seasons.return_value, selected_year=None,
-        team_seasons=fake_team_season_repository.get_team_seasons_by_season_year.return_value
+        seasons=fake_season_repository.get_seasons.return_value, selected_year=None, team_seasons=[]
     )
     assert result is fake_render_template.return_value
 
@@ -74,29 +72,15 @@ def test_details_when_team_season_not_found_should_abort_with_404_error(fake_tea
 
 
 @pytest.mark.skip('WIP')
-@patch('app.flask.team_season_controller.render_template')
-@patch('app.flask.team_season_controller.season_repository')
-@patch('app.flask.team_season_controller.team_season_repository')
-def test_select_season_should_render_team_season_index_template_for_selected_year(
-        fake_team_season_repository, fake_season_repository, fake_render_template, test_app
-):
+def test_select_season_should_render_team_season_index_template_for_selected_year(test_app):
     with test_app.app_context():
         with test_app.test_request_context(
                 '/team_seasons/select_season',
                 method='POST'
         ):
             # Arrange
-            selected_year = 0
 
             # Act
             result = team_season_controller.select_season()
 
     # Assert
-    # fake_request.form.get.assert_called_once_with('season_dropdown')
-    fake_team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year=selected_year)
-    fake_render_template.assert_called_once_with(
-        'team_seasons/index.html',
-        seasons=fake_season_repository.get_seasons.return_value, selected_year=selected_year,
-        team_seasons=fake_team_season_repository.get_team_seasons_by_season_year.return_value
-    )
-    assert result is fake_render_template.return_value

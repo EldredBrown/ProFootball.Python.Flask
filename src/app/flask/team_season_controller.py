@@ -17,10 +17,9 @@ def index():
     global selected_year
 
     seasons = season_repository.get_seasons()
-    team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)
     return render_template(
         'team_seasons/index.html',
-        seasons=seasons, selected_year=selected_year, team_seasons=team_seasons
+        seasons=seasons, selected_year=selected_year, team_seasons=[]
     )
 
 

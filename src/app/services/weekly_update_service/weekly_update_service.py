@@ -13,13 +13,15 @@ class WeeklyUpdateService:
     A service to run a weekly update of the pro football data store.
     """
 
-    def __init__(self,
-                 season_repository: SeasonRepository = None,
-                 game_repository: GameRepository = None,
-                 league_season_repository: LeagueSeasonRepository = None,
-                 team_season_repository: TeamSeasonRepository = None,
-                 league_season_totals_repository: LeagueSeasonTotalsRepository = None,
-                 team_season_schedule_repository: TeamSeasonScheduleRepository = None):
+    def __init__(
+            self,
+            season_repository: SeasonRepository = None,
+            game_repository: GameRepository = None,
+            league_season_repository: LeagueSeasonRepository = None,
+            team_season_repository: TeamSeasonRepository = None,
+            league_season_totals_repository: LeagueSeasonTotalsRepository = None,
+            team_season_schedule_repository: TeamSeasonScheduleRepository = None
+    ):
         """
         Initializes a new instance of the WeeklyUpdateService class.
 

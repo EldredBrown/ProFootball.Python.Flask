@@ -457,7 +457,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
                 league_name="League 1",
                 conference_name="Conference 1",
                 division_name="Division 1",
-                team_seasons=1,
+                games=1,
                 wins=1,
                 losses=1,
                 ties=1,
@@ -481,7 +481,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
                 league_name="League 2",
                 conference_name="Conference 2",
                 division_name="Division 2",
-                team_seasons=2,
+                games=2,
                 wins=2,
                 losses=2,
                 ties=2,
@@ -505,7 +505,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
                 league_name="League 3",
                 conference_name="Conference 3",
                 division_name="Division 3",
-                team_seasons=3,
+                games=3,
                 wins=3,
                 losses=3,
                 ties=3,
@@ -535,7 +535,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
             league_name="League 4",
             conference_name="Conference 4",
             division_name="Division 4",
-            team_seasons=4,
+            games=4,
             wins=4,
             losses=4,
             ties=4,
@@ -569,7 +569,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
     assert team_season_updated.league_name == new_team_season.league_name
     assert team_season_updated.conference_name == new_team_season.conference_name
     assert team_season_updated.division_name == new_team_season.division_name
-    assert team_season_updated.team_seasons == new_team_season.team_seasons
+    assert team_season_updated.games == new_team_season.games
     assert team_season_updated.wins == new_team_season.wins
     assert team_season_updated.losses == new_team_season.losses
     assert team_season_updated.ties == new_team_season.ties
