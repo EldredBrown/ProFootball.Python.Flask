@@ -30,7 +30,7 @@ def create_app():
 
     from app.flask import (home_controller, season_controller, league_controller, conference_controller,
                            division_controller, team_controller, game_controller, team_season_controller,
-                           season_standings_controller, season_rankings_controller)
+                           season_standings_controller, season_rankings_controller, game_predictor_controller)
 
     app.register_blueprint(home_controller.blueprint, url_prefix='/')
     app.register_blueprint(season_controller.blueprint, url_prefix='/seasons')
@@ -42,6 +42,7 @@ def create_app():
     app.register_blueprint(team_season_controller.blueprint, url_prefix='/team_seasons')
     app.register_blueprint(season_standings_controller.blueprint, url_prefix='/season_standings')
     app.register_blueprint(season_rankings_controller.blueprint, url_prefix='/season_rankings')
+    app.register_blueprint(game_predictor_controller.blueprint, url_prefix='/game_predictor')
 
     app.add_url_rule('/', endpoint='index')
 

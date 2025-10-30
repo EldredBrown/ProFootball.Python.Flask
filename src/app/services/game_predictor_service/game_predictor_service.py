@@ -18,11 +18,17 @@ class GamePredictorService:
     def __repr__(self):
         return f"{type(self).__name__}(team_season_repository={self._team_season_repository})"
 
-    def predict_game_score(self,
-                           guest_name: str, guest_season_year: int,
-                           host_id: str, host_season_year: int) -> tuple:
-        guest_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(guest_name, guest_season_year)
-        host_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(host_id, host_season_year)
+    def predict_game_score(
+            self,
+            guest_name: str, guest_season_year: int,
+            host_name: str, host_season_year: int
+    ) -> tuple:
+        guest_season = (
+            self._team_season_repository.get_team_season_by_team_name_and_season_year(guest_name, guest_season_year)
+        )
+        host_season = (
+            self._team_season_repository.get_team_season_by_team_name_and_season_year(host_name, host_season_year)
+        )
         if guest_season is None or host_season is None:
             return None, None
 

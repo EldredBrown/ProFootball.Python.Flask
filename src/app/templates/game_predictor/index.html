@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Game Predictor{% endblock %}
+
+{% block content %}
+<h1>Game Predictor</h1>
+<form method="POST" action="/game_predictor/select_guest_season">
+    <label for="guest_season_dropdown">Choose a guest season:</label>
+    <select id="guest_season_dropdown" name="guest_season_dropdown">
+        {% for season in guest_seasons %}
+            <option value="{{ season.year }}" {% if season.year == selected_guest_year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/game_predictor/select_guest">
+    <label for="guest_dropdown">Choose a guest:</label>
+    <select id="guest_dropdown" name="guest_dropdown">
+        {% for guest in guests %}
+            <option value="{{ guest.team_name }}"
+                    {% if guest.team_name == selected_guest_name %}selected='selected'{% endif %}>
+                {{ guest.team_name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/game_predictor/select_host_season">
+    <label for="host_season_dropdown">Choose a host season:</label>
+    <select id="host_season_dropdown" name="host_season_dropdown">
+        {% for season in host_seasons %}
+            <option value="{{ season.year }}" {% if season.year == selected_host_year %}selected='selected'{% endif %}>
+                {{ season.year }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/game_predictor/select_host">
+    <label for="host_dropdown">Choose a host:</label>
+    <select id="host_dropdown" name="host_dropdown">
+        {% for host in hosts %}
+            <option value="{{ host.team_name }}"
+                    {% if host.team_name == selected_host_name %}selected='selected'{% endif %}>
+                {{ host.team_name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('game_predictor.predict_game') }}">Predict Game</a>
+</p>
+{% endblock %}
