@@ -5,28 +5,24 @@ import pytest
 from app.data.models.rankings_team_season \
     import OffensiveRankingsTeamSeason, DefensiveRankingsTeamSeason, TotalRankingsTeamSeason
 from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
-from test_app import create_app
 
 
-@pytest.fixture
-def test_app():
-    return create_app()
+@pytest.fixture()
+def test_repo():
+    return SeasonRankingsRepository()
 
 
 @patch('app.data.repositories.season_rankings_repository.sqla')
 @patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_offensive_rankings_by_season_year_should_get_offensive_rankings_for_specified_season_year(
-        fake_SQLQuery, fake_sqla, test_app
+        fake_SQLQuery, fake_sqla, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        team_seasons_in = [
-        ]
-        fake_sqla.session.execute.return_value = team_seasons_in
+    # Arrange
+    team_seasons_in = []
+    fake_sqla.session.execute.return_value = team_seasons_in
 
-        # Act
-        test_repo = SeasonRankingsRepository()
-        team_seasons_out = test_repo.get_offensive_rankings_by_season_year(season_year=1)
+    # Act
+    team_seasons_out = test_repo.get_offensive_rankings_by_season_year(season_year=1)
 
     # Assert
     querystring = f"EXEC dbo.sp_GetRankingsOffensive 1"
@@ -46,17 +42,14 @@ def test_get_offensive_rankings_by_season_year_should_get_offensive_rankings_for
 @patch('app.data.repositories.season_rankings_repository.sqla')
 @patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_defensive_rankings_by_season_year_should_get_defensive_rankings_for_specified_season_year(
-        fake_SQLQuery, fake_sqla, test_app
+        fake_SQLQuery, fake_sqla, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        team_seasons_in = [
-        ]
-        fake_sqla.session.execute.return_value = team_seasons_in
+    # Arrange
+    team_seasons_in = []
+    fake_sqla.session.execute.return_value = team_seasons_in
 
-        # Act
-        test_repo = SeasonRankingsRepository()
-        team_seasons_out = test_repo.get_defensive_rankings_by_season_year(season_year=1)
+    # Act
+    team_seasons_out = test_repo.get_defensive_rankings_by_season_year(season_year=1)
 
     # Assert
     querystring = f"EXEC dbo.sp_GetRankingsDefensive 1"
@@ -76,17 +69,14 @@ def test_get_defensive_rankings_by_season_year_should_get_defensive_rankings_for
 @patch('app.data.repositories.season_rankings_repository.sqla')
 @patch('app.data.repositories.season_rankings_repository.SQLQuery')
 def test_get_total_rankings_by_season_year_should_get_total_rankings_for_specified_season_year(
-        fake_SQLQuery, fake_sqla, test_app
+        fake_SQLQuery, fake_sqla, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        team_seasons_in = [
-        ]
-        fake_sqla.session.execute.return_value = team_seasons_in
+    # Arrange
+    team_seasons_in = []
+    fake_sqla.session.execute.return_value = team_seasons_in
 
-        # Act
-        test_repo = SeasonRankingsRepository()
-        team_seasons_out = test_repo.get_total_rankings_by_season_year(season_year=1)
+    # Act
+    team_seasons_out = test_repo.get_total_rankings_by_season_year(season_year=1)
 
     # Assert
     querystring = f"EXEC dbo.sp_GetRankingsTotal 1"

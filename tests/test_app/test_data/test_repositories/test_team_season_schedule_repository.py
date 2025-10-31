@@ -8,24 +8,24 @@ from app.data.repositories.team_season_schedule_repository import TeamSeasonSche
 
 
 @pytest.fixture()
-def test_repository() -> TeamSeasonScheduleRepository:
+def test_repo() -> TeamSeasonScheduleRepository:
     return TeamSeasonScheduleRepository()
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 @patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empty_team_season_schedule_totals(
-        fake_SQLQuery, fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repo
 ):
     # Arrange
     totals = None
     fake_sqla.session.execute.return_value.first.return_value = totals
 
-    team_name = "A"
+    team_name = "Team"
     season_year = 1
 
     # Act
-    result = test_repository.get_team_season_schedule_totals(team_name, season_year)
+    result = test_repo.get_team_season_schedule_totals(team_name, season_year)
 
     # Assert
     querystring = f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};"
@@ -49,7 +49,7 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 @patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_totals(
-        fake_SQLQuery, fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repo
 ):
     # Arrange
     games = 0
@@ -67,11 +67,11 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
         schedule_games, schedule_points_for, schedule_points_against
     )
 
-    team_name = "A"
+    team_name = "Team"
     season_year = 1
 
     # Act
-    result = test_repository.get_team_season_schedule_totals(team_name, season_year)
+    result = test_repo.get_team_season_schedule_totals(team_name, season_year)
 
     # Assert
     querystring = f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};"
@@ -95,17 +95,17 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 @patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_averages_when_query_returns_none_should_get_empty_team_season_schedule_averages(
-        fake_SQLQuery, fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repo
 ):
     # Arrange
     averages = None
     fake_sqla.session.execute.return_value.first.return_value = averages
 
-    team_name = "A"
+    team_name = "Team"
     season_year = 1
 
     # Act
-    result = test_repository.get_team_season_schedule_averages(team_name, season_year)
+    result = test_repo.get_team_season_schedule_averages(team_name, season_year)
 
     # Assert
     querystring = f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};"
@@ -123,7 +123,7 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 @patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
 def test_get_team_season_schedule_averages_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_averages(
-        fake_SQLQuery, fake_sqla, test_repository
+        fake_SQLQuery, fake_sqla, test_repo
 ):
     # Arrange
     points_for = 1
@@ -135,11 +135,11 @@ def test_get_team_season_schedule_averages_when_query_does_not_return_none_shoul
     )
     fake_sqla.session.execute.return_value.first.return_value = fake_sqla.session.execute.first.return_value
 
-    team_name = "A"
+    team_name = "Team"
     season_year = 1
 
     # Act
-    result = test_repository.get_team_season_schedule_averages(team_name, season_year)
+    result = test_repo.get_team_season_schedule_averages(team_name, season_year)
 
     # Assert
     querystring = f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};"

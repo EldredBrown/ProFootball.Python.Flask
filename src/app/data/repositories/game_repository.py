@@ -4,7 +4,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.data.models.game import Game
 from app.data.sqla import sqla
-from app.data.factories import game_factory
 
 
 class GameRepository:

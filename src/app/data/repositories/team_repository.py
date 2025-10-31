@@ -4,7 +4,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.data.models.team import Team
 from app.data.sqla import sqla
-from app.data.factories import team_factory
 
 
 class TeamRepository:
@@ -52,7 +51,7 @@ class TeamRepository:
             return None
         return Team.query.filter_by(short_name=short_name).first()
 
-    def add_team(self, **kwargs) -> Team:
+    def add_team(self, team: Team) -> Team:
         """
         Adds a team to the data store.
 
@@ -60,7 +59,6 @@ class TeamRepository:
 
         :return: The added team.
         """
-        team = team_factory.create_team(**kwargs)
         sqla.session.add(team)
         try:
             sqla.session.commit()
@@ -69,7 +67,7 @@ class TeamRepository:
             raise
         return team
 
-    def add_teams(self, team_args: tuple) -> List[Team]:
+    def add_teams(self, teams: tuple) -> tuple:
         """
         Adds a collection of team_args dictionaries to the data store.
 
@@ -77,19 +75,16 @@ class TeamRepository:
 
         :return: The added teams.
         """
-        teams = []
+        for team in teams:
+            sqla.session.add(team)
         try:
-            for kwargs in team_args:
-                team = team_factory.create_team(kwargs)
-                teams.append(team)
-                sqla.session.add(team)
             sqla.session.commit()
         except IntegrityError:
             sqla.session.rollback()
             raise
         return teams
 
-    def update_team(self, **kwargs) -> Team | None:
+    def update_team(self, team: Team) -> Team | None:
         """
         Updates a team in the data store.
 
@@ -97,16 +92,11 @@ class TeamRepository:
 
         :return: The updated team.
         """
-        if 'id' not in kwargs:
-            raise ValueError("ID must be provided for existing Team.")
+        if not self.team_exists(team.id):
+            return team
 
-        if not self.team_exists(kwargs['id']):
-            return Team(**kwargs)
-
-        old_team = self.get_team(kwargs['id'])
-        new_team = team_factory.create_team(old_team, **kwargs)
-
-        old_team.name = new_team.name
+        old_team = self.get_team(team.id)
+        old_team.name = team.name
 
         sqla.session.add(old_team)
         try:
@@ -115,7 +105,7 @@ class TeamRepository:
             sqla.session.rollback()
             raise
 
-        return new_team
+        return team
 
     def delete_team(self, id: int) -> Team | None:
         """
@@ -130,7 +120,11 @@ class TeamRepository:
 
         team = self.get_team(id)
         sqla.session.delete(team)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return team
 
     def team_exists(self, id: int) -> bool:

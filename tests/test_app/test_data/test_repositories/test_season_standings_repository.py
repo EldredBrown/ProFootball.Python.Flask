@@ -5,49 +5,46 @@ import pytest
 
 from app.data.models.standings_team_season import StandingsTeamSeason
 from app.data.repositories.season_standings_repository import SeasonStandingsRepository
-from test_app import create_app
 
 
 @pytest.fixture
-def test_app():
-    return create_app()
+def test_repo():
+    return SeasonStandingsRepository()
 
 
 @patch('app.data.repositories.season_standings_repository.sqla')
 @patch('app.data.repositories.season_standings_repository.SQLQuery')
 def test_get_season_standings_by_season_year_should_get_season_standings_for_specified_season_year(
-        fake_SQLQuery, fake_sqla, test_app
+        fake_SQLQuery, fake_sqla, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        team_seasons_in = [
-            (
-                "Team 1",
-                1, 1, 1, Decimal('0.500'),
-                60, 60,
-                Decimal('20.00'), Decimal('20.00'),
-                Decimal('1.50'), Decimal('1.50')
-            ),
-            (
-                "Team 2",
-                2, 2, 2, Decimal('0.500'),
-                120, 120,
-                Decimal('20.00'), Decimal('20.00'),
-                Decimal('1.50'), Decimal('1.50')
-            ),
-            (
-                "Team 3",
-                3, 3, 3, Decimal('0.500'),
-                180, 180,
-                Decimal('20.00'), Decimal('20.00'),
-                Decimal('1.50'), Decimal('1.50')
-            ),
-        ]
-        fake_sqla.session.execute.return_value = team_seasons_in
+    # Arrange
+    team_seasons_in = [
+        (
+            "Team 1",
+            1, 1, 1, Decimal('0.500'),
+            60, 60,
+            Decimal('20.00'), Decimal('20.00'),
+            Decimal('1.50'), Decimal('1.50')
+        ),
+        (
+            "Team 2",
+            2, 2, 2, Decimal('0.500'),
+            120, 120,
+            Decimal('20.00'), Decimal('20.00'),
+            Decimal('1.50'), Decimal('1.50')
+        ),
+        (
+            "Team 3",
+            3, 3, 3, Decimal('0.500'),
+            180, 180,
+            Decimal('20.00'), Decimal('20.00'),
+            Decimal('1.50'), Decimal('1.50')
+        ),
+    ]
+    fake_sqla.session.execute.return_value = team_seasons_in
 
-        # Act
-        test_repo = SeasonStandingsRepository()
-        team_seasons_out = test_repo.get_season_standings_by_season_year(season_year=1)
+    # Act
+    team_seasons_out = test_repo.get_season_standings_by_season_year(season_year=1)
 
     # Assert
     querystring = f"EXEC sp_GetSeasonStandings 1, False"

@@ -4,7 +4,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.data.models.season import Season
 from app.data.sqla import sqla
-from app.data.factories import season_factory
 
 
 class SeasonRepository:
@@ -56,7 +55,7 @@ class SeasonRepository:
         """
         Adds a season to the data store.
 
-        :param **kwargs: A keyword args dictionary containing values for the season to add.
+        :param season: The season to add.
 
         :return: The added season.
         """
@@ -72,7 +71,7 @@ class SeasonRepository:
         """
         Adds a collection of season_args dictionaries to the data store.
 
-        :param season_args: The tuple of season keyword args dictionaries to add.
+        :param seasons: The seasons to add.
 
         :return: The added seasons.
         """

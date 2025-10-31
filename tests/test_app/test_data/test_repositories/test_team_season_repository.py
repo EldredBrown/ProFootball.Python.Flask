@@ -5,8 +5,6 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
-from app import sqla
-from instance.test_db import db_init
 from test_app import create_app
 
 from app.data.models.season import Season
@@ -21,25 +19,30 @@ def test_app():
     return create_app()
 
 
+@pytest.fixture
+def test_repo():
+    return TeamSeasonRepository()
+
+
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_get_team_seasons_should_get_team_seasons(fake_team_season, test_app):
+def test_get_team_seasons_should_get_team_seasons(fake_team_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
         team_seasons_in = [
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=1,
+                league_name="League"
             ),
         ]
         fake_team_season.query.all.return_value = team_seasons_in
@@ -54,58 +57,58 @@ def test_get_team_seasons_should_get_team_seasons(fake_team_season, test_app):
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 def test_get_team_seasons_by_season_year_when_season_year_is_none_should_get_empty_list(
-        fake_team_season, test_app
+        fake_team_season, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         team_seasons_in = [
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=3,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=3,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=3,
+                league_name="League"
             ),
         ]
-        filter_year = 1921
+        filter_year = 2
         fake_team_season.query.filter_by.return_value.all.return_value = [
             x for x in team_seasons_in if x.season_year == filter_year
         ]
@@ -120,58 +123,58 @@ def test_get_team_seasons_by_season_year_when_season_year_is_none_should_get_emp
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 def test_get_team_seasons_by_season_year_when_season_year_is_not_none_should_get_team_seasons_for_the_specified_season_year(
-        fake_team_season, test_app
+        fake_team_season, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         team_seasons_in = [
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1921,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=2,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=3,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=3,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1922,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=3,
+                league_name="League"
             ),
         ]
-        filter_year = 1921
+        filter_year = 2
         fake_team_season.query.filter_by.return_value.all.return_value = [
             x for x in team_seasons_in if x.season_year == filter_year
         ]
@@ -186,7 +189,7 @@ def test_get_team_seasons_by_season_year_when_season_year_is_not_none_should_get
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_get_team_season_when_team_seasons_is_empty_should_return_none(fake_team_season, test_app):
+def test_get_team_season_when_team_seasons_is_empty_should_return_none(fake_team_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
         team_seasons_in = []
@@ -202,25 +205,25 @@ def test_get_team_season_when_team_seasons_is_empty_should_return_none(fake_team
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_not_found_should_return_none(
-        fake_team_season, test_app
+        fake_team_season, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         team_seasons_in = [
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=1,
+                league_name="League"
             ),
         ]
         fake_team_season.query.all.return_value = team_seasons_in
@@ -238,25 +241,25 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_not_f
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_found_should_return_team_season(
-        fake_team_season, test_app
+        fake_team_season, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         team_seasons_in = [
             TeamSeason(
-                team_name="Chicago Cardinals",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 1",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Decatur Staleys",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 2",
+                season_year=1,
+                league_name="League"
             ),
             TeamSeason(
-                team_name="Akron Pros",
-                season_year=1920,
-                league_name="APFA"
+                team_name="Team 3",
+                season_year=1,
+                league_name="League"
             ),
         ]
         fake_team_season.query.all.return_value = team_seasons_in
@@ -274,15 +277,16 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_found
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 def test_get_team_season_by_team_name_and_season_year_should_return_team_season_with_specified_team_name_and_season_year(
-        fake_team_season, test_app
+        fake_team_season, test_app, test_repo
 ):
-    # Arrange
-    team_name = "Team"
-    season_year = 1
+    with test_app.app_context():
+        # Arrange
+        team_name = "Team"
+        season_year = 1
 
-    # Act
-    test_repo = TeamSeasonRepository()
-    team_season = test_repo.get_team_season_by_team_name_and_season_year(team_name, season_year)
+        # Act
+        test_repo = TeamSeasonRepository()
+        team_season = test_repo.get_team_season_by_team_name_and_season_year(team_name, season_year)
 
     # Assert
     fake_team_season.query.filter_by.assert_called_once_with(team_name=team_name, season_year=season_year)
@@ -291,10 +295,10 @@ def test_get_team_season_by_team_name_and_season_year_should_return_team_season_
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_team_season_exists_when_team_season_does_not_exist_should_return_false(fake_team_season, test_app):
+def test_team_season_exists_when_team_season_does_not_exist_should_return_false(fake_team_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        team_seasons_in = [
+        team_seasons = [
             TeamSeason(
                 team_name="Team 1",
                 season_year=1,
@@ -311,7 +315,7 @@ def test_team_season_exists_when_team_season_does_not_exist_should_return_false(
                 league_name="League"
             ),
         ]
-        fake_team_season.query.all.return_value = team_seasons_in
+        fake_team_season.query.all.return_value = team_seasons
         fake_team_season.query.get.return_value = None
 
         # Act
@@ -323,10 +327,10 @@ def test_team_season_exists_when_team_season_does_not_exist_should_return_false(
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_team_season_exists_when_team_season_exists_should_return_true(fake_team_season, test_app):
+def test_team_season_exists_when_team_season_exists_should_return_true(fake_team_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        team_seasons_in = [
+        team_seasons = [
             TeamSeason(
                 team_name="Team 1",
                 season_year=1,
@@ -343,8 +347,8 @@ def test_team_season_exists_when_team_season_exists_should_return_true(fake_team
                 league_name="League"
             ),
         ]
-        fake_team_season.query.all.return_value = team_seasons_in
-        fake_team_season.query.get.return_value = team_seasons_in[1]
+        fake_team_season.query.all.return_value = team_seasons
+        fake_team_season.query.get.return_value = team_seasons[1]
 
         # Act
         test_repo = TeamSeasonRepository()
@@ -355,7 +359,9 @@ def test_team_season_exists_when_team_season_exists_should_return_true(fake_team
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_team_season_exists_with_team_name_and_season_year_when_team_season_does_not_exist_should_return_false(fake_team_season, test_app):
+def test_team_season_exists_with_team_name_and_season_year_when_team_season_does_not_exist_should_return_false(
+        fake_team_season, test_app, test_repo
+):
     with test_app.app_context():
         # Arrange
         fake_team_season.query.filter_by.return_value.first.return_value = None
@@ -371,7 +377,9 @@ def test_team_season_exists_with_team_name_and_season_year_when_team_season_does
 
 
 @patch('app.data.repositories.team_season_repository.TeamSeason')
-def test_team_season_exists_with_team_name_and_season_year_when_team_season_exists_should_return_true(fake_team_season, test_app):
+def test_team_season_exists_with_team_name_and_season_year_when_team_season_exists_should_return_true(
+        fake_team_season, test_app, test_repo
+):
     with test_app.app_context():
         # Arrange
         team_season = TeamSeason(
@@ -394,7 +402,7 @@ def test_team_season_exists_with_team_name_and_season_year_when_team_season_exis
 @patch('app.data.repositories.team_season_repository.sqla')
 @patch('app.data.repositories.team_season_repository.TeamSeasonRepository.team_season_exists')
 def test_update_team_season_when_no_team_season_exists_with_id_should_return_team_season_and_not_update_database(
-        fake_team_season_exists, fake_sqla, test_app
+        fake_team_season_exists, fake_sqla, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -443,7 +451,7 @@ def test_update_team_season_when_no_team_season_exists_with_id_should_return_tea
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 @patch('app.data.repositories.team_season_repository.TeamSeasonRepository.team_season_exists')
 def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_error_caught_should_return_team_season_and_update_database(
-        fake_team_season_exists, fake_team_season, fake_sqla, test_app
+        fake_team_season_exists, fake_team_season, fake_sqla, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -592,7 +600,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
 @patch('app.data.repositories.team_season_repository.TeamSeason')
 @patch('app.data.repositories.team_season_repository.TeamSeasonRepository.team_season_exists')
 def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_team_season_exists, fake_team_season, fake_sqla, test_app
+        fake_team_season_exists, fake_team_season, fake_sqla, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange

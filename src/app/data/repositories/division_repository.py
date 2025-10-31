@@ -4,7 +4,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app.data.models.division import Division
 from app.data.sqla import sqla
-from app.data.factories import division_factory
 
 
 class DivisionRepository:
@@ -52,7 +51,7 @@ class DivisionRepository:
             return None
         return Division.query.filter_by(short_name=short_name).first()
 
-    def add_division(self, **kwargs) -> Division:
+    def add_division(self, division: Division) -> Division:
         """
         Adds a division to the data store.
 
@@ -60,7 +59,6 @@ class DivisionRepository:
 
         :return: The added division.
         """
-        division = division_factory.create_division(**kwargs)
         sqla.session.add(division)
         try:
             sqla.session.commit()
@@ -69,7 +67,7 @@ class DivisionRepository:
             raise
         return division
 
-    def add_divisions(self, division_args: tuple) -> List[Division]:
+    def add_divisions(self, divisions: tuple) -> tuple:
         """
         Adds a collection of division_args dictionaries to the data store.
 
@@ -77,19 +75,16 @@ class DivisionRepository:
 
         :return: The added divisions.
         """
-        divisions = []
+        for division in divisions:
+            sqla.session.add(division)
         try:
-            for kwargs in division_args:
-                division = division_factory.create_division(kwargs)
-                divisions.append(division)
-                sqla.session.add(division)
             sqla.session.commit()
         except IntegrityError:
             sqla.session.rollback()
             raise
         return divisions
 
-    def update_division(self, **kwargs) -> Division | None:
+    def update_division(self, division: Division) -> Division | None:
         """
         Updates a division in the data store.
 
@@ -97,20 +92,15 @@ class DivisionRepository:
 
         :return: The updated division.
         """
-        if 'id' not in kwargs:
-            raise ValueError("ID must be provided for existing Division.")
+        if not self.division_exists(division.id):
+            return division
 
-        if not self.division_exists(kwargs['id']):
-            return Division(**kwargs)
-
-        old_division = self.get_division(kwargs['id'])
-        new_division = division_factory.create_division(old_division, **kwargs)
-
-        old_division.name = new_division.name
-        old_division.league_name = new_division.league_name
-        old_division.conference_name = new_division.conference_name
-        old_division.first_season_year = new_division.first_season_year
-        old_division.last_season_year = new_division.last_season_year
+        old_division = self.get_division(division.id)
+        old_division.name = division.name
+        old_division.league_name = division.league_name
+        old_division.conference_name = division.conference_name
+        old_division.first_season_year = division.first_season_year
+        old_division.last_season_year = division.last_season_year
 
         sqla.session.add(old_division)
         try:
@@ -119,7 +109,7 @@ class DivisionRepository:
             sqla.session.rollback()
             raise
 
-        return new_division
+        return division
 
     def delete_division(self, id: int) -> Division | None:
         """
@@ -134,7 +124,11 @@ class DivisionRepository:
 
         division = self.get_division(id)
         sqla.session.delete(division)
-        sqla.session.commit()
+        try:
+            sqla.session.commit()
+        except IntegrityError:
+            sqla.session.rollback()
+            raise
         return division
 
     def division_exists(self, id: int) -> bool:

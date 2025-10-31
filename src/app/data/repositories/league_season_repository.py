@@ -1,6 +1,5 @@
 from typing import List
 
-from sqlalchemy import exists
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.league_season import LeagueSeason
