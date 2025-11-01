@@ -6,6 +6,7 @@ from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 from app.services.utilities.utils import typename
+from app.services.utilities import guard
 
 
 class WeeklyUpdateService:
@@ -71,8 +72,9 @@ class WeeklyUpdateService:
 
         :return: None
         """
-        # These hard-coded values are a bit of a hack at this time, but I intend to make them selectable by the user in
-        # the future.
+        guard.raise_if_none(league_name, 'league_name')
+        guard.raise_if_none(season_year, 'season_year')
+
         self._update_league_season(league_name, season_year)
         src_week_count = self._update_week_count(season_year)
 

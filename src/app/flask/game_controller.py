@@ -1,11 +1,14 @@
+from typing import Any
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import game_factory
+from app.data.models.game import Game
 from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.game_repository import GameRepository
-from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm
+from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm, GameForm
 from app.services.game_service.game_service import GameService
 
 blueprint = Blueprint('game', __name__)
@@ -84,19 +87,8 @@ def edit(id: int):
     if old_game:
         form = EditGameForm()
         if form.validate_on_submit():
-            kwargs = {
-                'id': id,
-                'season_year': int(form.season_year.data),
-                'week': int(form.week.data),
-                'guest_name': str(form.guest_name.data),
-                'guest_score': int(form.guest_score.data),
-                'host_name': str(form.host_name.data),
-                'host_score': int(form.host_score.data),
-                'is_playoff': bool(form.is_playoff.data),
-                'notes': form.notes.data,
-            }
+            new_game = _get_game_from_form(form, id)
             try:
-                new_game = game_factory.create_game(**kwargs)
                 game_service.update_game(new_game, old_game)
                 flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('game.details', id=id))
@@ -105,21 +97,46 @@ def edit(id: int):
             except IntegrityError as err:
                 return _handle_error(err, 'games/edit.html', form, game=old_game)
         else:
-            form.season_year.data = old_game.season_year
-            form.week.data = old_game.week
-            form.guest_name.data = old_game.guest_name
-            form.guest_score.data = old_game.guest_score
-            form.host_name.data = old_game.host_name
-            form.host_score.data = old_game.host_score
-            form.is_playoff.data = old_game.is_playoff
-            form.notes.data = old_game.notes
-
+            _get_form_data_from_game(form, old_game)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
             return render_template('games/edit.html', game=old_game, form=form)
     else:
         abort(404)
+
+
+def _get_game_from_form(form: GameForm, id: int=None) -> Game:
+    kwargs = _get_kwargs_from_form(form, id)
+    game = game_factory.create_game(**kwargs)
+    return game
+
+
+def _get_kwargs_from_form(form: GameForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'season_year': int(form.season_year.data),
+        'week': int(form.week.data),
+        'guest_name': str(form.guest_name.data),
+        'guest_score': int(form.guest_score.data),
+        'host_name': str(form.host_name.data),
+        'host_score': int(form.host_score.data),
+        'is_playoff': bool(form.is_playoff.data),
+        'notes': form.notes.data,
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_form_data_from_game(form: GameForm, game) -> None:
+    form.season_year.data = game.season_year
+    form.week.data = game.week
+    form.guest_name.data = game.guest_name
+    form.guest_score.data = game.guest_score
+    form.host_name.data = game.host_name
+    form.host_score.data = game.host_score
+    form.is_playoff.data = game.is_playoff
+    form.notes.data = game.notes
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])

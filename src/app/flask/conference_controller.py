@@ -1,9 +1,12 @@
+from typing import Any
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import conference_factory
+from app.data.models.conference import Conference
 from app.data.repositories.conference_repository import ConferenceRepository
-from app.flask.forms.conference_forms import NewConferenceForm, EditConferenceForm, DeleteConferenceForm
+from app.flask.forms.conference_forms import NewConferenceForm, EditConferenceForm, DeleteConferenceForm, ConferenceForm
 
 blueprint = Blueprint('conference', __name__)
 
@@ -44,8 +47,8 @@ def create():
             'first_season_year': int(form.first_season_year.data),
             'last_season_year': int(form.last_season_year.data),
         }
+        conference = conference_factory.create_conference(**kwargs)
         try:
-            conference = conference_factory.create_conference(**kwargs)
             conference_repository.add_conference(conference)
             flash(f"Item {form.short_name.data} has been successfully submitted.", 'success')
             return redirect(url_for('conference.index'))
@@ -68,16 +71,8 @@ def edit(id: int):
     if old_conference:
         form = EditConferenceForm()
         if form.validate_on_submit():
-            kwargs = {
-                'id': id,
-                'short_name': str(form.short_name.data),
-                'long_name': str(form.long_name.data),
-                'league_name': str(form.league_name.data),
-                'first_season_year': int(form.first_season_year.data),
-                'last_season_year': int(form.last_season_year.data),
-            }
+            new_conference = _get_conference_from_form(form, id)
             try:
-                new_conference = conference_factory.create_conference(**kwargs)
                 conference_repository.update_conference(new_conference)
                 flash(f"Item {form.short_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('conference.details', id=id))
@@ -86,18 +81,40 @@ def edit(id: int):
             except IntegrityError as err:
                 return _handle_error(err, 'conferences/edit.html', form, conference=old_conference)
         else:
-            form.short_name.data = old_conference.short_name
-            form.long_name.data = old_conference.long_name
-            form.league_name.data = old_conference.league_name
-            form.first_season_year.data = old_conference.first_season_year
-            form.last_season_year.data = old_conference.last_season_year
-
+            _get_form_data_from_conference(form, old_conference)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
             return render_template('conferences/edit.html', conference=old_conference, form=form)
     else:
         abort(404)
+
+
+def _get_conference_from_form(form: ConferenceForm, id: int=None) -> Conference:
+    kwargs = _get_kwargs_from_form(form, id)
+    conference = conference_factory.create_conference(**kwargs)
+    return conference
+
+
+def _get_kwargs_from_form(form: ConferenceForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'short_name': str(form.short_name.data),
+        'long_name': str(form.long_name.data),
+        'league_name': str(form.league_name.data),
+        'first_season_year': int(form.first_season_year.data),
+        'last_season_year': int(form.last_season_year.data),
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_form_data_from_conference(form: ConferenceForm, conference: Conference) -> None:
+    form.short_name.data = conference.short_name
+    form.long_name.data = conference.long_name
+    form.league_name.data = conference.league_name
+    form.first_season_year.data = conference.first_season_year
+    form.last_season_year.data = conference.last_season_year
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])

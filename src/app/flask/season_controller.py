@@ -1,9 +1,13 @@
+from typing import Any
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
+from werkzeug import Response
 
 from app.data.factories import season_factory
+from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
-from app.flask.forms.season_forms import NewSeasonForm, EditSeasonForm, DeleteSeasonForm
+from app.flask.forms.season_forms import NewSeasonForm, EditSeasonForm, DeleteSeasonForm, SeasonForm
 
 blueprint = Blueprint('season', __name__)
 
@@ -11,7 +15,7 @@ season_repository = SeasonRepository()
 
 
 @blueprint.route('/')
-def index():
+def index() -> str:
     global season_repository
 
     seasons = season_repository.get_seasons()
@@ -19,7 +23,7 @@ def index():
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int):
+def details(id: int) -> str:
     global season_repository
 
     try:
@@ -32,18 +36,13 @@ def details(id: int):
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create():
+def create() -> Response | str:
     global season_repository
 
     form = NewSeasonForm()
     if form.validate_on_submit():
-        kwargs = {
-            'year': int(form.year.data),
-            'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
-            'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
-        }
+        season = _get_season_from_form(form)
         try:
-            season = season_factory.create_season(**kwargs)
             season_repository.add_season(season)
             flash(f"Item {form.year.data} has been successfully submitted.", 'success')
             return redirect(url_for('season.index'))
@@ -57,30 +56,22 @@ def create():
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int):
+def edit(id: int) -> Response | str:
     global season_repository
 
     old_season = season_repository.get_season(id)
     if old_season:
         form = EditSeasonForm()
         if form.validate_on_submit():
-            kwargs = {
-                'id': id,
-                'year': int(form.year.data),
-                'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
-                'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
-            }
+            new_season = _get_season_from_form(form, id)
             try:
-                new_season = season_factory.create_season(**kwargs)
                 season_repository.update_season(new_season)
                 flash(f"Item {form.year.data} has been successfully updated.", 'success')
                 return redirect(url_for('season.details', id=id))
             except ValueError as err:
                 return _handle_error(err, 'seasons/edit.html', form, season=old_season)
         else:
-            form.year.data = old_season.year
-            form.num_of_weeks_scheduled.data = old_season.num_of_weeks_scheduled
-            form.num_of_weeks_completed.data = old_season.num_of_weeks_completed
+            _get_form_data_from_season(form, old_season)
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
@@ -90,8 +81,31 @@ def edit(id: int):
         abort(404)
 
 
+def _get_season_from_form(form: SeasonForm, id: int=None) -> Season:
+    kwargs = _get_kwargs_from_form(form, id)
+    season = season_factory.create_season(**kwargs)
+    return season
+
+
+def _get_kwargs_from_form(form: SeasonForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'year': int(form.year.data),
+        'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
+        'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_form_data_from_season(form: SeasonForm, season: Season) -> None:
+    form.year.data = season.year
+    form.num_of_weeks_scheduled.data = season.num_of_weeks_scheduled
+    form.num_of_weeks_completed.data = season.num_of_weeks_completed
+
+
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int):
+def delete(id: int) -> Response | str:
     global season_repository
 
     season = season_repository.get_season(id)
@@ -106,6 +120,6 @@ def delete(id: int):
         abort(404)
 
 
-def _handle_error(err, template_name_or_list, form, season=None):
+def _handle_error(err, template_name_or_list, form, season=None) -> str:
     flash(str(err), 'danger')
     return render_template(template_name_or_list, season=season, form=form)

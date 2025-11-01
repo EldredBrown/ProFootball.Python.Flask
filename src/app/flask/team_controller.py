@@ -1,9 +1,12 @@
+from typing import Any
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import team_factory
+from app.data.models.team import Team
 from app.data.repositories.team_repository import TeamRepository
-from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm
+from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm, TeamForm
 
 blueprint = Blueprint('team', __name__)
 
@@ -37,11 +40,8 @@ def create():
 
     form = NewTeamForm()
     if form.validate_on_submit():
-        kwargs = {
-            'name': str(form.name.data),
-        }
+        team = _get_team_from_form(form)
         try:
-            team = team_factory.create_team(**kwargs)
             team_repository.add_team(team)
             flash(f"Item {form.name.data} has been successfully submitted.", 'success')
             return redirect(url_for('team.index'))
@@ -64,12 +64,8 @@ def edit(id: int):
     if old_team:
         form = EditTeamForm()
         if form.validate_on_submit():
-            kwargs = {
-                'id': id,
-                'name': str(form.name.data),
-            }
+            new_team = _get_team_from_form(form, id)
             try:
-                new_team = team_factory.create_team(**kwargs)
                 team_repository.update_team(new_team)
                 flash(f"Item {form.name.data} has been successfully updated.", 'success')
                 return redirect(url_for('team.details', id=id))
@@ -78,7 +74,7 @@ def edit(id: int):
             except IntegrityError as err:
                 return _handle_error(err, 'teams/edit.html', form, team=old_team)
         else:
-            form.name.data = old_team.name
+            _get_form_data_from_team(form, old_team)
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
@@ -86,6 +82,25 @@ def edit(id: int):
             return render_template('teams/edit.html', team=old_team, form=form)
     else:
         abort(404)
+
+
+def _get_team_from_form(form: TeamForm, id: int=None) -> Team:
+    kwargs = _get_kwargs_from_form(form, id)
+    new_team = team_factory.create_team(**kwargs)
+    return new_team
+
+
+def _get_kwargs_from_form(form: TeamForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'name': str(form.name.data),
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_form_data_from_team(form: TeamForm, team: Team) -> None:
+    form.name.data = team.name
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
