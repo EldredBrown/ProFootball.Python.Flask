@@ -9,10 +9,10 @@ blueprint = Blueprint('season_rankings', __name__)
 
 RANKING_TYPES = ['Offense', 'Defense', 'Total']
 
-seasons = None
+seasons = []
 selected_year = None
 
-leagues = None
+leagues = []
 selected_league_name = None
 
 selected_type = None
@@ -114,6 +114,7 @@ def run_weekly_update():
 @blueprint.route('/offense')
 def offense():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_offensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -126,6 +127,7 @@ def offense():
 @blueprint.route('/defense')
 def defense():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_defensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -138,6 +140,7 @@ def defense():
 @blueprint.route('/total')
 def total():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_total_rankings_by_season_year(selected_year)
     return render_template(

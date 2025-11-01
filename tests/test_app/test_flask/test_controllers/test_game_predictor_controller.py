@@ -4,25 +4,17 @@ import pytest
 
 import app.flask.game_predictor_controller as mod
 
-from test_app import create_app
-
-
-@pytest.fixture()
-def test_app():
-    return create_app()
-
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.SeasonRepository')
-def test_index_should_render_game_predictor_index_template(fake_season_repository, fake_render_template, test_app):
-    with test_app.app_context():
-        # Arrange
-        guest_seasons = [1920, 1921, 1922]
-        host_seasons = [1920, 1921, 1922]
-        fake_season_repository.return_value.get_seasons.side_effect = [guest_seasons, host_seasons]
+def test_index_should_render_game_predictor_index_template(fake_season_repository, fake_render_template):
+    # Arrange
+    guest_seasons = [1920, 1921, 1922]
+    host_seasons = [1920, 1921, 1922]
+    fake_season_repository.return_value.get_seasons.side_effect = [guest_seasons, host_seasons]
 
-        # Act
-        result = mod.index()
+    # Act
+    result = mod.index()
 
     # Assert
     fake_season_repository.assert_called_once()
@@ -46,14 +38,11 @@ def test_index_should_render_game_predictor_index_template(fake_season_repositor
 
 
 @pytest.mark.skip('WIP')
-def test_select_guest_season_should_render_game_predictor_index_template_with_guest_years_dropdown_set_to_selected_guest_year_and_guests_dropdown_populated_with_teams_from_selected_season(
-        test_app
-):
-    with test_app.app_context():
-        # Arrange
+def test_select_guest_season_should_render_game_predictor_index_template_with_guest_years_dropdown_set_to_selected_guest_year_and_guests_dropdown_populated_with_teams_from_selected_season():
+    # Arrange
 
-        # Act
-        result = mod.select_guest_season()
+    # Act
+    result = mod.select_guest_season()
 
     # Assert
     # selected_guest_year = int(request.form.get('guest_season_dropdown'))  # Fetch the selected guest season.
@@ -68,14 +57,11 @@ def test_select_guest_season_should_render_game_predictor_index_template_with_gu
 
 
 @pytest.mark.skip('WIP')
-def test_select_guest_should_render_game_predictor_index_template_with_guest_years_dropdown_set_to_selected_guest_year_and_guests_dropdown_set_to_selected_guest_name(
-        test_app
-):
-    with test_app.app_context():
-        # Arrange
+def test_select_guest_should_render_game_predictor_index_template_with_guest_years_dropdown_set_to_selected_guest_year_and_guests_dropdown_set_to_selected_guest_name():
+    # Arrange
 
-        # Act
-        result = mod.select_guest()
+    # Act
+    result = mod.select_guest()
 
     # Assert
     # selected_guest_name = str(request.form.get('guest_dropdown'))
@@ -89,14 +75,11 @@ def test_select_guest_should_render_game_predictor_index_template_with_guest_yea
 
 
 @pytest.mark.skip('WIP')
-def test_select_host_season_should_render_game_predictor_index_template_with_host_years_dropdown_set_to_selected_host_year_and_hosts_dropdown_populated_with_teams_from_selected_season(
-        test_app
-):
-    with test_app.app_context():
-        # Arrange
+def test_select_host_season_should_render_game_predictor_index_template_with_host_years_dropdown_set_to_selected_host_year_and_hosts_dropdown_populated_with_teams_from_selected_season():
+    # Arrange
 
-        # Act
-        result = mod.select_host_season()
+    # Act
+    result = mod.select_host_season()
 
     # Assert
     # selected_host_year = int(request.form.get('host_season_dropdown'))  # Fetch the selected host season.
@@ -111,14 +94,11 @@ def test_select_host_season_should_render_game_predictor_index_template_with_hos
 
 
 @pytest.mark.skip('WIP')
-def test_select_host_should_render_game_predictor_index_template_with_host_years_dropdown_set_to_selected_host_year_and_hosts_dropdown_set_to_selected_host_name(
-        test_app
-):
-    with test_app.app_context():
-        # Arrange
+def test_select_host_should_render_game_predictor_index_template_with_host_years_dropdown_set_to_selected_host_year_and_hosts_dropdown_set_to_selected_host_name():
+    # Arrange
 
-        # Act
-        result = mod.select_host()
+    # Act
+    result = mod.select_host()
 
     # Assert
     # selected_host_name = str(request.form.get('host_dropdown'))
@@ -134,14 +114,13 @@ def test_select_host_should_render_game_predictor_index_template_with_host_years
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
 def test_predict_game_when_selected_guest_year_is_none_should_flash_error_message(
-        fake_flash, fake_render_template, test_app
+        fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = None
+    # Arrange
+    mod.selected_guest_year = None
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_flash.assert_called_once_with("Please select one guest season.", 'danger')
@@ -158,15 +137,14 @@ def test_predict_game_when_selected_guest_year_is_none_should_flash_error_messag
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
 def test_predict_game_when_selected_guest_is_none_should_flash_error_message(
-        fake_flash, fake_render_template, test_app
+        fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = 1
-        mod.selected_guest_name = None
+    # Arrange
+    mod.selected_guest_year = 1
+    mod.selected_guest_name = None
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_flash.assert_called_once_with("Please select one guest name.", 'danger')
@@ -183,16 +161,15 @@ def test_predict_game_when_selected_guest_is_none_should_flash_error_message(
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
 def test_predict_game_when_selected_host_year_is_none_should_flash_error_message(
-        fake_flash, fake_render_template, test_app
+        fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = 1
-        mod.selected_guest_name = "Guest"
-        mod.selected_host_year = None
+    # Arrange
+    mod.selected_guest_year = 1
+    mod.selected_guest_name = "Guest"
+    mod.selected_host_year = None
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_flash.assert_called_once_with("Please select one host season.", 'danger')
@@ -209,17 +186,16 @@ def test_predict_game_when_selected_host_year_is_none_should_flash_error_message
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
 def test_predict_game_when_selected_host_is_none_should_flash_error_message(
-        fake_flash, fake_render_template, test_app
+        fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = 1
-        mod.selected_guest_name = "Guest"
-        mod.selected_host_year = 1
-        mod.selected_host_name = None
+    # Arrange
+    mod.selected_guest_year = 1
+    mod.selected_guest_name = "Guest"
+    mod.selected_host_year = 1
+    mod.selected_host_name = None
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_flash.assert_called_once_with("Please select one host name.", 'danger')
@@ -237,19 +213,18 @@ def test_predict_game_when_selected_host_is_none_should_flash_error_message(
 @patch('app.flask.game_predictor_controller.flash')
 @patch('app.flask.game_predictor_controller.GamePredictorService')
 def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_host_year_and_selected_host_are_not_none_and_type_error_is_caught_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_game_predictor_service, fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = 1
-        mod.selected_guest_name = "Guest"
-        mod.selected_host_year = 1
-        mod.selected_host_name = "Host"
+    # Arrange
+    mod.selected_guest_year = 1
+    mod.selected_guest_name = "Guest"
+    mod.selected_host_year = 1
+    mod.selected_host_name = "Host"
 
-        fake_game_predictor_service.return_value.predict_game_score.side_effect = Exception()
+    fake_game_predictor_service.return_value.predict_game_score.side_effect = Exception()
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_flash.assert_called_once_with("The prediction could not be calculated.", 'danger')
@@ -267,21 +242,20 @@ def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_h
 @patch('app.flask.game_predictor_controller.flash')
 @patch('app.flask.game_predictor_controller.GamePredictorService')
 def test_predict_game_when_type_error_is_not_caught_should_flash_success_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_game_predictor_service, fake_flash, fake_render_template
 ):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_guest_year = 1
-        mod.selected_guest_name = "Guest"
-        mod.selected_host_year = 1
-        mod.selected_host_name = "Host"
+    # Arrange
+    mod.selected_guest_year = 1
+    mod.selected_guest_name = "Guest"
+    mod.selected_host_year = 1
+    mod.selected_host_name = "Host"
 
-        guest_score = 0
-        host_score = 0
-        fake_game_predictor_service.return_value.predict_game_score.return_value = (guest_score, host_score)
+    guest_score = 0
+    host_score = 0
+    fake_game_predictor_service.return_value.predict_game_score.return_value = (guest_score, host_score)
 
-        # Act
-        result = mod.predict_game()
+    # Act
+    result = mod.predict_game()
 
     # Assert
     fake_game_predictor_service.return_value.predict_game_score.assert_called_once_with(

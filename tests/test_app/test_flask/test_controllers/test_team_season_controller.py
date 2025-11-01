@@ -19,15 +19,12 @@ def test_app():
 
 @patch('app.flask.team_season_controller.render_template')
 @patch('app.flask.team_season_controller.SeasonRepository')
-def test_index_should_render_team_season_index_template(
-        fake_season_repository, fake_render_template, test_app
-):
-    with test_app.app_context():
-        # Arrange
-        mod.selected_year = 1
+def test_index_should_render_team_season_index_template(fake_season_repository, fake_render_template):
+    # Arrange
+    mod.selected_year = 1
 
-        # Act
-        result = mod.index()
+    # Act
+    result = mod.index()
 
     # Assert
     fake_season_repository.assert_called_once()
@@ -44,7 +41,7 @@ def test_index_should_render_team_season_index_template(
 @patch('app.flask.team_season_controller.team_season_repository')
 @patch('app.flask.team_season_controller.TeamSeasonScheduleRepository')
 def test_details_when_team_season_found_should_render_team_season_details_template(
-        fake_team_season_schedule_repository, fake_team_season_repository, fake_render_template, test_app
+        fake_team_season_schedule_repository, fake_team_season_repository, fake_render_template
 ):
     # Arrange
     team_season = TeamSeason(team_name="Team", season_year=1)
@@ -53,8 +50,7 @@ def test_details_when_team_season_found_should_render_team_season_details_templa
     id = 1
 
     # Act
-    with test_app.app_context():
-        result = mod.details(id)
+    result = mod.details(id)
 
     # Assert
     fake_team_season_schedule_repository.assert_called_once()
@@ -80,26 +76,24 @@ def test_details_when_team_season_found_should_render_team_season_details_templa
 
 
 @patch('app.flask.team_season_controller.team_season_repository')
-def test_details_when_team_season_not_found_should_abort_with_404_error(fake_team_season_repository, test_app):
+def test_details_when_team_season_not_found_should_abort_with_404_error(fake_team_season_repository):
     # Arrange
     fake_team_season_repository.get_team_season.side_effect = IndexError()
 
     # Act
-    with test_app.app_context():
-        with pytest.raises(NotFound):
-            result = mod.details(1)
+    with pytest.raises(NotFound):
+        result = mod.details(1)
 
 
 @pytest.mark.skip('WIP')
 def test_select_season_should_render_team_season_index_template_for_selected_year(test_app):
-    with test_app.app_context():
-        with test_app.test_request_context(
-                '/team_seasons/select_season',
-                method='POST'
-        ):
-            # Arrange
+    with test_app.test_request_context(
+            '/team_seasons/select_season',
+            method='POST'
+    ):
+        # Arrange
 
-            # Act
-            result = team_season_controller.select_season()
+        # Act
+        result = mod.select_season()
 
     # Assert

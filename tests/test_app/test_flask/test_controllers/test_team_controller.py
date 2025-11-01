@@ -420,8 +420,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
             '/teams/delete?id=1',
             method='GET'
     ):
-        with test_app.app_context():
-            result = mod.delete(1)
+        result = mod.delete(1)
 
     # Assert
     fake_team_repository.get_team.assert_called_once_with(1)
@@ -446,8 +445,7 @@ def test_delete_when_request_method_is_post_and_team_found_should_flash_success_
             '/teams/delete?id=1',
             method='POST'
     ):
-        with test_app.app_context():
-            result = mod.delete(id)
+        result = mod.delete(id)
 
     # Assert
     fake_team_repository.delete_team.assert_called_once_with(id)
@@ -471,6 +469,5 @@ def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with
             '/teams/delete?id=1',
             method='POST'
     ):
-        with test_app.app_context():
-            with pytest.raises(NotFound):
-                result = mod.delete(1)
+        with pytest.raises(NotFound):
+            result = mod.delete(1)

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-import app.flask.season_rankings_controller as mut
+import app.flask.season_rankings_controller as mod
 from app.data.models.league import League
 from app.data.models.season import Season
 
@@ -18,11 +18,10 @@ def test_app():
 @patch('app.flask.season_rankings_controller.LeagueRepository')
 @patch('app.flask.season_rankings_controller.SeasonRepository')
 def test_index_should_render_season_rankings_index_template(
-        fake_season_repository, fake_league_repository, fake_render_template, test_app
+        fake_season_repository, fake_league_repository, fake_render_template
 ):
     # Act
-    with test_app.app_context():
-        result = mut.index()
+    result = mod.index()
 
     # Assert
     fake_season_repository.assert_called_once()
@@ -33,52 +32,49 @@ def test_index_should_render_season_rankings_index_template(
         'season_rankings/index.html',
         seasons=fake_season_repository.return_value.get_seasons.return_value, selected_year=None,
         leagues=fake_league_repository.return_value.get_leagues.return_value, selected_league_name=None,
-        types=mut.RANKING_TYPES, selected_type=None, season_rankings=None
+        types=mod.RANKING_TYPES, selected_type=None, season_rankings=None
     )
     assert result is fake_render_template.return_value
 
 
 @pytest.mark.skip('WIP')
 def test_select_season_should_render_season_rankings_index_template_for_selected_year(test_app):
-    with test_app.app_context():
-        with test_app.test_request_context(
-                '/season_rankings/select_season',
-                method='POST'
-        ):
-            # Arrange
+    with test_app.test_request_context(
+            '/season_rankings/select_season',
+            method='POST'
+    ):
+        # Arrange
 
-            # Act
-            result = mut.select_season()
+        # Act
+        result = mod.select_season()
 
     # Assert
 
 
 @pytest.mark.skip('WIP')
 def test_select_league_should_render_rankings_index_template_for_selected_league(test_app):
-    with test_app.app_context():
-        with test_app.test_request_context(
-                '/season_rankings/select_league',
-                method='POST'
-        ):
-            # Arrange
+    with test_app.test_request_context(
+            '/season_rankings/select_league',
+            method='POST'
+    ):
+        # Arrange
 
-            # Act
-            result = mut.select_league()
+        # Act
+        result = mod.select_league()
 
     # Assert
 
 
 @pytest.mark.skip('WIP')
 def test_select_type_should_render_rankings_index_template_for_selected_type(test_app):
-    with test_app.app_context():
-        with test_app.test_request_context(
-                '/season_rankings/select_type',
-                method='POST'
-        ):
-            # Arrange
+    with test_app.test_request_context(
+            '/season_rankings/select_type',
+            method='POST'
+    ):
+        # Arrange
 
-            # Act
-            result = mut.select_type()
+        # Act
+        result = mod.select_type()
 
     # Assert
 
@@ -86,33 +82,30 @@ def test_select_type_should_render_rankings_index_template_for_selected_type(tes
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.flash')
 @patch('app.flask.season_rankings_controller.WeeklyUpdateService')
-def test_run_weekly_update_should_run_weekly_update(
-        fake_weekly_update_service, fake_flash, fake_render_template, test_app
-):
-    with test_app.app_context():
-        # Arrange
-        mut.seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
-        mut.selected_year = 1
+def test_run_weekly_update_should_run_weekly_update(fake_weekly_update_service, fake_flash, fake_render_template):
+    # Arrange
+    mod.seasons = [
+        Season(year=1),
+        Season(year=2),
+        Season(year=3),
+    ]
+    mod.selected_year = 1
 
-        mut.leagues = [
-            League(long_name="American Professional Football Association", short_name="APFA", first_season_year=1),
-            League(long_name="National Football League", short_name="NFL", first_season_year=1),
-            League(long_name="American Football League", short_name="AFL", first_season_year=1),
-        ]
-        mut.selected_league_name = "APFA"
+    mod.leagues = [
+        League(long_name="American Professional Football Association", short_name="APFA", first_season_year=1),
+        League(long_name="National Football League", short_name="NFL", first_season_year=1),
+        League(long_name="American Football League", short_name="AFL", first_season_year=1),
+    ]
+    mod.selected_league_name = "APFA"
 
-        mut.selected_type = "Total"
+    mod.selected_type = "Total"
 
-        # Act
-        mut.run_weekly_update()
+    # Act
+    mod.run_weekly_update()
 
     # Assert
-    league_name = mut.selected_league_name
-    season_year = mut.selected_year
+    league_name = mod.selected_league_name
+    season_year = mod.selected_year
     fake_weekly_update_service.assert_called_once()
     fake_weekly_update_service.return_value.run_weekly_update.assert_called_once_with(league_name, season_year)
     fake_flash.assert_called_once_with(
@@ -121,45 +114,44 @@ def test_run_weekly_update_should_run_weekly_update(
     )
     fake_render_template.assert_called_once_with(
         'season_rankings/index.html',
-        seasons=mut.seasons, selected_year=mut.selected_year,
-        leagues=mut.leagues, selected_league_name=mut.selected_league_name,
-        types=mut.RANKING_TYPES, selected_type=mut.selected_type, season_rankings=None
+        seasons=mod.seasons, selected_year=mod.selected_year,
+        leagues=mod.leagues, selected_league_name=mod.selected_league_name,
+        types=mod.RANKING_TYPES, selected_type=mod.selected_type, season_rankings=None
     )
 
 
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.season_rankings_repository')
 def test_offense_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
+        fake_season_rankings_repository, fake_render_template
 ):
     # Arrange
-    mut.seasons = [
+    mod.seasons = [
         Season(year=1),
         Season(year=2),
         Season(year=3),
     ]
-    mut.selected_year = 1
+    mod.selected_year = 1
 
-    mut.leagues = [
+    mod.leagues = [
         League(long_name="American Professional Football Association", short_name="APFA", first_season_year=1),
         League(long_name="National Football League", short_name="NFL", first_season_year=1),
         League(long_name="American Football League", short_name="AFL", first_season_year=1),
     ]
-    mut.selected_league_name = "APFA"
+    mod.selected_league_name = "APFA"
 
-    mut.selected_type = "Offense"
+    mod.selected_type = "Offense"
 
     # Act
-    with test_app.app_context():
-        result = mut.offense()
+    result = mod.offense()
 
     # Assert
-    fake_season_rankings_repository.get_offensive_rankings_by_season_year.assert_called_once_with(mut.selected_year)
+    fake_season_rankings_repository.get_offensive_rankings_by_season_year.assert_called_once_with(mod.selected_year)
     fake_render_template.assert_called_once_with(
         'season_rankings/offense.html',
-        seasons=mut.seasons, selected_year=mut.selected_year,
-        leagues=mut.leagues, selected_league_name=mut.selected_league_name,
-        types=mut.RANKING_TYPES, selected_type=mut.selected_type,
+        seasons=mod.seasons, selected_year=mod.selected_year,
+        leagues=mod.leagues, selected_league_name=mod.selected_league_name,
+        types=mod.RANKING_TYPES, selected_type=mod.selected_type,
         season_rankings=fake_season_rankings_repository.get_offensive_rankings_by_season_year.return_value
     )
     assert result is fake_render_template.return_value
@@ -168,36 +160,35 @@ def test_offense_should_render_season_offensive_rankings_template(
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.season_rankings_repository')
 def test_defense_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
+        fake_season_rankings_repository, fake_render_template
 ):
     # Arrange
-    mut.seasons = [
+    mod.seasons = [
         Season(year=1),
         Season(year=2),
         Season(year=3),
     ]
-    mut.selected_year = 1
+    mod.selected_year = 1
 
-    mut.leagues = [
+    mod.leagues = [
         League(long_name="American Professional Football Association", short_name="APFA", first_season_year=1),
         League(long_name="National Football League", short_name="NFL", first_season_year=1),
         League(long_name="American Football League", short_name="AFL", first_season_year=1),
     ]
-    mut.selected_league_name = "APFA"
+    mod.selected_league_name = "APFA"
 
-    mut.selected_type = "Defense"
+    mod.selected_type = "Defense"
 
     # Act
-    with test_app.app_context():
-        result = mut.defense()
+    result = mod.defense()
 
     # Assert
-    fake_season_rankings_repository.get_defensive_rankings_by_season_year.assert_called_once_with(mut.selected_year)
+    fake_season_rankings_repository.get_defensive_rankings_by_season_year.assert_called_once_with(mod.selected_year)
     fake_render_template.assert_called_once_with(
         'season_rankings/defense.html',
-        seasons=mut.seasons, selected_year=mut.selected_year,
-        leagues=mut.leagues, selected_league_name=mut.selected_league_name,
-        types=mut.RANKING_TYPES, selected_type=mut.selected_type,
+        seasons=mod.seasons, selected_year=mod.selected_year,
+        leagues=mod.leagues, selected_league_name=mod.selected_league_name,
+        types=mod.RANKING_TYPES, selected_type=mod.selected_type,
         season_rankings=fake_season_rankings_repository.get_defensive_rankings_by_season_year.return_value
     )
     assert result is fake_render_template.return_value
@@ -205,37 +196,34 @@ def test_defense_should_render_season_offensive_rankings_template(
 
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.season_rankings_repository')
-def test_total_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
-):
+def test_total_should_render_season_offensive_rankings_template(fake_season_rankings_repository, fake_render_template):
     # Arrange
-    mut.seasons = [
+    mod.seasons = [
         Season(year=1),
         Season(year=2),
         Season(year=3),
     ]
-    mut.selected_year = 1
+    mod.selected_year = 1
 
-    mut.leagues = [
+    mod.leagues = [
         League(long_name="American Professional Football Association", short_name="APFA", first_season_year=1),
         League(long_name="National Football League", short_name="NFL", first_season_year=1),
         League(long_name="American Football League", short_name="AFL", first_season_year=1),
     ]
-    mut.selected_league_name = "APFA"
+    mod.selected_league_name = "APFA"
 
-    mut.selected_type = "Offense"
+    mod.selected_type = "Offense"
 
     # Act
-    with test_app.app_context():
-        result = mut.total()
+    result = mod.total()
 
     # Assert
-    fake_season_rankings_repository.get_total_rankings_by_season_year.assert_called_once_with(mut.selected_year)
+    fake_season_rankings_repository.get_total_rankings_by_season_year.assert_called_once_with(mod.selected_year)
     fake_render_template.assert_called_once_with(
         'season_rankings/total.html',
-        seasons=mut.seasons, selected_year=mut.selected_year,
-        leagues=mut.leagues, selected_league_name=mut.selected_league_name,
-        types=mut.RANKING_TYPES, selected_type=mut.selected_type,
+        seasons=mod.seasons, selected_year=mod.selected_year,
+        leagues=mod.leagues, selected_league_name=mod.selected_league_name,
+        types=mod.RANKING_TYPES, selected_type=mod.selected_type,
         season_rankings=fake_season_rankings_repository.get_total_rankings_by_season_year.return_value
     )
     assert result is fake_render_template.return_value

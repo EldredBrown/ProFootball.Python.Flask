@@ -8,14 +8,14 @@ blueprint = Blueprint('team_season', __name__)
 
 team_season_repository = TeamSeasonRepository()
 
-seasons = None
+seasons = []
 selected_year = None
 
 
 @blueprint.route('/')
 def index():
     global seasons
-    global selected_year
+    global selected_season
 
     season_repository = SeasonRepository()
     seasons = season_repository.get_seasons()
@@ -56,7 +56,7 @@ def details(id: int):
 @blueprint.route('/select_season', methods=['POST'])
 def select_season():
     global seasons
-    global selected_year
+    global selected_season
     global team_season_repository
 
     selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.

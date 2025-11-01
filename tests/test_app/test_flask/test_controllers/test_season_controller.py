@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import pytest
 
-from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 import app.flask.season_controller as mod
