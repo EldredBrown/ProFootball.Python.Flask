@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class SeasonRepository:
         """
         return Season.query.all()
 
-    def get_season(self, id: int) -> Season | None:
+    def get_season(self, id: int) -> Optional[Season]:
         """
         Gets the season in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class SeasonRepository:
             return None
         return Season.query.get(id)
 
-    def get_season_by_year(self, year: int) -> Season | None:
+    def get_season_by_year(self, year: int) -> Optional[Season]:
         """
         Gets the season in the data store with the specified id.
 
@@ -84,7 +84,7 @@ class SeasonRepository:
             raise
         return seasons
 
-    def update_season(self, season: Season) -> Season | None:
+    def update_season(self, season: Season) -> Optional[Season]:
         """
         Updates a season in the data store.
 
@@ -109,7 +109,7 @@ class SeasonRepository:
 
         return season
 
-    def delete_season(self, id: int) -> Season | None:
+    def delete_season(self, id: int) -> Optional[Season]:
         """
         Deletes a season from the data store.
 

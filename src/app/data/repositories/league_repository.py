@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class LeagueRepository:
         """
         return League.query.all()
 
-    def get_league(self, id: int) -> League | None:
+    def get_league(self, id: int) -> Optional[League]:
         """
         Gets the league in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class LeagueRepository:
             return None
         return League.query.get(id)
 
-    def get_league_by_name(self, short_name: str) -> League | None:
+    def get_league_by_name(self, short_name: str) -> Optional[League]:
         """
         Gets the league in the data store with the specified id.
 
@@ -84,7 +84,7 @@ class LeagueRepository:
             raise
         return leagues
 
-    def update_league(self, league: League) -> League | None:
+    def update_league(self, league: League) -> Optional[League]:
         """
         Updates a league in the data store.
 
@@ -110,7 +110,7 @@ class LeagueRepository:
 
         return league
 
-    def delete_league(self, id: int) -> League | None:
+    def delete_league(self, id: int) -> Optional[League]:
         """
         Deletes a league from the data store.
 

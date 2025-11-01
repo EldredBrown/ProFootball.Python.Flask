@@ -1,3 +1,5 @@
+from typing import Optional
+
 from injector import inject
 
 from app.data.models.game import Game
@@ -12,7 +14,7 @@ class ProcessGameStrategy:
     """
 
     @inject
-    def __init__(self, team_season_repository: TeamSeasonRepository | None):
+    def __init__(self, team_season_repository: TeamSeasonRepository):
         """
         Initializes a new instance of the ProcessGameStrategy class.
 
@@ -23,7 +25,7 @@ class ProcessGameStrategy:
     def __repr__(self):
         return f"{type(self).__name__}(team_season_repository={self._team_season_repository})"
 
-    def process_game(self, game: Game | None) -> None:
+    def process_game(self, game: Optional[Game]) -> None:
         """
         Processes a Game object into the team data store.
 

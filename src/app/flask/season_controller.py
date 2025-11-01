@@ -107,6 +107,6 @@ def delete(id: int, season_repository: SeasonRepository) -> Response | str:
         abort(404)
 
 
-def _handle_error(err: Any, template_name: str, form: SeasonForm, season: Season=None) -> str:
+def _handle_error(err: Any, template_name_or_list: str, form: SeasonForm, season: Season=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name, form=form, season=season)
+    return render_template(template_name_or_list, form=form, season=season)

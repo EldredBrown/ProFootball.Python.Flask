@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 
 from app.data.sqla import sqla
 
@@ -91,13 +92,13 @@ class TeamSeason(sqla.Model):
             calculate_expected_winning_percentage(self.offensive_index, self.defensive_index)
 
 
-def calculate_expected_winning_percentage(points_for: Decimal, points_against: Decimal) -> Decimal | None:
+def calculate_expected_winning_percentage(points_for: Decimal, points_against: Decimal) -> Optional[Decimal]:
     o = pow(points_for, EXPONENT)
     d = pow(points_against, EXPONENT)
     return divide(o, o + d)
 
 
-def divide(numerator: int | Decimal, denominator: int | Decimal) -> Decimal | None:
+def divide(numerator: int | Decimal, denominator: int | Decimal) -> Optional[Decimal]:
     if denominator == 0:
         return None
 
@@ -106,7 +107,7 @@ def divide(numerator: int | Decimal, denominator: int | Decimal) -> Decimal | No
 
 def update_rankings(
         points: int, games: int, team_season_schedule_average_points: Decimal, league_season_average_points: Decimal
-) -> tuple[Decimal | None, Decimal | None, Decimal | None]:
+) -> tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal]]:
     if games == 0:
         return None, None, None
 

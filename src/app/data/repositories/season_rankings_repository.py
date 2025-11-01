@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.sql import text as SQLQuery
 
@@ -18,7 +18,7 @@ class SeasonRankingsRepository:
         """
         pass
 
-    def get_offensive_rankings_by_season_year(self, season_year: int | None) -> List[OffensiveRankingsTeamSeason]:
+    def get_offensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
         if season_year is None:
             return []
 
@@ -41,7 +41,7 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_defensive_rankings_by_season_year(self, season_year: int | None) -> List[DefensiveRankingsTeamSeason]:
+    def get_defensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
         if season_year is None:
             return []
 
@@ -64,7 +64,7 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_total_rankings_by_season_year(self, season_year: int | None) -> List[TotalRankingsTeamSeason]:
+    def get_total_rankings_by_season_year(self, season_year: Optional[int]) -> List[TotalRankingsTeamSeason]:
         if season_year is None:
             return []
 

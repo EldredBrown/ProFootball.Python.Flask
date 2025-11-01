@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class DivisionRepository:
         """
         return Division.query.all()
 
-    def get_division(self, id: int) -> Division | None:
+    def get_division(self, id: int) -> Optional[Division]:
         """
         Gets the division in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class DivisionRepository:
             return None
         return Division.query.get(id)
 
-    def get_division_by_name(self, short_name: str) -> Division | None:
+    def get_division_by_name(self, short_name: str) -> Optional[Division]:
         """
         Gets the division in the data store with the specified id.
 
@@ -84,7 +84,7 @@ class DivisionRepository:
             raise
         return divisions
 
-    def update_division(self, division: Division) -> Division | None:
+    def update_division(self, division: Division) -> Optional[Division]:
         """
         Updates a division in the data store.
 
@@ -111,7 +111,7 @@ class DivisionRepository:
 
         return division
 
-    def delete_division(self, id: int) -> Division | None:
+    def delete_division(self, id: int) -> Optional[Division]:
         """
         Deletes a division from the data store.
 

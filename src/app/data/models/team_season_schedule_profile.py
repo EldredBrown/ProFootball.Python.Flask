@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Optional
 
 
 @dataclass
@@ -7,13 +8,13 @@ class TeamSeasonScheduleProfileRecord:
     """
     Represents a team's season schedule totals.
     """
-    opponent: str | None = None
-    game_points_for: int | None = None
-    game_points_against: int | None = None
-    opponent_wins: int | None = None
-    opponent_losses: int | None = None
-    opponent_ties: int | None = None
-    opponent_winning_percentage: Decimal | None = None
-    opponent_weighted_games: int | None = None
-    opponent_weighted_points_for: int | None = None
-    opponent_weighted_points_against: int | None = None
+    opponent: Optional[str]
+    game_points_for: Optional[int]
+    game_points_against: Optional[int]
+    opponent_wins: Optional[int]
+    opponent_losses: Optional[int]
+    opponent_ties: Optional[int]
+    opponent_winning_percentage: Optional[Decimal]
+    opponent_weighted_games: Optional[int]
+    opponent_weighted_points_for: Optional[int]
+    opponent_weighted_points_against: Optional[int]

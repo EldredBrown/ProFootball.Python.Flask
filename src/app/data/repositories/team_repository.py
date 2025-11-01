@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class TeamRepository:
         """
         return Team.query.all()
 
-    def get_team(self, id: int) -> Team | None:
+    def get_team(self, id: int) -> Optional[Team]:
         """
         Gets the team in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class TeamRepository:
             return None
         return Team.query.get(id)
 
-    def get_team_by_name(self, short_name: str) -> Team | None:
+    def get_team_by_name(self, short_name: str) -> Optional[Team]:
         """
         Gets the team in the data store with the specified id.
 
@@ -84,7 +84,7 @@ class TeamRepository:
             raise
         return teams
 
-    def update_team(self, team: Team) -> Team | None:
+    def update_team(self, team: Team) -> Optional[Team]:
         """
         Updates a team in the data store.
 
@@ -107,7 +107,7 @@ class TeamRepository:
 
         return team
 
-    def delete_team(self, id: int) -> Team | None:
+    def delete_team(self, id: int) -> Optional[Team]:
         """
         Deletes a team from the data store.
 

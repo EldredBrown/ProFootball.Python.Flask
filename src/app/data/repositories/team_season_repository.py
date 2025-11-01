@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class TeamSeasonRepository:
         """
         return TeamSeason.query.all()
 
-    def get_team_seasons_by_season_year(self, season_year: int | None) -> List[TeamSeason]:
+    def get_team_seasons_by_season_year(self, season_year: Optional[int]) -> List[TeamSeason]:
         """
         Gets all the team_seasons in the data store filtered by season_year.
 
@@ -37,7 +37,7 @@ class TeamSeasonRepository:
             return []
         return TeamSeason.query.filter_by(season_year=season_year).all()
 
-    def get_team_season(self, id: int) -> TeamSeason | None:
+    def get_team_season(self, id: int) -> Optional[TeamSeason]:
         """
         Gets the team_season in the data store with the specified id.
 

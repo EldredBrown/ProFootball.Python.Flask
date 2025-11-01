@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class GameRepository:
         """
         return Game.query.all()
 
-    def get_games_by_season_year(self, season_year: int | None) -> List[Game]:
+    def get_games_by_season_year(self, season_year: Optional[int]) -> List[Game]:
         """
         Gets all the games in the data store filtered by season_year.
 
@@ -37,7 +37,7 @@ class GameRepository:
             return []
         return Game.query.filter_by(season_year=season_year).all()
 
-    def get_games_by_season_year_and_week(self, season_year: int | None, week: int | None) -> List[Game]:
+    def get_games_by_season_year_and_week(self, season_year: Optional[int], week: Optional[int]) -> List[Game]:
         """
         Gets all the games in the data store filtered by season_year.
 
@@ -49,7 +49,7 @@ class GameRepository:
             return []
         return Game.query.filter_by(season_year=season_year, week=week).all()
 
-    def get_game(self, id: int) -> Game | None:
+    def get_game(self, id: int) -> Optional[Game]:
         """
         Gets the game in the data store with the specified id.
 
@@ -95,7 +95,7 @@ class GameRepository:
             raise
         return games
 
-    def update_game(self, game: Game) -> Game | None:
+    def update_game(self, game: Game) -> Optional[Game]:
         """
         Updates a game in the data store.
 
@@ -125,7 +125,7 @@ class GameRepository:
 
         return game
 
-    def delete_game(self, id: int) -> Game | None:
+    def delete_game(self, id: int) -> Optional[Game]:
         """
         Deletes a game from the data store.
 

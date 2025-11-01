@@ -22,21 +22,23 @@ from app.services.weekly_update_service.weekly_update_service import WeeklyUpdat
 app = create_app()
 
 def configure(binder):
-    binder.bind(SeasonRepository, to=SeasonRepository, scope=singleton)
-    binder.bind(LeagueRepository, to=LeagueRepository, scope=singleton)
     binder.bind(ConferenceRepository, to=ConferenceRepository, scope=singleton)
     binder.bind(DivisionRepository, to=DivisionRepository, scope=singleton)
-    binder.bind(TeamRepository, to=TeamRepository, scope=singleton)
     binder.bind(GameRepository, to=GameRepository, scope=singleton)
+    binder.bind(LeagueRepository, to=LeagueRepository, scope=singleton)
     binder.bind(LeagueSeasonRepository, to=LeagueSeasonRepository, scope=singleton)
+    binder.bind(LeagueSeasonTotalsRepository, to=LeagueSeasonTotalsRepository, scope=singleton)
+    binder.bind(SeasonRepository, to=SeasonRepository, scope=singleton)
+    binder.bind(SeasonRankingsRepository, to=SeasonRankingsRepository, scope=singleton)
+    binder.bind(SeasonStandingsRepository, to=SeasonStandingsRepository, scope=singleton)
+    binder.bind(TeamRepository, to=TeamRepository, scope=singleton)
     binder.bind(TeamSeasonRepository, to=TeamSeasonRepository, scope=singleton)
     binder.bind(TeamSeasonScheduleRepository, to=TeamSeasonScheduleRepository, scope=singleton)
-    binder.bind(SeasonStandingsRepository, to=SeasonStandingsRepository, scope=singleton)
-    binder.bind(SeasonRankingsRepository, to=SeasonRankingsRepository, scope=singleton)
-    binder.bind(LeagueSeasonTotalsRepository, to=LeagueSeasonTotalsRepository, scope=singleton)
+
     binder.bind(GameService, to=GameService, scope=request)
-    binder.bind(WeeklyUpdateService, to=WeeklyUpdateService, scope=request)
     binder.bind(GamePredictorService, to=GamePredictorService, scope=request)
+    binder.bind(WeeklyUpdateService, to=WeeklyUpdateService, scope=request)
+
     binder.bind(ProcessGameStrategyFactory, to=ProcessGameStrategyFactory, scope=request)
 
 FlaskInjector(app=app, modules=[configure])

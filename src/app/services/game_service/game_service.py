@@ -1,3 +1,5 @@
+from typing import Optional
+
 from injector import inject
 
 from app import create_app
@@ -41,7 +43,7 @@ class GameService:
         return f"{type(self).__name__}(game_repository={self._game_repository}, " \
                f"process_game_strategy_factory={self._process_game_strategy_factory})"
 
-    def add_game(self, new_game: Game | None) -> None:
+    def add_game(self, new_game: Optional[Game]) -> None:
         """
         Adds a game to the data store
 
@@ -65,7 +67,7 @@ class GameService:
         self._game_repository.add_game(new_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
-    def update_game(self, new_game: Game | None, old_game: Game | None) -> None:
+    def update_game(self, new_game: Optional[Game], old_game: Optional[Game]) -> None:
         """
         Edits a game in the data store.
 

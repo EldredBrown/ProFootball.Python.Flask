@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class LeagueSeasonRepository:
         """
         return LeagueSeason.query.all()
 
-    def get_league_season(self, id: int) -> LeagueSeason | None:
+    def get_league_season(self, id: int) -> Optional[LeagueSeason]:
         """
         Gets the league_season in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class LeagueSeasonRepository:
             return None
         return LeagueSeason.query.get(id)
 
-    def get_league_season_by_league_name_and_season_year(self, league_name: str, season_year: int) -> LeagueSeason | None:
+    def get_league_season_by_league_name_and_season_year(self, league_name: str, season_year: int) -> Optional[LeagueSeason]:
         """
         Gets the league_season in the data store with the specified league_name and season_year.
 
@@ -85,7 +85,7 @@ class LeagueSeasonRepository:
             raise
         return league_seasons
 
-    def update_league_season(self, league_season: LeagueSeason) -> LeagueSeason | None:
+    def update_league_season(self, league_season: LeagueSeason) -> Optional[LeagueSeason]:
         """
         Updates a league_season in the data store.
 
@@ -110,7 +110,7 @@ class LeagueSeasonRepository:
             raise
         return league_season
 
-    def delete_league_season(self, id: int) -> LeagueSeason | None:
+    def delete_league_season(self, id: int) -> Optional[LeagueSeason]:
         """
         Deletes a league_season from the data store.
 

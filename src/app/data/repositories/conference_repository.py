@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ class ConferenceRepository:
         """
         return Conference.query.all()
 
-    def get_conference(self, id: int) -> Conference | None:
+    def get_conference(self, id: int) -> Optional[Conference]:
         """
         Gets the conference in the data store with the specified id.
 
@@ -38,7 +38,7 @@ class ConferenceRepository:
             return None
         return Conference.query.get(id)
 
-    def get_conference_by_name(self, short_name: str) -> Conference | None:
+    def get_conference_by_name(self, short_name: str) -> Optional[Conference]:
         """
         Gets the conference in the data store with the specified id.
 
@@ -84,7 +84,7 @@ class ConferenceRepository:
             raise
         return conferences
 
-    def update_conference(self, conference: Conference) -> Conference | None:
+    def update_conference(self, conference: Conference) -> Optional[Conference]:
         """
         Updates a conference in the data store.
 
@@ -111,7 +111,7 @@ class ConferenceRepository:
 
         return conference
 
-    def delete_conference(self, id: int) -> Conference | None:
+    def delete_conference(self, id: int) -> Optional[Conference]:
         """
         Deletes a conference from the data store.
 
