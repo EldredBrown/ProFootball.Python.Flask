@@ -10,11 +10,10 @@ selected_year = None
 
 
 @blueprint.route('/')
-def index():
+def index(season_repository: SeasonRepository) -> str:
     global seasons
     global selected_year
 
-    season_repository = SeasonRepository()
     seasons = season_repository.get_seasons()
     season_standings = []
     return render_template(
@@ -24,12 +23,11 @@ def index():
 
 
 @blueprint.route('/select_season', methods=['POST'])
-def select_season():
+def select_season(season_standings_repository: SeasonStandingsRepository) -> str:
     global seasons
     global selected_year
 
     selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    season_standings_repository = SeasonStandingsRepository()
     season_standings = season_standings_repository.get_season_standings_by_season_year(season_year=selected_year)
     return render_template(
         'season_standings/index.html',

@@ -1,3 +1,5 @@
+from injector import inject
+
 from app import create_app
 from app.data.errors import EntityNotFoundError
 from app.data.models.game import Game
@@ -14,11 +16,12 @@ class GameService:
     A service to handle the more complicated actions of adding, editing, or deleting games in the data store.
     """
 
+    @inject
     def __init__(
             self,
-            game_repository: GameRepository = None,
-            team_season_repository: TeamSeasonRepository = None,
-            process_game_strategy_factory: ProcessGameStrategyFactory = None
+            game_repository: GameRepository,
+            team_season_repository: TeamSeasonRepository,
+            process_game_strategy_factory: ProcessGameStrategyFactory
     ):
         """
         Initializes a new instance of the GameService class.
@@ -30,9 +33,9 @@ class GameService:
 
         :param process_game_strategy_factory: The factory that will initialize the needed ProcessGameStrategy subclass.
         """
-        self._game_repository = game_repository or GameRepository()
-        self._team_season_repository = team_season_repository or TeamSeasonRepository()
-        self._process_game_strategy_factory = process_game_strategy_factory or ProcessGameStrategyFactory()
+        self._game_repository = game_repository
+        self._team_season_repository = team_season_repository
+        self._process_game_strategy_factory = process_game_strategy_factory
 
     def __repr__(self):
         return f"{type(self).__name__}(game_repository={self._game_repository}, " \

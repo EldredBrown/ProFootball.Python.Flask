@@ -1,7 +1,6 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from sqlalchemy.exc import IntegrityError
 from werkzeug import Response
 
 from app.data.factories import season_factory
@@ -11,21 +10,15 @@ from app.flask.forms.season_forms import NewSeasonForm, EditSeasonForm, DeleteSe
 
 blueprint = Blueprint('season', __name__)
 
-season_repository = SeasonRepository()
-
 
 @blueprint.route('/')
-def index() -> str:
-    global season_repository
-
+def index(season_repository: SeasonRepository) -> str:
     seasons = season_repository.get_seasons()
     return render_template('seasons/index.html', seasons=seasons)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int) -> str:
-    global season_repository
-
+def details(id: int, season_repository: SeasonRepository) -> str:
     try:
         delete_season_form = DeleteSeasonForm()
         season = season_repository.get_season(id)
@@ -36,9 +29,7 @@ def details(id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create() -> Response | str:
-    global season_repository
-
+def create(season_repository: SeasonRepository) -> Response | str:
     form = NewSeasonForm()
     if form.validate_on_submit():
         season = _get_season_from_form(form)
@@ -56,9 +47,7 @@ def create() -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int) -> Response | str:
-    global season_repository
-
+def edit(id: int, season_repository: SeasonRepository) -> Response | str:
     old_season = season_repository.get_season(id)
     if old_season:
         form = EditSeasonForm()
@@ -105,9 +94,7 @@ def _get_form_data_from_season(form: SeasonForm, season: Season) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    global season_repository
-
+def delete(id: int, season_repository: SeasonRepository) -> Response | str:
     season = season_repository.get_season(id)
     try:
         if request.method == 'POST':
@@ -120,6 +107,6 @@ def delete(id: int) -> Response | str:
         abort(404)
 
 
-def _handle_error(err, template_name_or_list, form, season=None) -> str:
+def _handle_error(err: Any, template_name: str, form: SeasonForm, season: Season=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name_or_list, season=season, form=form)
+    return render_template(template_name, form=form, season=season)

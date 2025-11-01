@@ -1,6 +1,6 @@
 from typing import Any
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import team_factory
@@ -10,21 +10,15 @@ from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm
 
 blueprint = Blueprint('team', __name__)
 
-team_repository = TeamRepository()
-
 
 @blueprint.route('/')
-def index():
-    global team_repository
-
+def index(team_repository: TeamRepository) -> str:
     teams = team_repository.get_teams()
     return render_template('teams/index.html', teams=teams)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int):
-    global team_repository
-
+def details(id: int, team_repository: TeamRepository) -> str:
     try:
         delete_team_form = DeleteTeamForm()
         team = team_repository.get_team(id)
@@ -35,9 +29,7 @@ def details(id: int):
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create():
-    global team_repository
-
+def create(team_repository: TeamRepository) -> Response | str:
     form = NewTeamForm()
     if form.validate_on_submit():
         team = _get_team_from_form(form)
@@ -57,9 +49,7 @@ def create():
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int):
-    global team_repository
-
+def edit(id: int, team_repository: TeamRepository) -> Response | str:
     old_team = team_repository.get_team(id)
     if old_team:
         form = EditTeamForm()
@@ -104,9 +94,7 @@ def _get_form_data_from_team(form: TeamForm, team: Team) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int):
-    global team_repository
-
+def delete(id: int, team_repository: TeamRepository) -> Response | str:
     team = team_repository.get_team(id)
     try:
         if request.method == 'POST':
@@ -119,6 +107,6 @@ def delete(id: int):
         abort(404)
 
 
-def _handle_error(err, template_name_or_list, form, team=None):
+def _handle_error(err: Any, template_name: str, form: TeamForm, team: Team=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name_or_list, team=team, form=form)
+    return render_template(template_name, form=form, team=team)

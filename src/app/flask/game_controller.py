@@ -1,6 +1,6 @@
 from typing import Any
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import game_factory
@@ -13,20 +13,14 @@ from app.services.game_service.game_service import GameService
 
 blueprint = Blueprint('game', __name__)
 
-season_repository = SeasonRepository()
-game_repository = GameRepository()
-game_service = GameService()
-
 seasons = []
 selected_season = Season(year=0, num_of_weeks_scheduled=17, num_of_weeks_completed=17)
 selected_week = 0
 
 
 @blueprint.route('/')
-def index():
-    global season_repository
+def index(season_repository: SeasonRepository, game_repository, GameRepository) -> str:
     global seasons
-    global game_repository
     global selected_season
     global selected_week
 
@@ -39,9 +33,7 @@ def index():
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int):
-    global game_repository
-
+def details(id: int, game_repository, GameRepository) -> str:
     try:
         delete_game_form = DeleteGameForm()
         game = game_repository.get_game(id)
@@ -52,7 +44,7 @@ def details(id: int):
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create():
+def create(game_service: GameService) -> Response | str:
     form = NewGameForm()
     if form.validate_on_submit():
         kwargs = {
@@ -82,7 +74,7 @@ def create():
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int):
+def edit(id: int, game_repository, GameRepository, game_service: GameService) -> Response | str:
     old_game = game_repository.get_game(id)
     if old_game:
         form = EditGameForm()
@@ -140,7 +132,7 @@ def _get_form_data_from_game(form: GameForm, game) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int):
+def delete(id: int, game_repository, GameRepository, game_service: GameService) -> Response | str:
     game = game_repository.get_game(id)
     try:
         if request.method == 'POST':
@@ -154,10 +146,8 @@ def delete(id: int):
 
 
 @blueprint.route('/select_season', methods=['POST'])
-def select_season():
-    global season_repository
+def select_season(season_repository: SeasonRepository, game_repository, GameRepository) -> str:
     global selected_season
-    global game_repository
     global seasons
     global selected_week
 
@@ -171,9 +161,8 @@ def select_season():
 
 
 @blueprint.route('/select_week', methods=['POST'])
-def select_week():
+def select_week(game_repository, GameRepository) -> str:
     global selected_week
-    global game_repository
     global seasons
     global selected_season
 
@@ -185,6 +174,6 @@ def select_week():
     )
 
 
-def _handle_error(err, template_name_or_list, form, game=None):
+def _handle_error(err: Any, template_name: str, form: GameForm, game: Game=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name_or_list, game=game, form=form)
+    return render_template(template_name, form=form, game=game)

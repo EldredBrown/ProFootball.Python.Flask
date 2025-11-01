@@ -1,3 +1,5 @@
+from injector import inject
+
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.team_season_repository import TeamSeasonRepository
@@ -9,6 +11,7 @@ class AddGameStrategy(ProcessGameStrategy):
     A ProcessGameStrategy implementation for adding games to the data store.
     """
 
+    @inject
     def __init__(self, team_season_repository: TeamSeasonRepository):
         """
         Initializes a new instance of the AddGameStrategy class.

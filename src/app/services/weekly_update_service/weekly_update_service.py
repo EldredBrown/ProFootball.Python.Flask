@@ -1,3 +1,5 @@
+from injector import inject
+
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.game_repository import GameRepository
 from app.data.repositories.league_season_repository import LeagueSeasonRepository
@@ -14,14 +16,15 @@ class WeeklyUpdateService:
     A service to run a weekly update of the pro football data store.
     """
 
+    @inject
     def __init__(
             self,
-            season_repository: SeasonRepository = None,
-            game_repository: GameRepository = None,
-            league_season_repository: LeagueSeasonRepository = None,
-            team_season_repository: TeamSeasonRepository = None,
-            league_season_totals_repository: LeagueSeasonTotalsRepository = None,
-            team_season_schedule_repository: TeamSeasonScheduleRepository = None
+            season_repository: SeasonRepository,
+            game_repository: GameRepository,
+            league_season_repository: LeagueSeasonRepository,
+            team_season_repository: TeamSeasonRepository,
+            league_season_totals_repository: LeagueSeasonTotalsRepository,
+            team_season_schedule_repository: TeamSeasonScheduleRepository
     ):
         """
         Initializes a new instance of the WeeklyUpdateService class.
@@ -36,12 +39,12 @@ class WeeklyUpdateService:
         :param team_season_repository: The repository by which TeamSeason data will be accessed.
         :param team_season_schedule_repository: The repository by which TeamSeasonSchedule data will be accessed.
         """
-        self._season_repository = season_repository or SeasonRepository()
-        self._game_repository = game_repository or GameRepository()
-        self._league_season_repository = league_season_repository or LeagueSeasonRepository()
-        self._team_season_repository = team_season_repository or TeamSeasonRepository()
-        self._league_season_totals_repository = league_season_totals_repository or LeagueSeasonTotalsRepository()
-        self._team_season_schedule_repository = team_season_schedule_repository or TeamSeasonScheduleRepository()
+        self._season_repository = season_repository
+        self._game_repository = game_repository
+        self._league_season_repository = league_season_repository
+        self._team_season_repository = team_season_repository
+        self._league_season_totals_repository = league_season_totals_repository
+        self._team_season_schedule_repository = team_season_schedule_repository
 
     def __repr__(self):
         return f"{typename(self)}(" \

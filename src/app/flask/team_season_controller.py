@@ -6,18 +6,15 @@ from app.data.repositories.team_season_schedule_repository import TeamSeasonSche
 
 blueprint = Blueprint('team_season', __name__)
 
-team_season_repository = TeamSeasonRepository()
-
 seasons = []
 selected_year = None
 
 
 @blueprint.route('/')
-def index():
+def index(season_repository: SeasonRepository) -> str:
     global seasons
-    global selected_season
+    global selected_year
 
-    season_repository = SeasonRepository()
     seasons = season_repository.get_seasons()
     return render_template(
         'team_seasons/index.html',
@@ -26,11 +23,11 @@ def index():
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int):
-    global team_season_repository
-
-    team_season_schedule_repository = TeamSeasonScheduleRepository()
-
+def details(
+        id: int,
+        team_season_repository: TeamSeasonRepository,
+        team_season_schedule_repository: TeamSeasonScheduleRepository
+) -> str:
     try:
         team_season = team_season_repository.get_team_season(id)
         team_season_schedule_profile = team_season_schedule_repository.get_team_season_schedule_profile(
@@ -54,10 +51,9 @@ def details(id: int):
 
 
 @blueprint.route('/select_season', methods=['POST'])
-def select_season():
+def select_season(team_season_repository: TeamSeasonRepository) -> str:
     global seasons
-    global selected_season
-    global team_season_repository
+    global selected_year
 
     selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
     team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)

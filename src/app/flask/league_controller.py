@@ -1,6 +1,6 @@
 from typing import Any
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import league_factory
@@ -10,21 +10,15 @@ from app.flask.forms.league_forms import NewLeagueForm, EditLeagueForm, DeleteLe
 
 blueprint = Blueprint('league', __name__)
 
-league_repository = LeagueRepository()
-
 
 @blueprint.route('/')
-def index():
-    global league_repository
-
+def index(league_repository: LeagueRepository) -> str:
     leagues = league_repository.get_leagues()
     return render_template('leagues/index.html', leagues=leagues)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int):
-    global league_repository
-
+def details(id: int, league_repository: LeagueRepository) -> str:
     try:
         delete_league_form = DeleteLeagueForm()
         league = league_repository.get_league(id)
@@ -35,9 +29,7 @@ def details(id: int):
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create():
-    global league_repository
-
+def create(league_repository: LeagueRepository) -> Response | str:
     form = NewLeagueForm()
     if form.validate_on_submit():
         league = _get_league_from_form(form)
@@ -57,9 +49,7 @@ def create():
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int):
-    global league_repository
-
+def edit(id: int, league_repository: LeagueRepository) -> Response | str:
     old_league = league_repository.get_league(id)
     if old_league:
         form = EditLeagueForm()
@@ -110,9 +100,7 @@ def _get_form_data_from_league(form: LeagueForm, league: League) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int):
-    global league_repository
-
+def delete(id: int, league_repository: LeagueRepository) -> Response | str:
     league = league_repository.get_league(id)
     try:
         if request.method == 'POST':
@@ -125,6 +113,6 @@ def delete(id: int):
         abort(404)
 
 
-def _handle_error(err, template_name_or_list, form, league=None):
+def _handle_error(err: Any, template_name: str, form: LeagueForm, league: League=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name_or_list, league=league, form=form)
+    return render_template(template_name, form=form, league=league)

@@ -1,3 +1,5 @@
+from injector import inject
+
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 
 
@@ -6,14 +8,15 @@ class GamePredictorService:
     A service for predicting the scores of future games.
     """
 
-    def __init__(self, team_season_repository: TeamSeasonRepository = None) -> None:
+    @inject
+    def __init__(self, team_season_repository: TeamSeasonRepository) -> None:
         """
         Initializes a new instance of the GamePredictorService class.
 
         :param team_season_repository: The repository by which team_season data will be fetched
         for both teams.
         """
-        self._team_season_repository = team_season_repository or TeamSeasonRepository()
+        self._team_season_repository = team_season_repository
 
     def __repr__(self):
         return f"{type(self).__name__}(team_season_repository={self._team_season_repository})"

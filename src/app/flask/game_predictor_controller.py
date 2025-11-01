@@ -20,7 +20,7 @@ selected_host_name = None
 
 
 @blueprint.route('/')
-def index():
+def index(season_repository: SeasonRepository) -> str:
     global guest_seasons
     global selected_guest_year
     global guests
@@ -30,8 +30,6 @@ def index():
     global selected_host_year
     global hosts
     global selected_host_name
-
-    season_repository = SeasonRepository()
 
     guest_seasons = season_repository.get_seasons()
     selected_guest_year = None
@@ -55,9 +53,7 @@ def index():
 
 
 @blueprint.route('/select_guest_season', methods=['POST'])
-def select_guest_season():
-    global team_season_repository
-
+def select_guest_season(team_season_repository: TeamSeasonRepository) -> str:
     global guest_seasons
     global selected_guest_year
     global guests
@@ -102,9 +98,7 @@ def select_guest():
 
 
 @blueprint.route('/select_host_season', methods=['POST'])
-def select_host_season():
-    global team_season_repository
-
+def select_host_season(team_season_repository: TeamSeasonRepository) -> str:
     global guest_seasons
     global selected_guest_year
     global guests
@@ -149,7 +143,7 @@ def select_host():
 
 
 @blueprint.route('/predict_game')
-def predict_game():
+def predict_game(game_predictor_service: GamePredictorService) -> str:
     global guest_seasons
     global selected_guest_year
     global guests
@@ -169,7 +163,6 @@ def predict_game():
     if selected_host_name is None:
         return _handle_error(message="Please select one host name.")
 
-    game_predictor_service = GamePredictorService()
     try:
         guest_score, host_score = game_predictor_service.predict_game_score(
             selected_guest_name, selected_guest_year, selected_host_name, selected_host_year
@@ -200,7 +193,7 @@ def predict_game():
     )
 
 
-def _handle_error(message: str):
+def _handle_error(message: str) -> str:
     global guest_seasons
     global selected_guest_year
     global guests

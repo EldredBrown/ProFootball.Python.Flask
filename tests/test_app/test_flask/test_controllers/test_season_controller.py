@@ -19,7 +19,7 @@ def test_app():
 @patch('app.flask.season_controller.season_repository')
 def test_index_should_render_season_index_template(fake_season_repository, fake_render_template):
     # Act
-    result = mod.index()
+    result = mod.index(fake_season_repository)
 
     # Assert
     fake_season_repository.get_seasons.assert_called_once()

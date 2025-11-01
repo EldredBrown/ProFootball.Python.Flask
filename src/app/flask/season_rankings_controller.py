@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, url_for, redirect, flash
+from flask import Blueprint, render_template, request, url_for, redirect, flash, Response
 
 from app.data.repositories.league_repository import LeagueRepository
 from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
@@ -17,23 +17,17 @@ selected_league_name = None
 
 selected_type = None
 
-season_rankings_repository = SeasonRankingsRepository()
-
 
 @blueprint.route('/')
-def index():
+def index(season_repository: SeasonRepository, league_repository: LeagueRepository) -> str:
     global seasons
     global selected_year
     global leagues
     global selected_league_name
     global selected_type
 
-    season_repository = SeasonRepository()
     seasons = season_repository.get_seasons()
-
-    league_repository = LeagueRepository()
     leagues = league_repository.get_leagues()
-
     return render_template(
         'season_rankings/index.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,
@@ -74,34 +68,32 @@ def select_league():
 
 
 @blueprint.route('select_type', methods=['POST'])
-def select_type():
+def select_type() -> Response | str:
+    templates = {
+        'Offense': 'season_rankings.offense',
+        'Defense': 'season_rankings.defense',
+        'Total': 'season_rankings.total',
+    }
     global selected_type
 
     selected_type = str(request.form.get('ranking_type_dropdown'))  # Fetch the selected type.
-    if selected_type == 'Offense':
-        return redirect(url_for('season_rankings.offense'))
-    elif selected_type == 'Defense':
-        return redirect(url_for('season_rankings.defense'))
-    elif selected_type == 'Total':
-        return redirect(url_for('season_rankings.total'))
+    if selected_type in RANKING_TYPES:
+        return redirect(url_for(templates[selected_type]))
     else:
         raise TypeError('Invalid ranking type')
 
 
 @blueprint.route('weekly_update', methods=['POST'])
-def run_weekly_update():
+def run_weekly_update(weekly_update_service: WeeklyUpdateService):
     global seasons
     global selected_year
     global leagues
     global selected_league_name
     global selected_type
 
-    league_name = selected_league_name
-    season_year = selected_year
-    weekly_update_service = WeeklyUpdateService()
-    weekly_update_service.run_weekly_update(league_name, season_year)
+    weekly_update_service.run_weekly_update(selected_league_name, selected_year)
     flash(
-        f"The weekly update has been successfully completed for the '{league_name}' in {season_year}.",
+        f"The weekly update has been successfully completed for the '{selected_league_name}' in {selected_year}.",
         'success'
     )
     return render_template(
@@ -112,9 +104,8 @@ def run_weekly_update():
 
 
 @blueprint.route('/offense')
-def offense():
+def offense(season_rankings_repository: SeasonRankingsRepository):
     global selected_year
-    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_offensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -125,9 +116,8 @@ def offense():
 
 
 @blueprint.route('/defense')
-def defense():
+def defense(season_rankings_repository: SeasonRankingsRepository):
     global selected_year
-    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_defensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -138,9 +128,8 @@ def defense():
 
 
 @blueprint.route('/total')
-def total():
+def total(season_rankings_repository: SeasonRankingsRepository):
     global selected_year
-    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_total_rankings_by_season_year(selected_year)
     return render_template(

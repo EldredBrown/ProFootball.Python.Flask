@@ -1,3 +1,5 @@
+from injector import inject
+
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.team_season_repository import TeamSeasonRepository
@@ -9,6 +11,7 @@ class ProcessGameStrategy:
     Base class for the ProcessGameStrategy class hierarchy
     """
 
+    @inject
     def __init__(self, team_season_repository: TeamSeasonRepository | None):
         """
         Initializes a new instance of the ProcessGameStrategy class.
