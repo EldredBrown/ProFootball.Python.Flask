@@ -1,8 +1,10 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
+from app.data.models.team_season_schedule_profile import TeamSeasonScheduleProfileRecord
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
 from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 
@@ -11,6 +13,72 @@ from app.data.repositories.team_season_schedule_repository import TeamSeasonSche
 def test_repo() -> TeamSeasonScheduleRepository:
     return TeamSeasonScheduleRepository()
 
+
+@patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
+def test_get_team_season_schedule_profile_when_query_returns_empty_list_should_get_empty_team_season_schedule_profile(
+        fake_SQLQuery, fake_sqla, test_repo
+):
+    # Arrange
+    profile = []
+    fake_sqla.session.execute.return_value.all.return_value = profile
+
+    team_name = "Team"
+    season_year = 1
+
+    # Act
+    result = test_repo.get_team_season_schedule_profile(team_name, season_year)
+
+    # Assert
+    querystring = f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
+    fake_sqla.session.execute.return_value.all.assert_called_once()
+    assert result == []
+
+
+@patch('app.data.repositories.team_season_schedule_repository.sqla')
+@patch('app.data.repositories.team_season_schedule_repository.SQLQuery')
+def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_should_get_team_season_schedule_profile(
+        fake_SQLQuery, fake_sqla, test_repo
+):
+    # Arrange
+    profile = [
+        ("Opponent 1", 3, 2, 1, 1, 1, Decimal('0.5'), 10, 10, 10),
+        ("Opponent 2", 2, 3, 1, 1, 1, Decimal('0.5'), 10, 10, 10),
+        ("Opponent 3", 3, 3, 1, 1, 1, Decimal('0.5'), 10, 10, 10),
+    ]
+    fake_sqla.session.execute.return_value.all.return_value = profile
+
+    team_name = "Team"
+    season_year = 1
+
+    # Act
+    result = test_repo.get_team_season_schedule_profile(team_name, season_year)
+
+    # Assert
+    querystring = f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};"
+    fake_SQLQuery.assert_called_once_with(querystring)
+    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
+    fake_sqla.session.execute.return_value.all.assert_called_once()
+    assert isinstance(result, list)
+    assert len(result) == 3
+    for i in range(len(result)):
+        profile_item = profile[i]
+        result_item = result[i]
+
+        assert isinstance(result_item, TeamSeasonScheduleProfileRecord)
+        assert result_item.opponent == profile_item[0]
+        assert result_item.game_points_for == profile_item[1]
+        assert result_item.game_points_against == profile_item[2]
+        assert result_item.opponent_wins == profile_item[3]
+        assert result_item.opponent_losses == profile_item[4]
+        assert result_item.opponent_ties == profile_item[5]
+        assert result_item.opponent_winning_percentage == profile_item[6]
+        assert result_item.opponent_weighted_games == profile_item[7]
+        assert result_item.opponent_weighted_points_for == profile_item[8]
+        assert result_item.opponent_weighted_points_against == profile_item[9]
+        
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 @patch('app.data.repositories.team_season_schedule_repository.SQLQuery')

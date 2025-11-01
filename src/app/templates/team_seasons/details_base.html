@@ -136,6 +136,200 @@
         </dl>
     </div>
 
+    <hr>
+    <table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Opponent
+            </th>
+            <th class="text-right align-right-override">
+                GPF
+            </th>
+            <th class="text-right align-right-override">
+                GPA
+            </th>
+            <th class="text-right align-right-override">
+                W
+            </th>
+            <th class="text-right align-right-override">
+                L
+            </th>
+            <th class="text-right align-right-override">
+                T
+            </th>
+            <th class="text-right align-right-override">
+                W%
+            </th>
+            <th class="text-right align-right-override">
+                WG
+            </th>
+            <th class="text-right align-right-override">
+                WPF
+            </th>
+            <th class="text-right align-right-override">
+                WPA
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for opponent_record in team_season_schedule_profile %}
+        <tr>
+            <td class="text-left">
+                {{ opponent_record.opponent }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.game_points_for }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.game_points_against }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_wins }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_losses }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_ties }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_winning_percentage | round(3) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_weighted_games }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_weighted_points_for }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ opponent_record.opponent_weighted_points_against }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <hr>
+    <table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Schedule Totals
+            </th>
+            <th class="text-right align-right-override">
+                Team G
+            </th>
+            <th class="text-right align-right-override">
+                Team PF
+            </th>
+            <th class="text-right align-right-override">
+                Team PA
+            </th>
+            <th class="text-right align-right-override">
+                W
+            </th>
+            <th class="text-right align-right-override">
+                L
+            </th>
+            <th class="text-right align-right-override">
+                T
+            </th>
+            <th class="text-right align-right-override">
+                W%
+            </th>
+            <th class="text-right align-right-override">
+                G
+            </th>
+            <th class="text-right align-right-override">
+                PF
+            </th>
+            <th class="text-right align-right-override">
+                PA
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in team_season_schedule_totals %}
+        <tr>
+            <td></td>
+            <td class="text-right align-right-override">
+                {{ row.games }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.points_for }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.points_against }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_wins }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_losses }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_ties }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_winning_percentage | round(3) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_games }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_points_for }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_points_against }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <hr>
+    <table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Schedule Averages
+            </th>
+            <th class="text-right align-right-override">
+                Team Avg PF
+            </th>
+            <th class="text-right align-right-override">
+                Team Avg PA
+            </th>
+            <th class="text-right align-right-override">
+                Avg PF
+            </th>
+            <th class="text-right align-right-override">
+                Avg PA
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in team_season_schedule_averages %}
+        <tr>
+            <td></td>
+            <td class="text-right align-right-override">
+                {{ row.points_for | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.points_against | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_points_for | round(2) }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ row.schedule_points_against | round(2) }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
     <div>
         {% block footer_content %}{% endblock %}
         <p>

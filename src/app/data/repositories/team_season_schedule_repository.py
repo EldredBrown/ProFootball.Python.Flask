@@ -1,6 +1,9 @@
+from typing import List
+
 from sqlalchemy.sql import text as SQLQuery
 
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
+from app.data.models.team_season_schedule_profile import TeamSeasonScheduleProfileRecord
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
 from app.data.sqla import sqla
 
@@ -17,6 +20,36 @@ class TeamSeasonScheduleRepository:
         :param db_context: In-memory representation of the database.
         """
         pass
+
+    def get_team_season_schedule_profile(self, team_name: str, season_year: int) -> List[TeamSeasonScheduleProfileRecord]:
+        """
+        Gets the TeamSeasonScheduleTotals in the data store with the specified team_name and season_year.
+
+        :param team_name: The name of the team for which this TeamSeasonScheduleTotals will be fetched.
+        :param season_year: The id of the seasons for which this TeamSeasonScheduleTotals will be fetched.
+
+        :return: The fetched TeamSeasonScheduleTotals.
+        """
+        querystring = f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};"
+        sql = SQLQuery(querystring)
+        result = sqla.session.execute(sql).all()
+
+        opponent_records = []
+        for row in result:
+            opp = TeamSeasonScheduleProfileRecord(
+                opponent=row[0],
+                game_points_for=row[1],
+                game_points_against=row[2],
+                opponent_wins=row[3],
+                opponent_losses=row[4],
+                opponent_ties=row[5],
+                opponent_winning_percentage=row[6],
+                opponent_weighted_games=row[7],
+                opponent_weighted_points_for=row[8],
+                opponent_weighted_points_against=row[9]
+            )
+            opponent_records.append(opp)
+        return opponent_records
 
     def get_team_season_schedule_totals(self, team_name: str, season_year: int) -> TeamSeasonScheduleTotals:
         """
