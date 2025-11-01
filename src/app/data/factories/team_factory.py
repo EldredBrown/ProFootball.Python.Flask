@@ -12,12 +12,16 @@ def create_team(old_team: Team=None, **kwargs) -> Team:
 
     error_message = f"Team already exists with {key}={kwargs[key]}."
     if old_team:
-        if kwargs[key] != old_team.__dict__[key]:
+        if _value_has_changed(key, old_team, **kwargs):
             _validate_is_unique(key, kwargs[key], error_message=error_message)
     else:
         _validate_is_unique(key, kwargs[key], error_message=error_message)
 
     return Team(**kwargs)
+
+
+def _value_has_changed(key: str, team: Team, **kwargs) -> bool:
+    return kwargs[key] != team.__dict__[key]
 
 
 def _validate_is_unique(key, value, error_message=None):

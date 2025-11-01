@@ -12,12 +12,16 @@ def create_division(old_division: Division=None, **kwargs) -> Division:
 
     error_message = f"Division already exists with {key}={kwargs[key]}."
     if old_division:
-        if kwargs[key] != old_division.__dict__[key]:
+        if _value_has_changed(key, old_division, **kwargs):
             _validate_is_unique(key, kwargs[key], error_message=error_message)
     else:
         _validate_is_unique(key, kwargs[key], error_message=error_message)
 
     return Division(**kwargs)
+
+
+def _value_has_changed(key: str, division: Division, **kwargs) -> bool:
+    return kwargs[key] != division.__dict__[key]
 
 
 def _validate_is_unique(key, value, error_message=None):
