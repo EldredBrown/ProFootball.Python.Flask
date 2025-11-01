@@ -6,7 +6,6 @@ from app.services.game_predictor_service.game_predictor_service import GamePredi
 
 blueprint = Blueprint('game_predictor', __name__)
 
-season_repository = SeasonRepository()
 team_season_repository = TeamSeasonRepository()
 
 guest_seasons = None
@@ -32,6 +31,8 @@ def index():
     global hosts
     global selected_host_name
 
+    season_repository = SeasonRepository()
+
     guest_seasons = season_repository.get_seasons()
     selected_guest_year = None
 
@@ -52,8 +53,11 @@ def index():
         hosts=hosts, selected_host_name=selected_host_name
     )
 
+
 @blueprint.route('/select_guest_season', methods=['POST'])
 def select_guest_season():
+    global team_season_repository
+
     global guest_seasons
     global selected_guest_year
     global guests
@@ -99,6 +103,8 @@ def select_guest():
 
 @blueprint.route('/select_host_season', methods=['POST'])
 def select_host_season():
+    global team_season_repository
+
     global guest_seasons
     global selected_guest_year
     global guests

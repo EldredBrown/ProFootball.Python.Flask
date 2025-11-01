@@ -3,18 +3,15 @@ from flask import Blueprint, render_template, request, url_for, redirect, flash
 from app.data.repositories.league_repository import LeagueRepository
 from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 from app.data.repositories.season_repository import SeasonRepository
-from app.flask.season_controller import season_repository
 from app.services.weekly_update_service.weekly_update_service import WeeklyUpdateService
 
 blueprint = Blueprint('season_rankings', __name__)
 
 RANKING_TYPES = ['Offense', 'Defense', 'Total']
 
-season_repository = SeasonRepository()
 seasons = None
 selected_year = None
 
-league_repository = LeagueRepository()
 leagues = None
 selected_league_name = None
 
@@ -31,8 +28,12 @@ def index():
     global selected_league_name
     global selected_type
 
+    season_repository = SeasonRepository()
     seasons = season_repository.get_seasons()
+
+    league_repository = LeagueRepository()
     leagues = league_repository.get_leagues()
+
     return render_template(
         'season_rankings/index.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,

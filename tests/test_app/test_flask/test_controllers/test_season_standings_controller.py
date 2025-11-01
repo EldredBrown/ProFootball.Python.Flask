@@ -4,8 +4,6 @@ import pytest
 
 import app.flask.season_standings_controller as season_standings_controller
 
-from app.data.models.standings_team_season import StandingsTeamSeason
-
 from test_app import create_app
 
 

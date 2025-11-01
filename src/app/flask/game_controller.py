@@ -2,39 +2,26 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from sqlalchemy.exc import IntegrityError
 
 from app.data.factories import game_factory
-from app.data.models.season import Season
-from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.game_repository import GameRepository
 from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm
-from app.services.game_service.game_service import GameService
 
 blueprint = Blueprint('game', __name__)
 
-season_repository = SeasonRepository()
 game_repository = GameRepository()
-game_service = GameService()
-
-seasons = None
-selected_season = Season(year=0, num_of_weeks_scheduled=17, num_of_weeks_completed=17)
-selected_week = 0
 
 
 @blueprint.route('/')
 def index():
-    global seasons
-    global selected_season
-    global selected_week
+    global game_repository
 
-    seasons = season_repository.get_seasons()
-    games = game_repository.get_games_by_season_year(season_year=None)
-    return render_template(
-        'games/index.html',
-        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
-    )
+    games = game_repository.get_games()
+    return render_template('games/index.html', games=games)
 
 
 @blueprint.route('/details/<int:id>')
 def details(id: int):
+    global game_repository
+
     try:
         delete_game_form = DeleteGameForm()
         game = game_repository.get_game(id)
@@ -46,6 +33,8 @@ def details(id: int):
 
 @blueprint.route('/create', methods=['GET', 'POST'])
 def create():
+    global game_repository
+
     form = NewGameForm()
     if form.validate_on_submit():
         kwargs = {
@@ -56,12 +45,15 @@ def create():
             'host_name': str(form.host_name.data),
             'host_score': int(form.host_score.data),
             'is_playoff': bool(form.is_playoff.data),
-            'notes': form.notes.data,
         }
         try:
-            new_game = game_factory.create_game(**kwargs)
-            game_service.add_game(new_game)
-            flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name} has been successfully submitted.", 'success')
+            game = game_factory.create_game(**kwargs)
+            game_repository.add_game(game)
+            flash(
+                f"Game with season_year={game.season_year}, week={game.week}, "
+                f"guest_name={game.guest_name}, and host_name={game.host_name} "
+                f"has been successfully submitted.", 'success'
+            )
             return redirect(url_for('game.index'))
         except ValueError as err:
             return _handle_error(err, 'games/create.html', form)
@@ -76,6 +68,8 @@ def create():
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int):
+    global game_repository
+
     old_game = game_repository.get_game(id)
     if old_game:
         form = EditGameForm()
@@ -89,12 +83,15 @@ def edit(id: int):
                 'host_name': str(form.host_name.data),
                 'host_score': int(form.host_score.data),
                 'is_playoff': bool(form.is_playoff.data),
-                'notes': form.notes.data,
             }
             try:
                 new_game = game_factory.create_game(**kwargs)
-                game_service.update_game(new_game, old_game)
-                flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
+                game_repository.update_game(new_game)
+                flash(
+                    f"Game with season_year={form.season_year.data}, week={form.week.data}, "
+                    f"guest_name={form.guest_name.data}, and host_name={form.host_name.data} "
+                    f"has been successfully updated.", 'success'
+                )
                 return redirect(url_for('game.details', id=id))
             except ValueError as err:
                 return _handle_error(err, 'games/edit.html', form, game=old_game)
@@ -108,7 +105,6 @@ def edit(id: int):
             form.host_name.data = old_game.host_name
             form.host_score.data = old_game.host_score
             form.is_playoff.data = old_game.is_playoff
-            form.notes.data = old_game.notes
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
@@ -120,45 +116,22 @@ def edit(id: int):
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int):
+    global game_repository
+
     game = game_repository.get_game(id)
     try:
         if request.method == 'POST':
-            game_service.delete_game(id)
-            flash(f"Game for season={game.season_year} with guest={game.guest_name} and host={game.host_name} has been successfully deleted.", 'success')
+            game_repository.delete_game(id)
+            flash(
+                f"Game with season_year={game.season_year}, week={game.week}, "
+                f"guest_name={game.guest_name}, and host_name={game.host_name} "
+                f"has been successfully deleted.", 'success'
+            )
             return redirect(url_for('game.index'))
         else:
             return render_template('games/delete.html', game=game)
     except IndexError:
         abort(404)
-
-
-@blueprint.route('/select_season', methods=['POST'])
-def select_season():
-    global seasons
-    global selected_season
-    global selected_week
-
-    selected_value = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    selected_season = season_repository.get_season_by_year(selected_value)
-    games = game_repository.get_games_by_season_year(season_year=selected_value)
-    return render_template(
-        'games/index.html',
-        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
-    )
-
-
-@blueprint.route('/select_week', methods=['POST'])
-def select_week():
-    global seasons
-    global selected_season
-    global selected_week
-
-    selected_week = int(request.form.get('week_dropdown'))  # Fetch the selected week.
-    games = game_repository.get_games_by_season_year_and_week(season_year=selected_season.year, week=selected_week)
-    return render_template(
-        'games/index.html',
-        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
-    )
 
 
 def _handle_error(err, template_name_or_list, form, game=None):

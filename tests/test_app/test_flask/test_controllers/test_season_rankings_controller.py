@@ -15,8 +15,8 @@ def test_app():
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.league_repository')
-@patch('app.flask.season_rankings_controller.season_repository')
+@patch('app.flask.season_rankings_controller.LeagueRepository')
+@patch('app.flask.season_rankings_controller.SeasonRepository')
 def test_index_should_render_season_rankings_index_template(
         fake_season_repository, fake_league_repository, fake_render_template, test_app
 ):
@@ -25,12 +25,14 @@ def test_index_should_render_season_rankings_index_template(
         result = mut.index()
 
     # Assert
-    fake_season_repository.get_seasons.assert_called_once()
-    fake_league_repository.get_leagues.assert_called_once()
+    fake_season_repository.assert_called_once()
+    fake_season_repository.return_value.get_seasons.assert_called_once()
+    fake_league_repository.assert_called_once()
+    fake_league_repository.return_value.get_leagues.assert_called_once()
     fake_render_template.assert_called_once_with(
         'season_rankings/index.html',
-        seasons=fake_season_repository.get_seasons.return_value, selected_year=None,
-        leagues=fake_league_repository.get_leagues.return_value, selected_league_name=None,
+        seasons=fake_season_repository.return_value.get_seasons.return_value, selected_year=None,
+        leagues=fake_league_repository.return_value.get_leagues.return_value, selected_league_name=None,
         types=mut.RANKING_TYPES, selected_type=None, season_rankings=None
     )
     assert result is fake_render_template.return_value

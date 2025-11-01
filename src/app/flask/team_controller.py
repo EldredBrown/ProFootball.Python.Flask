@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 
+from app.data.factories import team_factory
 from app.data.repositories.team_repository import TeamRepository
 from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm
 
@@ -11,12 +12,16 @@ team_repository = TeamRepository()
 
 @blueprint.route('/')
 def index():
+    global team_repository
+
     teams = team_repository.get_teams()
     return render_template('teams/index.html', teams=teams)
 
 
 @blueprint.route('/details/<int:id>')
 def details(id: int):
+    global team_repository
+
     try:
         delete_team_form = DeleteTeamForm()
         team = team_repository.get_team(id)
@@ -28,13 +33,16 @@ def details(id: int):
 
 @blueprint.route('/create', methods=['GET', 'POST'])
 def create():
+    global team_repository
+
     form = NewTeamForm()
     if form.validate_on_submit():
         kwargs = {
             'name': str(form.name.data),
         }
         try:
-            team_repository.add_team(**kwargs)
+            team = team_factory.create_team(**kwargs)
+            team_repository.add_team(team)
             flash(f"Item {form.name.data} has been successfully submitted.", 'success')
             return redirect(url_for('team.index'))
         except ValueError as err:
@@ -50,8 +58,10 @@ def create():
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int):
-    team = team_repository.get_team(id)
-    if team:
+    global team_repository
+
+    old_team = team_repository.get_team(id)
+    if old_team:
         form = EditTeamForm()
         if form.validate_on_submit():
             kwargs = {
@@ -59,26 +69,29 @@ def edit(id: int):
                 'name': str(form.name.data),
             }
             try:
-                team_repository.update_team(**kwargs)
+                new_team = team_factory.create_team(**kwargs)
+                team_repository.update_team(new_team)
                 flash(f"Item {form.name.data} has been successfully updated.", 'success')
                 return redirect(url_for('team.details', id=id))
             except ValueError as err:
-                return _handle_error(err, 'teams/edit.html', form, team=team)
+                return _handle_error(err, 'teams/edit.html', form, team=old_team)
             except IntegrityError as err:
-                return _handle_error(err, 'teams/edit.html', form, team=team)
+                return _handle_error(err, 'teams/edit.html', form, team=old_team)
         else:
-            form.name.data = team.name
+            form.name.data = old_team.name
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
-            return render_template('teams/edit.html', team=team, form=form)
+            return render_template('teams/edit.html', team=old_team, form=form)
     else:
         abort(404)
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int):
+    global team_repository
+
     team = team_repository.get_team(id)
     try:
         if request.method == 'POST':

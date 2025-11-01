@@ -1,5 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from sqlalchemy.exc import IntegrityError
 
+from app.data.factories import season_factory
 from app.data.repositories.season_repository import SeasonRepository
 from app.flask.forms.season_forms import NewSeasonForm, EditSeasonForm, DeleteSeasonForm
 
@@ -10,12 +12,16 @@ season_repository = SeasonRepository()
 
 @blueprint.route('/')
 def index():
+    global season_repository
+
     seasons = season_repository.get_seasons()
     return render_template('seasons/index.html', seasons=seasons)
 
 
 @blueprint.route('/details/<int:id>')
 def details(id: int):
+    global season_repository
+
     try:
         delete_season_form = DeleteSeasonForm()
         season = season_repository.get_season(id)
@@ -27,6 +33,8 @@ def details(id: int):
 
 @blueprint.route('/create', methods=['GET', 'POST'])
 def create():
+    global season_repository
+
     form = NewSeasonForm()
     if form.validate_on_submit():
         kwargs = {
@@ -35,12 +43,12 @@ def create():
             'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
         }
         try:
-            season_repository.add_season(**kwargs)
+            season = season_factory.create_season(**kwargs)
+            season_repository.add_season(season)
             flash(f"Item {form.year.data} has been successfully submitted.", 'success')
             return redirect(url_for('season.index'))
         except ValueError as err:
-            flash(str(err), 'danger')
-            return render_template('seasons/create.html', form=form)
+            return _handle_error(err, 'seasons/create.html', form)
     else:
         if form.errors:
             flash(f"{form.errors}", 'danger')
@@ -50,38 +58,42 @@ def create():
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int):
-    season = season_repository.get_season(id)
-    if season:
+    global season_repository
+
+    old_season = season_repository.get_season(id)
+    if old_season:
         form = EditSeasonForm()
         if form.validate_on_submit():
             kwargs = {
                 'id': id,
                 'year': int(form.year.data),
                 'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
-                'num_of_weeks_completed': int(form.num_of_weeks_completed.data)
+                'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
             }
             try:
-                season_repository.update_season(**kwargs)
+                new_season = season_factory.create_season(**kwargs)
+                season_repository.update_season(new_season)
                 flash(f"Item {form.year.data} has been successfully updated.", 'success')
                 return redirect(url_for('season.details', id=id))
             except ValueError as err:
-                flash(str(err), 'danger')
-                return render_template('seasons/edit.html', season=season, form=form)
+                return _handle_error(err, 'seasons/edit.html', form, season=old_season)
         else:
-            form.year.data = season.year
-            form.num_of_weeks_scheduled.data = season.num_of_weeks_scheduled
-            form.num_of_weeks_completed.data = season.num_of_weeks_completed
+            form.year.data = old_season.year
+            form.num_of_weeks_scheduled.data = old_season.num_of_weeks_scheduled
+            form.num_of_weeks_completed.data = old_season.num_of_weeks_completed
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
-            return render_template('seasons/edit.html', season=season, form=form)
+            return render_template('seasons/edit.html', season=old_season, form=form)
     else:
         abort(404)
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int):
+    global season_repository
+
     season = season_repository.get_season(id)
     try:
         if request.method == 'POST':
@@ -92,3 +104,8 @@ def delete(id: int):
             return render_template('seasons/delete.html', season=season)
     except IndexError:
         abort(404)
+
+
+def _handle_error(err, template_name_or_list, form, season=None):
+    flash(str(err), 'danger')
+    return render_template(template_name_or_list, season=season, form=form)

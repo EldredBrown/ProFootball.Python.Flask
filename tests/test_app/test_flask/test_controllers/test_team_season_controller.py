@@ -1,17 +1,10 @@
 from unittest.mock import patch, Mock
 
-import flask
 import pytest
-from flask import request
 
-from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 import app.flask.team_season_controller as team_season_controller
-
-from app.data.models.season import Season
-from app.data.models.league_season import LeagueSeason
-from app.data.models.team_season import TeamSeason
 
 from test_app import create_app
 
