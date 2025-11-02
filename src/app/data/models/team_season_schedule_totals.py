@@ -8,13 +8,13 @@ class TeamSeasonScheduleTotals:
     """
     Represents a team's season schedule totals.
     """
-    games: Optional[int]
-    points_for: Optional[int]
-    points_against: Optional[int]
-    schedule_wins: Optional[int]
-    schedule_losses: Optional[int]
-    schedule_ties: Optional[int]
-    schedule_winning_percentage: Optional[Decimal]
-    schedule_games: Optional[int]
-    schedule_points_for: Optional[int]
-    schedule_points_against: Optional[int]
+    games: Optional[int] = None
+    points_for: Optional[int] = None
+    points_against: Optional[int] = None
+    schedule_wins: Optional[int] = None
+    schedule_losses: Optional[int] = None
+    schedule_ties: Optional[int] = None
+    schedule_winning_percentage: Optional[Decimal] = None
+    schedule_games: Optional[int] = None
+    schedule_points_for: Optional[int] = None
+    schedule_points_against: Optional[int] = None

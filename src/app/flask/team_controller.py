@@ -3,6 +3,7 @@ from typing import Any
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import team_factory
 from app.data.models.team import Team
 from app.data.repositories.team_repository import TeamRepository
@@ -10,26 +11,33 @@ from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm
 
 blueprint = Blueprint('team', __name__)
 
+team_repository = injector.get(TeamRepository)
+
 
 @blueprint.route('/')
-def index(team_repository: TeamRepository) -> str:
+def index() -> str:
+    global team_repository
+
     teams = team_repository.get_teams()
     return render_template('teams/index.html', teams=teams)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int, team_repository: TeamRepository) -> str:
+def details(id: int) -> str:
+    global team_repository
+
+    form = DeleteTeamForm()
     try:
-        delete_team_form = DeleteTeamForm()
         team = team_repository.get_team(id)
-        return render_template('teams/details.html',
-                               team=team, delete_team_form=delete_team_form)
+        return render_template('teams/details.html', team=team, form=form)
     except IndexError:
         abort(404)
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create(team_repository: TeamRepository) -> Response | str:
+def create() -> Response | str:
+    global team_repository
+
     form = NewTeamForm()
     if form.validate_on_submit():
         team = _get_team_from_form(form)
@@ -49,7 +57,9 @@ def create(team_repository: TeamRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int, team_repository: TeamRepository) -> Response | str:
+def edit(id: int) -> Response | str:
+    global team_repository
+
     old_team = team_repository.get_team(id)
     if old_team:
         form = EditTeamForm()
@@ -94,7 +104,9 @@ def _get_form_data_from_team(form: TeamForm, team: Team) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int, team_repository: TeamRepository) -> Response | str:
+def delete(id: int) -> Response | str:
+    global team_repository
+
     team = team_repository.get_team(id)
     try:
         if request.method == 'POST':

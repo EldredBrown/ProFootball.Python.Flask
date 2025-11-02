@@ -1,5 +1,8 @@
+from injector import inject
+
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason
+from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.game_service.process_game_strategy.process_game_strategy import ProcessGameStrategy
 
 
@@ -11,11 +14,12 @@ class NullGameStrategy(ProcessGameStrategy):
 
     _instance = None
 
-    def __init__(self):
-        super().__init__(None)
+    @inject
+    def __init__(self, team_season_repository: TeamSeasonRepository = None):
+        super().__init__(team_season_repository)
 
     def __repr__(self):
-        return f"{type(self).__name__}(team_season_repository={super()._team_season_repository})"
+        return f"{type(self).__name__}(team_season_repository={super().team_season_repository})"
 
     @classmethod
     def instance(cls):

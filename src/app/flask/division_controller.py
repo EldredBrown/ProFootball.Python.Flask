@@ -3,6 +3,7 @@ from typing import Any
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import division_factory
 from app.data.models.division import Division
 from app.data.repositories.division_repository import DivisionRepository
@@ -10,26 +11,33 @@ from app.flask.forms.division_forms import NewDivisionForm, EditDivisionForm, De
 
 blueprint = Blueprint('division', __name__)
 
+division_repository = injector.get(DivisionRepository)
+
 
 @blueprint.route('/')
-def index(division_repository: DivisionRepository) -> str:
+def index() -> str:
+    global division_repository
+
     divisions = division_repository.get_divisions()
     return render_template('divisions/index.html', divisions=divisions)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int, division_repository: DivisionRepository) -> str:
+def details(id: int) -> str:
+    global division_repository
+
+    form = DeleteDivisionForm()
     try:
-        delete_division_form = DeleteDivisionForm()
         division = division_repository.get_division(id)
-        return render_template('divisions/details.html',
-                               division=division, delete_division_form=delete_division_form)
+        return render_template('divisions/details.html', division=division, form=form)
     except IndexError:
         abort(404)
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create(division_repository: DivisionRepository) -> Response | str:
+def create() -> Response | str:
+    global division_repository
+
     form = NewDivisionForm()
     if form.validate_on_submit():
         division = _get_division_from_form(form)
@@ -49,7 +57,9 @@ def create(division_repository: DivisionRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int, division_repository: DivisionRepository) -> Response | str:
+def edit(id: int) -> Response | str:
+    global division_repository
+
     old_division = division_repository.get_division(id)
     if old_division:
         form = EditDivisionForm()
@@ -101,7 +111,9 @@ def _get_form_data_from_division(form: DivisionForm, division: Division) -> None
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int, division_repository: DivisionRepository) -> Response | str:
+def delete(id: int) -> Response | str:
+    global division_repository
+
     division = division_repository.get_division(id)
     try:
         if request.method == 'POST':

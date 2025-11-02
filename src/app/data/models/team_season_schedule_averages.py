@@ -8,7 +8,7 @@ class TeamSeasonScheduleAverages:
     """
     Represents a team's season schedule averages.
     """
-    points_for: Optional[Decimal]
-    points_against: Optional[Decimal]
-    schedule_points_for: Optional[Decimal]
-    schedule_points_against: Optional[Decimal]
+    points_for: Optional[Decimal] = None
+    points_against: Optional[Decimal] = None
+    schedule_points_for: Optional[Decimal] = None
+    schedule_points_against: Optional[Decimal] = None

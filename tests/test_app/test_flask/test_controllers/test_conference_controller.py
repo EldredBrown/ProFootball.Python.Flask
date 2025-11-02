@@ -48,7 +48,7 @@ def test_details_when_conference_found_should_render_conference_details_template
     fake_render_template.assert_called_once_with(
         'conferences/details.html',
         conference=fake_conference_repository.get_conference.return_value,
-        delete_conference_form=fake_delete_conference_form.return_value
+        form=fake_delete_conference_form.return_value
     )
     assert result == fake_render_template.return_value
 

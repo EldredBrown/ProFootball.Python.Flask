@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 import app.flask.season_standings_controller as mod
+from app.data.repositories.season_repository import SeasonRepository
 
 from test_app import create_app
 
@@ -13,19 +14,19 @@ def test_app():
 
 
 @patch('app.flask.season_standings_controller.render_template')
-@patch('app.flask.season_standings_controller.SeasonRepository')
+@patch('app.flask.season_standings_controller.injector')
 def test_index_should_render_season_standings_index_template(
-        fake_season_repository, fake_render_template
+        fake_injector, fake_render_template
 ):
     # Act
     result = mod.index()
 
     # Assert
-    fake_season_repository.assert_called_once()
-    fake_season_repository.return_value.get_seasons.assert_called_once()
+    fake_injector.get.assert_called_once_with(SeasonRepository)
+    fake_injector.get.return_value.get_seasons.assert_called_once()
     fake_render_template.assert_called_once_with(
         'season_standings/index.html',
-        seasons=fake_season_repository.return_value.get_seasons.return_value, selected_year=None, season_standings=[]
+        seasons=fake_injector.get.return_value.get_seasons.return_value, selected_year=None, season_standings=[]
     )
     assert result is fake_render_template.return_value
 

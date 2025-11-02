@@ -2,7 +2,6 @@ from typing import Optional
 
 from injector import inject
 
-from app import create_app
 from app.data.errors import EntityNotFoundError
 from app.data.models.game import Game
 from app.data.repositories.game_repository import GameRepository
@@ -23,25 +22,23 @@ class GameService:
             self,
             game_repository: GameRepository,
             team_season_repository: TeamSeasonRepository,
-            process_game_strategy_factory: ProcessGameStrategyFactory
+            process_game_strategy: ProcessGameStrategyFactory
     ):
         """
         Initializes a new instance of the GameService class.
-
-        :param game_repository: The repository by which game data will be accessed.
-
-        :param team_season_repository:
-        The repository by which team_season data will be accessed.
-
-        :param process_game_strategy_factory: The factory that will initialize the needed ProcessGameStrategy subclass.
         """
-        self._game_repository = game_repository
-        self._team_season_repository = team_season_repository
-        self._process_game_strategy_factory = process_game_strategy_factory
+        self.game_repository = game_repository
+        self.team_season_repository = team_season_repository
+        self.process_game_strategy_factory = process_game_strategy
 
     def __repr__(self):
-        return f"{type(self).__name__}(game_repository={self._game_repository}, " \
-               f"process_game_strategy_factory={self._process_game_strategy_factory})"
+        return (
+            f"{type(self).__name__}("
+            f"game_repository={self.game_repository}, "
+            f"team_season_repository={self.team_season_repository}, "
+            f"process_game_strategy_factory={self.process_game_strategy_factory}"
+            f")"
+        )
 
     def add_game(self, new_game: Optional[Game]) -> None:
         """
@@ -56,15 +53,15 @@ class GameService:
         guard.raise_if_none(new_game, f"{type(self).__name__}.add_game: new_game")
 
         if not (
-            self._team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.guest_name,
-                                                                                           new_game.season_year)
-            or self._team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.host_name,
-                                                                                              new_game.season_year)
+            self.team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.guest_name,
+                                                                                          new_game.season_year)
+            or self.team_season_repository.team_season_exists_with_team_name_and_season_year(new_game.host_name,
+                                                                                             new_game.season_year)
         ):
             raise EntityNotFoundError()
 
         new_game.decide_winner_and_loser()
-        self._game_repository.add_game(new_game)
+        self.game_repository.add_game(new_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
     def update_game(self, new_game: Optional[Game], old_game: Optional[Game]) -> None:
@@ -82,13 +79,13 @@ class GameService:
         guard.raise_if_none(new_game, f"{type(self).__name__}.update_game: new_game")
         guard.raise_if_none(old_game, f"{type(self).__name__}.update_game: old_game")
 
-        selected_game = self._game_repository.get_game(old_game.id)
+        selected_game = self.game_repository.get_game(old_game.id)
         if selected_game is None:
             raise EntityNotFoundError(
                 f"{type(self).__name__}.update_game: A game with id={id} could not be found.")
 
         new_game.decide_winner_and_loser()
-        self._game_repository.update_game(new_game)
+        self.game_repository.update_game(new_game)
         self._edit_team_seasons(Direction.DOWN, old_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
@@ -103,14 +100,14 @@ class GameService:
         :raises EntityNotFoundError: If the selected game cannot be found in the data store.
         :raises ValueError: If the id argument is None.
         """
-        old_game = self._game_repository.get_game(id)
+        old_game = self.game_repository.get_game(id)
         if old_game is None:
             raise EntityNotFoundError(
                 f"{type(self).__name__}.delete_game: A game with id={id} could not be found.")
 
         self._edit_team_seasons(Direction.DOWN, old_game)
-        self._game_repository.delete_game(id)
+        self.game_repository.delete_game(id)
 
     def _edit_team_seasons(self, direction: int, game: Game) -> None:
-        process_game_strategy = self._process_game_strategy_factory.create_strategy(direction)
+        process_game_strategy = self.process_game_strategy_factory.create_strategy(direction)
         process_game_strategy.process_game(game)

@@ -48,7 +48,7 @@ def test_details_when_team_found_should_render_team_details_template(
     fake_render_template.assert_called_once_with(
         'teams/details.html',
         team=fake_team_repository.get_team.return_value,
-        delete_team_form=fake_delete_team_form.return_value
+        form=fake_delete_team_form.return_value
     )
     assert result == fake_render_template.return_value
 

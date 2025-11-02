@@ -19,7 +19,7 @@ def test_app():
 @patch('app.flask.season_controller.season_repository')
 def test_index_should_render_season_index_template(fake_season_repository, fake_render_template):
     # Act
-    result = mod.index(fake_season_repository)
+    result = mod.index()
 
     # Assert
     fake_season_repository.get_seasons.assert_called_once()
@@ -47,7 +47,7 @@ def test_details_when_season_found_should_render_season_details_template(
     fake_render_template.assert_called_once_with(
         'seasons/details.html',
         season=fake_season_repository.get_season.return_value,
-        delete_season_form=fake_delete_season_form.return_value
+        form=fake_delete_season_form.return_value
     )
     assert result == fake_render_template.return_value
 

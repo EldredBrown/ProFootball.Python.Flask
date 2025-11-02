@@ -31,9 +31,9 @@ def test_add_game_when_new_team_season_with_new_game_guest_and_season_is_in_data
         fake_game, test_service
 ):
     # Arrange
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (True, False)
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (True, False)
     strategy = Mock(ProcessGameStrategy)
-    test_service._process_game_strategy_factory.create_strategy.return_value = strategy
+    test_service.process_game_strategy_factory.create_strategy.return_value = strategy
 
     # Act
     try:
@@ -42,12 +42,12 @@ def test_add_game_when_new_team_season_with_new_game_guest_and_season_is_in_data
         assert False
 
     # Assert
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.assert_called_once_with(
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.assert_called_once_with(
         fake_game.guest_name, fake_game.season_year
     )
     fake_game.decide_winner_and_loser.assert_called_once()
-    test_service._game_repository.add_game.assert_any_call(fake_game)
-    test_service._process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
+    test_service.game_repository.add_game.assert_any_call(fake_game)
+    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
     strategy.process_game.assert_called_once_with(fake_game)
 
 
@@ -56,9 +56,9 @@ def test_add_game_when_new_team_seasons_with_new_game_guest_and_season_and_with_
         fake_game, test_service
 ):
     # Arrange
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (False, True)
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (False, True)
     strategy = Mock(ProcessGameStrategy)
-    test_service._process_game_strategy_factory.create_strategy.return_value = strategy
+    test_service.process_game_strategy_factory.create_strategy.return_value = strategy
 
     # Act
     try:
@@ -67,15 +67,15 @@ def test_add_game_when_new_team_seasons_with_new_game_guest_and_season_and_with_
         assert False
 
     # Assert
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
         fake_game.guest_name, fake_game.season_year
     )
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
         fake_game.host_name, fake_game.season_year
     )
     fake_game.decide_winner_and_loser.assert_called_once()
-    test_service._game_repository.add_game.assert_any_call(fake_game)
-    test_service._process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
+    test_service.game_repository.add_game.assert_any_call(fake_game)
+    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
     strategy.process_game.assert_called_once_with(fake_game)
 
 
@@ -83,7 +83,7 @@ def test_add_game_when_team_season_with_new_game_guest_and_season_and_team_seaso
         test_service
 ):
     # Arrange
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (False, False)
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.side_effect = (False, False)
 
     new_game = Game(season_year=1, week=1, guest_name="Guest", guest_score=0, host_name="Host", host_score=0)
 
@@ -91,7 +91,7 @@ def test_add_game_when_team_season_with_new_game_guest_and_season_and_team_seaso
     with pytest.raises(EntityNotFoundError):
         test_service.add_game(new_game)
 
-    test_service._team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
+    test_service.team_season_repository.team_season_exists_with_team_name_and_season_year.assert_any_call(
         new_game.guest_name, new_game.season_year
     )
 
@@ -113,7 +113,7 @@ def test_edit_game_when_old_game_arg_is_none_should_raise_value_error(test_servi
 
 def test_edit_game_when_selected_game_not_found_should_raise_entity_not_found_error(test_service):
     # Arrange
-    test_service._game_repository.get_game.return_value = None
+    test_service.game_repository.get_game.return_value = None
 
     new_game = Game(season_year=1, week=1, guest_name="Guest", guest_score=0, host_name="Host", host_score=0)
     old_game = Game(season_year=1, week=1, guest_name="Guest", guest_score=0, host_name="Host", host_score=0)
@@ -122,17 +122,17 @@ def test_edit_game_when_selected_game_not_found_should_raise_entity_not_found_er
     with pytest.raises(EntityNotFoundError):
         test_service.update_game(new_game, old_game)
 
-    test_service._game_repository.get_game.assert_called_once_with(old_game.id)
+    test_service.game_repository.get_game.assert_called_once_with(old_game.id)
 
 
 def test_edit_game_when_args_are_not_none_and_selected_game_is_found_should_edit_game_in_repository(test_service):
     # Arrange
     selected_game = Mock(Game)
-    test_service._game_repository.get_game.return_value = selected_game
+    test_service.game_repository.get_game.return_value = selected_game
 
     subtract_strategy = Mock(SubtractGameStrategy)
     add_strategy = Mock(AddGameStrategy)
-    test_service._process_game_strategy_factory.create_strategy.side_effect = (subtract_strategy, add_strategy)
+    test_service.process_game_strategy_factory.create_strategy.side_effect = (subtract_strategy, add_strategy)
 
     new_game = Mock(Game)
     old_game = Mock(Game)
@@ -142,18 +142,18 @@ def test_edit_game_when_args_are_not_none_and_selected_game_is_found_should_edit
 
     # Assert
     new_game.decide_winner_and_loser.assert_called()
-    test_service._game_repository.update_game.assert_called_once_with(new_game)
+    test_service.game_repository.update_game.assert_called_once_with(new_game)
 
-    test_service._process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
+    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
     subtract_strategy.process_game.assert_called_once_with(old_game)
 
-    test_service._process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
+    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
     add_strategy.process_game.assert_called_once_with(new_game)
 
 
 def test_delete_game_when_game_with_passed_id_is_not_found_should_raise_entity_not_found_error(test_service):
     # Arrange
-    test_service._game_repository.get_game.return_value = None
+    test_service.game_repository.get_game.return_value = None
 
     # Act and Assert
     id = 1
@@ -164,17 +164,17 @@ def test_delete_game_when_game_with_passed_id_is_not_found_should_raise_entity_n
 def test_delete_game_when_game_with_passed_id_is_found_should_delete_game_from_repository(test_service):
     # Arrange
     old_game = Mock(Game)
-    test_service._game_repository.get_game.return_value = old_game
+    test_service.game_repository.get_game.return_value = old_game
 
     strategy = Mock(SubtractGameStrategy)
-    test_service._process_game_strategy_factory.create_strategy.return_value = strategy
+    test_service.process_game_strategy_factory.create_strategy.return_value = strategy
 
     # Act
     id = 1
     test_service.delete_game(id)
 
     # Assert
-    test_service._game_repository.get_game.assert_any_call(id)
-    test_service._game_repository.delete_game.assert_any_call(id)
-    test_service._process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
+    test_service.game_repository.get_game.assert_any_call(id)
+    test_service.game_repository.delete_game.assert_any_call(id)
+    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
     strategy.process_game.assert_called_once_with(old_game)

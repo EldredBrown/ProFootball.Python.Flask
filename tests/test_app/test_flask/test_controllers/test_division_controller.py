@@ -48,7 +48,7 @@ def test_details_when_division_found_should_render_division_details_template(
     fake_render_template.assert_called_once_with(
         'divisions/details.html',
         division=fake_division_repository.get_division.return_value,
-        delete_division_form=fake_delete_division_form.return_value
+        form=fake_delete_division_form.return_value
     )
     assert result == fake_render_template.return_value
 

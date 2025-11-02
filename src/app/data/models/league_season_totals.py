@@ -8,7 +8,7 @@ class LeagueSeasonTotals:
     """
     Class to represent the total games and points of a pro football league season.
     """
-    total_games: Optional[int]
-    total_points: Optional[int]
-    average_points: Optional[Decimal]
-    week_count: Optional[int]
+    total_games: Optional[int] = None
+    total_points: Optional[int] = None
+    average_points: Optional[Decimal] = None
+    week_count: Optional[int] = None

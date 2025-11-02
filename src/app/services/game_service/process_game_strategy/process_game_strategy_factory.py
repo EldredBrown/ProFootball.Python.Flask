@@ -17,13 +17,11 @@ class ProcessGameStrategyFactory:
     def __init__(self, team_season_repository: TeamSeasonRepository):
         """
         Initializes a new instance of the ProcessGameStrategyFactory class
-
-        :param team_season_repository: The repository by which team seasons data will be accessed.
         """
-        self._team_season_repository = team_season_repository
+        self.team_season_repository = team_season_repository
 
     def __repr__(self):
-        return f"{type(self).__name__}(team_season_association_repository={self._team_season_repository})"
+        return f"{type(self).__name__}()"
 
     def create_strategy(self, direction: int) -> ProcessGameStrategy:
         strategies = {
@@ -33,6 +31,6 @@ class ProcessGameStrategyFactory:
 
         try:
             strategy = strategies[direction]
-            return strategy(self._team_season_repository)
+            return strategy(self.team_season_repository)
         except KeyError:
             return NullGameStrategy.instance()

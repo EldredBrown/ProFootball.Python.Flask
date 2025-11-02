@@ -1,3 +1,4 @@
+injector
 alembic>=1.16.3
 atomicwrites>=1.4.1
 attrs>=25.3.0

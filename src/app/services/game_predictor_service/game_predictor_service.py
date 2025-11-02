@@ -16,10 +16,10 @@ class GamePredictorService:
         :param team_season_repository: The repository by which team_season data will be fetched
         for both teams.
         """
-        self._team_season_repository = team_season_repository
+        self.team_season_repository = team_season_repository
 
     def __repr__(self):
-        return f"{type(self).__name__}(team_season_repository={self._team_season_repository})"
+        return f"{type(self).__name__}(team_season_repository={self.team_season_repository})"
 
     def predict_game_score(
             self,
@@ -27,10 +27,10 @@ class GamePredictorService:
             host_name: str, host_season_year: int
     ) -> tuple:
         guest_season = (
-            self._team_season_repository.get_team_season_by_team_name_and_season_year(guest_name, guest_season_year)
+            self.team_season_repository.get_team_season_by_team_name_and_season_year(guest_name, guest_season_year)
         )
         host_season = (
-            self._team_season_repository.get_team_season_by_team_name_and_season_year(host_name, host_season_year)
+            self.team_season_repository.get_team_season_by_team_name_and_season_year(host_name, host_season_year)
         )
         if guest_season is None or host_season is None:
             return None, None

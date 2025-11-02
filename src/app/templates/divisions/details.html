@@ -11,9 +11,9 @@
     <div class="col-lg-3 my-4">
         <a class="btn btn-primary" href="{{ url_for('division.edit', id=division.id) }}">Edit</a>
         <form class="delete-form" method="POST" action="{{ url_for('division.delete', id=division.id) }}">
-            {{ delete_division_form.hidden_tag() }}
+            {{ form.hidden_tag() }}
             {{
-                delete_division_form.submit(
+                form.submit(
                     class='btn btn-danger', onclick='return confirm("Are you sure you want to delete this item?");'
                 )
             }}

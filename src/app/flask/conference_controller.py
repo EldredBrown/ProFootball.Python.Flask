@@ -3,6 +3,7 @@ from typing import Any
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import conference_factory
 from app.data.models.conference import Conference
 from app.data.repositories.conference_repository import ConferenceRepository
@@ -10,26 +11,33 @@ from app.flask.forms.conference_forms import NewConferenceForm, EditConferenceFo
 
 blueprint = Blueprint('conference', __name__)
 
+conference_repository = injector.get(ConferenceRepository)
+
 
 @blueprint.route('/')
-def index(conference_repository: ConferenceRepository) -> str:
+def index() -> str:
+    global conference_repository
+
     conferences = conference_repository.get_conferences()
     return render_template('conferences/index.html', conferences=conferences)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int, conference_repository: ConferenceRepository) -> str:
+def details(id: int) -> str:
+    global conference_repository
+
+    form = DeleteConferenceForm()
     try:
-        delete_conference_form = DeleteConferenceForm()
         conference = conference_repository.get_conference(id)
-        return render_template('conferences/details.html',
-                               conference=conference, delete_conference_form=delete_conference_form)
+        return render_template('conferences/details.html', conference=conference, form=form)
     except IndexError:
         abort(404)
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create(conference_repository: ConferenceRepository) -> Response | str:
+def create() -> Response | str:
+    global conference_repository
+
     form = NewConferenceForm()
     if form.validate_on_submit():
         kwargs = {
@@ -56,7 +64,9 @@ def create(conference_repository: ConferenceRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int, conference_repository: ConferenceRepository) -> Response | str:
+def edit(id: int) -> Response | str:
+    global conference_repository
+
     old_conference = conference_repository.get_conference(id)
     if old_conference:
         form = EditConferenceForm()
@@ -108,7 +118,9 @@ def _get_form_data_from_conference(form: ConferenceForm, conference: Conference)
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int, conference_repository: ConferenceRepository) -> Response | str:
+def delete(id: int) -> Response | str:
+    global conference_repository
+
     conference = conference_repository.get_conference(id)
     try:
         if request.method == 'POST':

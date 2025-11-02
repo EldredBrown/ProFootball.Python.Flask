@@ -57,7 +57,7 @@ def test_details_when_game_found_should_render_game_details_template(
     fake_render_template.assert_called_once_with(
         'games/details.html',
         game=fake_game_repository.get_game.return_value,
-        delete_game_form=fake_delete_game_form.return_value
+        form=fake_delete_game_form.return_value
     )
     assert result == fake_render_template.return_value
 

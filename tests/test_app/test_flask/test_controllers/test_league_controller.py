@@ -48,7 +48,7 @@ def test_details_when_league_found_should_render_league_details_template(
     fake_render_template.assert_called_once_with(
         'leagues/details.html',
         league=fake_league_repository.get_league.return_value,
-        delete_league_form=fake_delete_league_form.return_value
+        form=fake_delete_league_form.return_value
     )
     assert result == fake_render_template.return_value
 

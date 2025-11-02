@@ -1,10 +1,14 @@
-from unittest.mock import patch
+from unittest.mock import patch, call, Mock
 
 import pytest
+from injector import Injector
 
 import app.flask.season_rankings_controller as mod
 from app.data.models.league import League
 from app.data.models.season import Season
+from app.data.repositories.league_repository import LeagueRepository
+from app.data.repositories.season_repository import SeasonRepository
+from app.services.weekly_update_service.weekly_update_service import WeeklyUpdateService
 
 from test_app import create_app
 
@@ -15,23 +19,29 @@ def test_app():
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.LeagueRepository')
-@patch('app.flask.season_rankings_controller.SeasonRepository')
+@patch('app.flask.season_rankings_controller.injector')
 def test_index_should_render_season_rankings_index_template(
-        fake_season_repository, fake_league_repository, fake_render_template
+        fake_injector, fake_render_template
 ):
+    # Arrange
+    fake_season_repository = Mock(SeasonRepository)
+    fake_league_repository = Mock(LeagueRepository)
+    fake_injector.get.side_effect = [fake_season_repository, fake_league_repository]
+
     # Act
     result = mod.index()
 
     # Assert
-    fake_season_repository.assert_called_once()
-    fake_season_repository.return_value.get_seasons.assert_called_once()
-    fake_league_repository.assert_called_once()
-    fake_league_repository.return_value.get_leagues.assert_called_once()
+    fake_injector.get.assert_has_calls([
+        call(SeasonRepository),
+        call(LeagueRepository),
+    ])
+    fake_season_repository.get_seasons.assert_called_once()
+    fake_league_repository.get_leagues.assert_called_once()
     fake_render_template.assert_called_once_with(
         'season_rankings/index.html',
-        seasons=fake_season_repository.return_value.get_seasons.return_value, selected_year=None,
-        leagues=fake_league_repository.return_value.get_leagues.return_value, selected_league_name=None,
+        seasons=fake_season_repository.get_seasons.return_value, selected_year=None,
+        leagues=fake_league_repository.get_leagues.return_value, selected_league_name=None,
         types=mod.RANKING_TYPES, selected_type=None, season_rankings=None
     )
     assert result is fake_render_template.return_value
@@ -81,8 +91,8 @@ def test_select_type_should_render_rankings_index_template_for_selected_type(tes
 
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.flash')
-@patch('app.flask.season_rankings_controller.WeeklyUpdateService')
-def test_run_weekly_update_should_run_weekly_update(fake_weekly_update_service, fake_flash, fake_render_template):
+@patch('app.flask.season_rankings_controller.injector')
+def test_run_weekly_update_should_run_weekly_update(fake_injector, fake_flash, fake_render_template):
     # Arrange
     mod.seasons = [
         Season(year=1),
@@ -106,8 +116,8 @@ def test_run_weekly_update_should_run_weekly_update(fake_weekly_update_service, 
     # Assert
     league_name = mod.selected_league_name
     season_year = mod.selected_year
-    fake_weekly_update_service.assert_called_once()
-    fake_weekly_update_service.return_value.run_weekly_update.assert_called_once_with(league_name, season_year)
+    fake_injector.get.assert_called_once_with(WeeklyUpdateService)
+    fake_injector.get.return_value.run_weekly_update.assert_called_once_with(league_name, season_year)
     fake_flash.assert_called_once_with(
         f"The weekly update has been successfully completed for the '{league_name}' in {season_year}.",
         'success'

@@ -3,6 +3,7 @@ from typing import Any
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import league_factory
 from app.data.models.league import League
 from app.data.repositories.league_repository import LeagueRepository
@@ -10,26 +11,33 @@ from app.flask.forms.league_forms import NewLeagueForm, EditLeagueForm, DeleteLe
 
 blueprint = Blueprint('league', __name__)
 
+league_repository = injector.get(LeagueRepository)
+
 
 @blueprint.route('/')
-def index(league_repository: LeagueRepository) -> str:
+def index() -> str:
+    global league_repository
+
     leagues = league_repository.get_leagues()
     return render_template('leagues/index.html', leagues=leagues)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int, league_repository: LeagueRepository) -> str:
+def details(id: int) -> str:
+    global league_repository
+
+    form = DeleteLeagueForm()
     try:
-        delete_league_form = DeleteLeagueForm()
         league = league_repository.get_league(id)
-        return render_template('leagues/details.html',
-                               league=league, delete_league_form=delete_league_form)
+        return render_template('leagues/details.html', league=league, form=form)
     except IndexError:
         abort(404)
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create(league_repository: LeagueRepository) -> Response | str:
+def create() -> Response | str:
+    global league_repository
+
     form = NewLeagueForm()
     if form.validate_on_submit():
         league = _get_league_from_form(form)
@@ -49,7 +57,9 @@ def create(league_repository: LeagueRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int, league_repository: LeagueRepository) -> Response | str:
+def edit(id: int) -> Response | str:
+    global league_repository
+
     old_league = league_repository.get_league(id)
     if old_league:
         form = EditLeagueForm()
@@ -100,7 +110,9 @@ def _get_form_data_from_league(form: LeagueForm, league: League) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int, league_repository: LeagueRepository) -> Response | str:
+def delete(id: int) -> Response | str:
+    global league_repository
+
     league = league_repository.get_league(id)
     try:
         if request.method == 'POST':

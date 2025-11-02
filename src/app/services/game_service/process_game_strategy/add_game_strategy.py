@@ -15,14 +15,11 @@ class AddGameStrategy(ProcessGameStrategy):
     def __init__(self, team_season_repository: TeamSeasonRepository):
         """
         Initializes a new instance of the AddGameStrategy class.
-
-        :param team_season_repository:
-        The repository by which team_season data will be accessed.
         """
         super().__init__(team_season_repository)
 
     def __repr__(self):
-        return f"{type(self).__name__}(team_season_repository={super()._team_season_repository})"
+        return f"{type(self).__name__}(team_season_repository={self.team_season_repository})"
 
     def _edit_scoring_data_for_team_season(self, team_season: TeamSeason, team_score: int, opponent_score: int) -> None:
         if team_season is None:
@@ -53,12 +50,12 @@ class AddGameStrategy(ProcessGameStrategy):
         else:
             season_year = game.season_year
 
-            winner_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.winner_name,
-                                                                                                      season_year)
+            winner_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.winner_name,
+                                                                                                     season_year)
             if winner_season is not None:
                 winner_season.wins += 1
 
-            loser_season = self._team_season_repository.get_team_season_by_team_name_and_season_year(game.loser_name,
-                                                                                                     season_year)
+            loser_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.loser_name,
+                                                                                                    season_year)
             if loser_season is not None:
                 loser_season.losses += 1

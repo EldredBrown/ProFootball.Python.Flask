@@ -28,15 +28,15 @@ def test_process_game_when_game_arg_is_not_none_should_process_game_and_raise_no
     game = Game(season_year=1, week=1, guest_name="Guest", guest_score=0, host_name="Host", host_score=0)
     guest_season = Mock(TeamSeason)
     host_season = Mock(TeamSeason)
-    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
+    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = (guest_season, host_season)
 
     # Act
     with pytest.raises(NotImplementedError):
         test_strategy.process_game(game)
 
     # Assert
-    assert test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.call_count == 2
-    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.guest_name,
-                                                                                                       game.season_year)
-    test_strategy._team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.host_name,
-                                                                                                       game.season_year)
+    assert test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.call_count == 2
+    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.guest_name,
+                                                                                                      game.season_year)
+    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_any_call(game.host_name,
+                                                                                                      game.season_year)

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, url_for, redirect, flash, Response
 
+from app import injector
 from app.data.repositories.league_repository import LeagueRepository
 from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 from app.data.repositories.season_repository import SeasonRepository
@@ -17,17 +18,23 @@ selected_league_name = None
 
 selected_type = None
 
+season_rankings_repository = injector.get(SeasonRankingsRepository)
+
 
 @blueprint.route('/')
-def index(season_repository: SeasonRepository, league_repository: LeagueRepository) -> str:
+def index() -> str:
     global seasons
     global selected_year
     global leagues
     global selected_league_name
     global selected_type
 
+    season_repository = injector.get(SeasonRepository)
     seasons = season_repository.get_seasons()
+
+    league_repository = injector.get(LeagueRepository)
     leagues = league_repository.get_leagues()
+
     return render_template(
         'season_rankings/index.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,
@@ -84,14 +91,16 @@ def select_type() -> Response | str:
 
 
 @blueprint.route('weekly_update', methods=['POST'])
-def run_weekly_update(weekly_update_service: WeeklyUpdateService):
+def run_weekly_update():
     global seasons
     global selected_year
     global leagues
     global selected_league_name
     global selected_type
 
+    weekly_update_service = injector.get(WeeklyUpdateService)
     weekly_update_service.run_weekly_update(selected_league_name, selected_year)
+
     flash(
         f"The weekly update has been successfully completed for the '{selected_league_name}' in {selected_year}.",
         'success'
@@ -104,10 +113,12 @@ def run_weekly_update(weekly_update_service: WeeklyUpdateService):
 
 
 @blueprint.route('/offense')
-def offense(season_rankings_repository: SeasonRankingsRepository):
+def offense():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_offensive_rankings_by_season_year(selected_year)
+
     return render_template(
         'season_rankings/offense.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,
@@ -116,10 +127,12 @@ def offense(season_rankings_repository: SeasonRankingsRepository):
 
 
 @blueprint.route('/defense')
-def defense(season_rankings_repository: SeasonRankingsRepository):
+def defense():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_defensive_rankings_by_season_year(selected_year)
+
     return render_template(
         'season_rankings/defense.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,
@@ -128,10 +141,12 @@ def defense(season_rankings_repository: SeasonRankingsRepository):
 
 
 @blueprint.route('/total')
-def total(season_rankings_repository: SeasonRankingsRepository):
+def total():
     global selected_year
+    global season_rankings_repository
 
     season_rankings = season_rankings_repository.get_total_rankings_by_season_year(selected_year)
+
     return render_template(
         'season_rankings/total.html',
         seasons=seasons, selected_year=selected_year, leagues=leagues, selected_league_name=selected_league_name,
