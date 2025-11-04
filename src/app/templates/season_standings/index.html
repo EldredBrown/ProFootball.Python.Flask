@@ -70,7 +70,7 @@
                 {{ standings_team_season.ties }}
             </td>
             <td class="text-right align-right-override">
-                {{ standings_team_season.winning_percentage | round(3) }}
+                {{ "%.3f" | format((standings_team_season.winning_percentage | default(0) | float) | round(3)) }}
             </td>
             <td class="text-right align-right-override">
                 {{ standings_team_season.points_for }}
@@ -79,16 +79,16 @@
                 {{ standings_team_season.points_against }}
             </td>
             <td class="text-right align-right-override">
-                {{ standings_team_season.avg_points_for | round(2) }}
+                {{ "%.2f" | format((standings_team_season.avg_points_for | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ standings_team_season.avg_points_against | round(2) }}
+                {{ "%.2f" | format((standings_team_season.avg_points_against | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ standings_team_season.expected_wins | round(1) }}
+                {{ "%.1f" | format((standings_team_season.expected_wins | default(0) | float) | round(1)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ standings_team_season.expected_losses | round(1) }}
+                {{ "%.1f" | format((standings_team_season.expected_losses | default(0) | float) | round(1)) }}
             </td>
         </tr>
         {% endfor %}

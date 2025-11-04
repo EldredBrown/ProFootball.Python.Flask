@@ -65,7 +65,7 @@
                 W%
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.winning_percentage | round(3) }}
+                {{ "%.3f" | format((team_season.winning_percentage | default(0) | float) | round(3)) }}
             </dd>
             <dt class="col-sm-2">
                 PF
@@ -83,13 +83,13 @@
                 Exp. W
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.expected_wins | round(1) }}
+                {{ "%.1f" | format((team_season.expected_wins | default(0) | float) | round(1)) }}
             </dd>
             <dt class="col-sm-2">
                 Exp. L
             </dt>
             <dd class="col-sm-10">
-                {{ team_season.expected_losses | round(1) }}
+                {{ "%.1f" | format((team_season.expected_losses | default(0) | float) | round(1)) }}
             </dd>
             <dt class="col-sm-2">
                 Off. Avg.
@@ -194,7 +194,7 @@
                 {{ opponent_record.opponent_ties }}
             </td>
             <td class="text-right align-right-override">
-                {{ opponent_record.opponent_winning_percentage | round(3) }}
+                {{ "%.3f" | format((opponent_record.opponent_winning_percentage | default(0) | float) | round(3)) }}
             </td>
             <td class="text-right align-right-override">
                 {{ opponent_record.opponent_weighted_games }}
@@ -272,7 +272,7 @@
                 {{ row.schedule_ties }}
             </td>
             <td class="text-right align-right-override">
-                {{ row.schedule_winning_percentage | round(3) }}
+                {{ "%.3f" | format((row.schedule_winning_percentage | default(0) | float) | round(3)) }}
             </td>
             <td class="text-right align-right-override">
                 {{ row.schedule_games }}
@@ -314,16 +314,16 @@
         <tr>
             <td></td>
             <td class="text-right align-right-override">
-                {{ row.points_for | round(2) }}
+                {{ "%.2f" | format((row.points_for | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ row.points_against | round(2) }}
+                {{ "%.2f" | format((row.points_against | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ row.schedule_points_for | round(2) }}
+                {{ "%.2f" | format((row.schedule_points_for | default(0) | float) | round(2)) }}
             </td>
             <td class="text-right align-right-override">
-                {{ row.schedule_points_against | round(2) }}
+                {{ "%.2f" | format((row.schedule_points_against | default(0) | float) | round(2)) }}
             </td>
         </tr>
         {% endfor %}
