@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Any
 
+from sqlalchemy import Result
 from sqlalchemy.sql import text as SQLQuery
 
 from app.data.models.standings_team_season import StandingsTeamSeason
@@ -20,8 +21,7 @@ class SeasonStandingsRepository:
     def get_season_standings_by_season_year(self, season_year: int, group_by_division: bool=False)\
             -> List[StandingsTeamSeason]:
         querystring = f"EXEC sp_GetSeasonStandings {season_year}, {group_by_division}"
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
+        result = self._call_procedure(querystring)
 
         # Process results if the stored procedure returns data
         standings_team_seasons = []
@@ -41,3 +41,8 @@ class SeasonStandingsRepository:
             )
             standings_team_seasons.append(sts)
         return standings_team_seasons
+
+    def _call_procedure(self, querystring: str) -> Result[Any]:
+        sql = SQLQuery(querystring)
+        result = sqla.session.execute(sql)
+        return result

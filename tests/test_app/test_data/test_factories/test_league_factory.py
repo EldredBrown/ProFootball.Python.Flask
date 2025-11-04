@@ -4,12 +4,6 @@ import pytest
 
 from app.data.factories import league_factory
 from app.data.models.league import League
-from test_app import create_app
-
-
-@pytest.fixture
-def test_app():
-    return create_app()
 
 
 def test_create_league_when_short_name_not_in_kwargs_should_raise_value_error():
@@ -54,25 +48,24 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_not_provided_
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_short_name_is_in_kwargs_and_old_league_not_provided_and_kwargs_short_name_is_unique_should_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_league = league_factory.create_league(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_messages = (
@@ -93,27 +86,26 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_not_provided_
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_equals_old_league_short_name_should_not_validate_unique_key_values_and_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_league = league_factory.create_league(old_league, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(old_league, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -127,29 +119,28 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_does_not_equal_old_league_short_name_and_kwargs_short_name_is_unique_should_validate_unique_key_values_and_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "AFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "AFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_league = league_factory.create_league(old_league, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(old_league, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"League already exists with short_name={kwargs['short_name']}."
@@ -164,28 +155,27 @@ def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_short_name_is_in_kwargs_and_old_league_provided_and_kwargs_short_name_does_not_equal_old_league_short_name_and_kwargs_short_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "AFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "AFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        error_message = f"League already exists with short_name={kwargs['short_name']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"League already exists with short_name={kwargs['short_name']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_league = league_factory.create_league(old_league, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_league = league_factory.create_league(old_league, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('short_name', kwargs['short_name'], error_message=error_message)
@@ -243,25 +233,24 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_not_provided_a
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_long_name_is_in_kwargs_and_old_league_not_provided_and_kwargs_long_name_is_unique_should_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_league = league_factory.create_league(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_messages = (
@@ -282,27 +271,26 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_not_provided_a
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_equals_old_league_long_name_should_not_validate_unique_key_values_and_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="National Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_league = league_factory.create_league(old_league, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(old_league, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -316,29 +304,28 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_k
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_does_not_equal_old_league_long_name_and_kwargs_long_name_is_unique_should_validate_unique_key_values_and_return_league(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="American Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="American Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_league = league_factory.create_league(old_league, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_league = league_factory.create_league(old_league, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"League already exists with long_name={kwargs['long_name']}."
@@ -353,28 +340,27 @@ def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_k
 
 @patch('app.data.factories.league_factory._validate_is_unique')
 def test_create_league_when_long_name_is_in_kwargs_and_old_league_provided_and_kwargs_long_name_does_not_equal_old_league_long_name_and_kwargs_long_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFL",
-            'long_name': "National Football League",
-            'first_season_year': 1922,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFL",
+        'long_name': "National Football League",
+        'first_season_year': 1922,
+        'last_season_year': None,
+    }
 
-        error_message = f"League already exists with long_name={kwargs['long_name']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"League already exists with long_name={kwargs['long_name']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_league = League(
-            id=1, short_name="NFL", long_name="American Football League", first_season_year=1922, last_season_year=None
-        )
+    old_league = League(
+        id=1, short_name="NFL", long_name="American Football League", first_season_year=1922, last_season_year=None
+    )
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_league = league_factory.create_league(old_league, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_league = league_factory.create_league(old_league, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('long_name', kwargs['long_name'], error_message=error_message)

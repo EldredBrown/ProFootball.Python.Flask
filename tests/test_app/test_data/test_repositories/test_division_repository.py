@@ -7,13 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from test_app import create_app
 
 from app.data.models.division import Division
-from app.data.models.team_season import TeamSeason
 from app.data.repositories.division_repository import DivisionRepository
-
-
-@pytest.fixture
-def test_app():
-    return create_app()
 
 
 @pytest.fixture
@@ -22,44 +16,45 @@ def test_repo():
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_get_divisions_should_get_divisions(fake_division, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions_in
+def test_get_divisions_should_get_divisions(fake_division, test_repo):
+    # Arrange
+    divisions_in = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions_in
 
-        # Act
-        divisions_out = test_repo.get_divisions()
+    # Act
+    divisions_out = test_repo.get_divisions()
 
     # Assert
     assert divisions_out == divisions_in
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_when_divisions_is_empty_should_return_none(fake_division, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = []
-        fake_division.query.all.return_value = divisions_in
+def test_get_division_when_divisions_is_empty_should_return_none(fake_division, test_repo):
+    # Arrange
+    divisions_in = []
+    fake_division.query.all.return_value = divisions_in
 
-        # Act
-        division_out = test_repo.get_division(1)
+    # Act
+    division_out = test_repo.get_division(1)
 
     # Assert
     assert division_out is None
@@ -67,33 +62,35 @@ def test_get_division_when_divisions_is_empty_should_return_none(fake_division, 
 
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_when_divisions_is_not_empty_and_division_is_not_found_should_return_none(
-        fake_division, test_app, test_repo
+        fake_division, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions_in
-        fake_division.query.get.return_value = None
+    # Arrange
+    divisions_in = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions_in
+    fake_division.query.get.return_value = None
 
-        # Act
-        id = len(divisions_in) + 1
-        division_out = test_repo.get_division(id)
+    # Act
+    id = len(divisions_in) + 1
+    division_out = test_repo.get_division(id)
 
     # Assert
     assert division_out is None
@@ -101,81 +98,84 @@ def test_get_division_when_divisions_is_not_empty_and_division_is_not_found_shou
 
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_when_divisions_is_not_empty_and_division_is_found_should_return_division(
-        fake_division, test_app, test_repo
+        fake_division, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions_in
+    # Arrange
+    divisions_in = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions_in
 
-        id = len(divisions_in) - 1
-        fake_division.query.get.return_value = divisions_in[id]
+    id = len(divisions_in) - 1
+    fake_division.query.get.return_value = divisions_in[id]
 
-        # Act
-        division_out = test_repo.get_division(id)
+    # Act
+    division_out = test_repo.get_division(id)
 
     # Assert
     assert division_out is divisions_in[id]
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_by_name_when_divisions_is_empty_should_return_none(fake_division, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = []
-        fake_division.query.all.return_value = divisions_in
+def test_get_division_by_name_when_divisions_is_empty_should_return_none(fake_division, test_repo):
+    # Arrange
+    divisions_in = []
+    fake_division.query.all.return_value = divisions_in
 
-        # Act
-        division_out = test_repo.get_division_by_name("NFC")
+    # Act
+    division_out = test_repo.get_division_by_name("NFC")
 
     # Assert
     assert division_out is None
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name_is_not_found_should_return_none(
-        fake_division, test_app, test_repo
+def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_short_name_is_not_found_should_return_none(
+        fake_division, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions_in
-        fake_division.query.filter_by.return_value.first.return_value = None
+    # Arrange
+    divisions_in = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions_in
+    fake_division.query.filter_by.return_value.first.return_value = None
 
-        # Act
-        division_out = test_repo.get_division_by_name("USFC")
+    # Act
+    division_out = test_repo.get_division_by_name("C4")
 
     # Assert
     assert division_out is None
@@ -183,117 +183,171 @@ def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name
 
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name_is_found_should_return_division(
-        fake_division, test_app, test_repo
+        fake_division, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions_in
-        fake_division.query.filter_by.return_value.first.return_value = divisions_in[-1]
+    # Arrange
+    divisions_in = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions_in
+    fake_division.query.filter_by.return_value.first.return_value = divisions_in[-1]
 
-        # Act
-        division_out = test_repo.get_division_by_name("AAFC")
+    # Act
+    division_out = test_repo.get_division_by_name("AAFC")
 
     # Assert
     assert division_out is divisions_in[-1]
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
-def test_add_division_when_no_integrity_error_caught_should_add_division(fake_sqla, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        division_in = Division(
-            name="Division",
-            league_name="League",
-            first_season_year=1
-        )
+def test_add_division_when_no_integrity_error_caught_should_add_division(
+        fake_sqla, fake_try_commit, test_repo
+):
+    # Arrange
+    division_in = Division(
+        name="Division",
+        league_name="L",
+        conference_name="C",
+        first_season_year=1
+    )
 
-        # Act
+    # Act
+    division_out = test_repo.add_division(division_in)
+
+    # Assert
+    fake_sqla.session.add.assert_called_once_with(division_in)
+    fake_try_commit.assert_called_once()
+    assert division_out is division_in
+
+
+@patch('app.data.repositories.division_repository.try_commit')
+@patch('app.data.repositories.division_repository.sqla')
+def test_add_division_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_sqla, fake_try_commit, test_repo
+):
+    # Arrange
+    division_in = Division(
+        name="Division",
+        league_name="L",
+        conference_name="C",
+        first_season_year=1
+    )
+    fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+    # Act
+    with pytest.raises(IntegrityError):
         division_out = test_repo.add_division(division_in)
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(division_in)
-    fake_sqla.session.commit.assert_called_once()
-    assert division_out is division_in
+    fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
-def test_add_division_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_sqla, test_app, test_repo
+def test_add_divisions_when_divisions_arg_is_empty_should_add_no_divisions(
+        fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        division_in = Division(
-            name="Division",
-            league_name="League",
-            first_season_year=1
-        )
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+    # Arrange
+    divisions_in = ()
 
-        # Act
-        with pytest.raises(IntegrityError):
-            division_out = test_repo.add_division(division_in)
-
-    # Assert
-    fake_sqla.session.rollback.assert_called_once()
-
-
-@patch('app.data.repositories.division_repository.sqla')
-def test_add_divisions_when_divisions_arg_is_empty_should_add_no_divisions(fake_sqla, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = ()
-
-        # Act
-        divisions_out = test_repo.add_divisions(divisions_in)
+    # Act
+    divisions_out = test_repo.add_divisions(divisions_in)
 
     # Assert
     fake_sqla.session.add.assert_not_called()
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert divisions_out == tuple()
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 def test_add_divisions_when_divisions_arg_is_not_empty_and_no_integrity_error_caught_should_add_divisions(
-        fake_sqla, test_app, test_repo
+        fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = (
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        )
+    # Arrange
+    divisions_in = (
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    )
 
-        # Act
+    # Act
+    divisions_out = test_repo.add_divisions(divisions_in)
+
+    # Assert
+    fake_sqla.session.add.assert_has_calls([
+        call(divisions_in[0]),
+        call(divisions_in[1]),
+        call(divisions_in[2]),
+    ])
+    fake_try_commit.assert_called_once()
+    assert divisions_out == divisions_in
+
+
+@patch('app.data.repositories.division_repository.try_commit')
+@patch('app.data.repositories.division_repository.sqla')
+def test_add_divisions_when_divisions_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_sqla, fake_try_commit, test_repo
+):
+    # Arrange
+    divisions_in = (
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    )
+    fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+    # Act
+    with pytest.raises(IntegrityError):
         divisions_out = test_repo.add_divisions(divisions_in)
 
     # Assert
@@ -302,383 +356,375 @@ def test_add_divisions_when_divisions_arg_is_not_empty_and_no_integrity_error_ca
         call(divisions_in[1]),
         call(divisions_in[2]),
     ])
-    fake_sqla.session.commit.assert_called_once()
-    assert divisions_out == divisions_in
-
-
-@patch('app.data.repositories.division_repository.sqla')
-def test_add_divisions_when_divisions_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_sqla, test_app, test_repo
-):
-    with test_app.app_context():
-        # Arrange
-        divisions_in = (
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        )
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
-
-        # Act
-        with pytest.raises(IntegrityError):
-            divisions_out = test_repo.add_divisions(divisions_in)
-
-    # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_try_commit.assert_called_once()
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_division_exists_when_division_does_not_exist_should_return_false(fake_division, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
-        fake_division.query.get.return_value = None
+def test_division_exists_when_division_does_not_exist_should_return_false(fake_division, test_repo):
+    # Arrange
+    divisions = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
+    fake_division.query.get.return_value = None
 
-        # Act
-        division_exists = test_repo.division_exists(id=1)
+    # Act
+    division_exists = test_repo.division_exists(id=1)
 
     # Assert
     assert not division_exists
 
 
 @patch('app.data.repositories.division_repository.Division')
-def test_division_exists_when_division_exists_should_return_true(fake_division, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        divisions = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
-        fake_division.query.get.return_value = divisions[1]
+def test_division_exists_when_division_exists_should_return_true(fake_division, test_repo):
+    # Arrange
+    divisions = [
+        Division(
+            name="Division 1",
+            league_name="L1",
+            conference_name="C1",
+            first_season_year=1
+        ),
+        Division(
+            name="Division 2",
+            league_name="L1",
+            conference_name="C2",
+            first_season_year=2
+        ),
+        Division(
+            name="Division 3",
+            league_name="L1",
+            conference_name="C3",
+            first_season_year=3
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
+    fake_division.query.get.return_value = divisions[1]
 
-        # Act
-        division_exists = test_repo.division_exists(id=1)
+    # Act
+    division_exists = test_repo.division_exists(id=1)
 
     # Assert
     assert division_exists
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.DivisionRepository.division_exists')
 def test_update_division_when_no_division_exists_with_id_should_return_division_and_not_update_database(
-        fake_division_exists, fake_sqla, test_app, test_repo
+        fake_division_exists, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        fake_division_exists.return_value = False
+    # Arrange
+    fake_division_exists.return_value = False
 
-        # Act
-        division = Division(
-            id=1,
-            name="Division",
-            league_name="League",
-            conference_name="Conference",
-            first_season_year=1,
-            last_season_year=None
-        )
-        try:
-            division_updated = test_repo.update_division(division)
-        except ValueError:
-            assert False
+    # Act
+    division = Division(
+        id=1,
+        name="Division",
+        league_name="L",
+        conference_name="C",
+        first_season_year=1,
+        last_season_year=2
+    )
+
+    try:
+        division_updated = test_repo.update_division(division)
+    except ValueError:
+        assert False
 
     # Assert
     fake_sqla.session.add.assert_not_called()
-    fake_sqla.session.commit.assert_not_called()
+    fake_try_commit.assert_not_called()
     assert isinstance(division_updated, Division)
     assert isinstance(division_updated, Division)
     assert division_updated.id == division.id
+    assert division_updated.conference_name == division.conference_name
     assert division_updated.name == division.name
     assert division_updated.league_name == division.league_name
     assert division_updated.first_season_year == division.first_season_year
     assert division_updated.last_season_year == division.last_season_year
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.Division')
 @patch('app.data.repositories.division_repository.DivisionRepository.division_exists')
 def test_update_division_when_division_exists_with_id_and_no_integrity_error_caught_should_return_division_and_update_database(
-        fake_division_exists, fake_division, fake_sqla, test_app, test_repo
+        fake_division_exists, fake_division, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        fake_division_exists.return_value = True
+    # Arrange
+    fake_division_exists.return_value = True
 
-        divisions = [
-            Division(
-                id=1,
-                name="Division 1",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=1,
-                last_season_year=2
-            ),
-            Division(
-                id=2,
-                name="Division 2",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=3,
-                last_season_year=4
-            ),
-            Division(
-                id=3,
-                name="Division 3",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=5,
-                last_season_year=6
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
-
-        old_division = divisions[1]
-        fake_division.query.get.return_value = old_division
-
-        new_division = Division(
+    divisions = [
+        Division(
+            id=1,
+            name="Division 1",
+            league_name="L",
+            conference_name="C",
+            first_season_year=1,
+            last_season_year=2
+        ),
+        Division(
             id=2,
-            name="Division 4",
-            league_name="League",
-            conference_name="Conference",
-            first_season_year=7,
-            last_season_year=8
-        )
+            name="Division 2",
+            league_name="L",
+            conference_name="C",
+            first_season_year=3,
+            last_season_year=4
+        ),
+        Division(
+            id=3,
+            name="Division 3",
+            league_name="L",
+            conference_name="C",
+            first_season_year=5,
+            last_season_year=6
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
 
-        # Act
-        try:
-            division_updated = test_repo.update_division(new_division)
-        except IntegrityError:
-            assert False
+    old_division = divisions[1]
+    fake_division.query.get.return_value = old_division
+
+    new_division = Division(
+        id=2,
+        name="Division 4",
+        league_name="L",
+        conference_name="C",
+        first_season_year=7,
+        last_season_year=8
+    )
+
+    # Act
+    try:
+        division_updated = test_repo.update_division(new_division)
+    except IntegrityError:
+        assert False
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(old_division)
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert isinstance(division_updated, Division)
     assert isinstance(division_updated, Division)
     assert division_updated.id == new_division.id
+    assert division_updated.conference_name == new_division.conference_name
     assert division_updated.name == new_division.name
     assert division_updated.league_name == new_division.league_name
-    assert division_updated.conference_name == new_division.conference_name
     assert division_updated.first_season_year == new_division.first_season_year
     assert division_updated.last_season_year == new_division.last_season_year
     assert division_updated is new_division
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.Division')
 @patch('app.data.repositories.division_repository.DivisionRepository.division_exists')
 def test_update_division_when_and_division_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_division_exists, fake_division, fake_sqla, test_app, test_repo
+        fake_division_exists, fake_division, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        fake_division_exists.return_value = True
+    # Arrange
+    fake_division_exists.return_value = True
 
-        divisions = [
-            Division(
-                id=1,
-                name="Division 1",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=1,
-                last_season_year=2
-            ),
-            Division(
-                id=2,
-                name="Division 2",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=3,
-                last_season_year=4
-            ),
-            Division(
-                id=3,
-                name="Division 3",
-                league_name="League",
-                conference_name="Conference",
-                first_season_year=5,
-                last_season_year=6
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
-
-        old_division = divisions[1]
-        fake_division.query.get.return_value = old_division
-
-        new_division = Division(
+    divisions = [
+        Division(
+            id=1,
+            name="Division 1",
+            league_name="L",
+            conference_name="C",
+            first_season_year=1,
+            last_season_year=2
+        ),
+        Division(
             id=2,
-            name="Division 4",
-            league_name="League",
-            conference_name="Conference",
-            first_season_year=7,
-            last_season_year=8
-        )
+            name="Division 2",
+            league_name="L",
+            conference_name="C",
+            first_season_year=3,
+            last_season_year=4
+        ),
+        Division(
+            id=3,
+            name="Division 3",
+            league_name="L",
+            conference_name="C",
+            first_season_year=5,
+            last_season_year=6
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
 
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+    old_division = divisions[1]
+    fake_division.query.get.return_value = old_division
 
-        # Act
-        with pytest.raises(IntegrityError):
-            division_updated = test_repo.update_division(new_division)
+    new_division = Division(
+        id=2,
+        name="Division 4",
+        league_name="L",
+        conference_name="C",
+        first_season_year=7,
+        last_season_year=8
+    )
+
+    fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
+
+    # Act
+    with pytest.raises(IntegrityError):
+        division_updated = test_repo.update_division(new_division)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.add.assert_called_once_with(old_division)
+    fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_does_not_exist_should_return_none_and_not_delete_division_from_database(
-        fake_division, fake_sqla, test_app, test_repo
+        fake_division, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
-        fake_division.query.get.return_value = None
+    # Arrange
+    divisions = [
+        Division(
+            name="Division 1",
+            league_name="L",
+            conference_name="C",
+            first_season_year=1,
+            last_season_year=2
+        ),
+        Division(
+            name="Division 2",
+            league_name="L",
+            conference_name="C",
+            first_season_year=3,
+            last_season_year=4
+        ),
+        Division(
+            name="Division 3",
+            league_name="L",
+            conference_name="C",
+            first_season_year=5,
+            last_season_year=6
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
+    fake_division.query.get.return_value = None
 
-        id = 1
+    id = 1
 
-        # Act
-        division_deleted = test_repo.delete_division(id)
+    # Act
+    division_deleted = test_repo.delete_division(id)
 
     # Assert
     assert division_deleted is None
     fake_sqla.session.delete.assert_not_called()
-    fake_sqla.session.commit.assert_not_called()
+    fake_try_commit.assert_not_called()
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_exists_and_integrity_error_not_caught_should_return_division_and_delete_division_from_database(
-        fake_division, fake_sqla, test_app, test_repo
+        fake_division, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
+    # Arrange
+    divisions = [
+        Division(
+            name="Division 1",
+            league_name="L",
+            conference_name="C",
+            first_season_year=1,
+            last_season_year=2
+        ),
+        Division(
+            name="Division 2",
+            league_name="L",
+            conference_name="C",
+            first_season_year=3,
+            last_season_year=4
+        ),
+        Division(
+            name="Division 3",
+            league_name="L",
+            conference_name="C",
+            first_season_year=5,
+            last_season_year=6
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
 
-        id = 1
-        fake_division.query.get.return_value = divisions[id]
+    id = 1
+    fake_division.query.get.return_value = divisions[id]
 
-        # Act
-        try:
-            division_deleted = test_repo.delete_division(id)
-        except IntegrityError:
-            assert False
+    # Act
+    try:
+        division_deleted = test_repo.delete_division(id)
+    except IntegrityError:
+        assert False
 
     # Assert
     fake_sqla.session.delete.assert_called_once_with(division_deleted)
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert division_deleted is divisions[id]
 
 
+@patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_division, fake_sqla, test_app, test_repo
+        fake_division, fake_sqla, fake_try_commit, test_repo
 ):
-    with test_app.app_context():
-        # Arrange
-        divisions = [
-            Division(
-                name="Division 1",
-                league_name="League",
-                first_season_year=1
-            ),
-            Division(
-                name="Division 2",
-                league_name="League",
-                first_season_year=2
-            ),
-            Division(
-                name="Division 3",
-                league_name="League",
-                first_season_year=3
-            ),
-        ]
-        fake_division.query.all.return_value = divisions
+    # Arrange
+    divisions = [
+        Division(
+            name="Division 1",
+            league_name="L",
+            conference_name="C",
+            first_season_year=1,
+            last_season_year=2
+        ),
+        Division(
+            name="Division 2",
+            league_name="L",
+            conference_name="C",
+            first_season_year=3,
+            last_season_year=4
+        ),
+        Division(
+            name="Division 3",
+            league_name="L",
+            conference_name="C",
+            first_season_year=5,
+            last_season_year=6
+        ),
+    ]
+    fake_division.query.all.return_value = divisions
 
-        id = 1
-        fake_division.query.get.return_value = divisions[id]
+    id = 1
+    fake_division.query.get.return_value = divisions[id]
 
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+    fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
-        # Act
-        with pytest.raises(IntegrityError):
-            division_deleted = test_repo.delete_division(id)
+    # Act
+    with pytest.raises(IntegrityError):
+        division_deleted = test_repo.delete_division(id)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.delete.assert_called_once_with(fake_division.query.get.return_value)
+    fake_try_commit.assert_called_once()

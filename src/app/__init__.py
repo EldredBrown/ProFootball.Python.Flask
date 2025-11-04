@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_injector import request
 from flask_migrate import Migrate
 from injector import Injector, singleton
 

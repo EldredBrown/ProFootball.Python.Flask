@@ -4,12 +4,6 @@ import pytest
 
 from app.data.factories import division_factory
 from app.data.models.division import Division
-from test_app import create_app
-
-
-@pytest.fixture
-def test_app():
-    return create_app()
 
 
 def test_create_division_when_name_not_in_kwargs_should_raise_value_error():
@@ -56,26 +50,25 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_not_provided_an
 
 @patch('app.data.factories.division_factory._validate_is_unique')
 def test_create_division_when_name_is_in_kwargs_and_old_division_not_provided_and_kwargs_name_is_unique_should_return_division(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'name': "NFC East",
-            'league_name': "NFL",
-            'conference_name': "NFC",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'name': "NFC East",
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_division = division_factory.create_division(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_division = division_factory.create_division(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Division already exists with name={kwargs['name']}."
@@ -91,29 +84,28 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_not_provided_an
 
 @patch('app.data.factories.division_factory._validate_is_unique')
 def test_create_division_when_name_is_in_kwargs_and_old_division_provided_and_kwargs_name_equals_old_division_name_should_not_validate_unique_key_values_and_return_division(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'name': "NFC East",
-            'league_name': "NFL",
-            'conference_name': "NFC",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'name': "NFC East",
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        old_division = Division(
-            id=1, name="NFC East", league_name="NFL", conference_name="NFC",
-            first_season_year=1970, last_season_year=None
-        )
+    old_division = Division(
+        id=1, name="NFC East", league_name="NFL", conference_name="NFC",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_division = division_factory.create_division(old_division, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_division = division_factory.create_division(old_division, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -128,31 +120,30 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_provided_and_kw
 
 @patch('app.data.factories.division_factory._validate_is_unique')
 def test_create_division_when_name_is_in_kwargs_and_old_division_provided_and_kwargs_name_does_not_equal_old_division_name_and_kwargs_name_is_unique_should_validate_unique_key_values_and_return_division(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'name': "NFC Central",
-            'league_name': "NFL",
-            'conference_name': "NFC",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'name': "NFC Central",
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_division = Division(
-            id=1, name="NFC East", league_name="NFL", conference_name="NFC",
-            first_season_year=1970, last_season_year=None
-        )
+    old_division = Division(
+        id=1, name="NFC East", league_name="NFL", conference_name="NFC",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_division = division_factory.create_division(old_division, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_division = division_factory.create_division(old_division, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Division already exists with name={kwargs['name']}."
@@ -168,30 +159,29 @@ def test_create_division_when_name_is_in_kwargs_and_old_division_provided_and_kw
 
 @patch('app.data.factories.division_factory._validate_is_unique')
 def test_create_division_when_name_is_in_kwargs_and_old_division_provided_and_kwargs_name_does_not_equal_old_division_name_and_kwargs_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'name': "NFC Central",
-            'league_name': "NFL",
-            'conference_name': "NFC",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'name': "NFC Central",
+        'league_name': "NFL",
+        'conference_name': "NFC",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        error_message = f"Division already exists with name={kwargs['name']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"Division already exists with name={kwargs['name']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_division = Division(
-            id=1, name="NFC East", league_name="NFL", conference_name="NFC",
-            first_season_year=1970, last_season_year=None
-        )
+    old_division = Division(
+        id=1, name="NFC East", league_name="NFL", conference_name="NFC",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_division = division_factory.create_division(old_division, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_division = division_factory.create_division(old_division, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('name', kwargs['name'], error_message=error_message)

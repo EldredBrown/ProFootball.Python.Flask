@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.team import Team
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class TeamRepository:
@@ -33,8 +33,7 @@ class TeamRepository:
 
         :return: The fetched team.
         """
-        teams = self.get_teams()
-        if len(teams) == 0:
+        if self._teams_empty():
             return None
         return Team.query.get(id)
 
@@ -46,10 +45,13 @@ class TeamRepository:
 
         :return: The fetched team.
         """
-        teams = self.get_teams()
-        if len(teams) == 0:
+        if self._teams_empty():
             return None
         return Team.query.filter_by(short_name=short_name).first()
+
+    def _teams_empty(self) -> bool:
+        teams = self.get_teams()
+        return len(teams) == 0
 
     def add_team(self, team: Team) -> Team:
         """
@@ -60,11 +62,7 @@ class TeamRepository:
         :return: The added team.
         """
         sqla.session.add(team)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return team
 
     def add_teams(self, teams: tuple) -> tuple:
@@ -77,11 +75,7 @@ class TeamRepository:
         """
         for team in teams:
             sqla.session.add(team)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return teams
 
     def update_team(self, team: Team) -> Optional[Team]:
@@ -94,18 +88,15 @@ class TeamRepository:
         """
         if not self.team_exists(team.id):
             return team
-
-        old_team = self.get_team(team.id)
-        old_team.name = team.name
-
-        sqla.session.add(old_team)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
-
+        team_in_db = self._set_values_of_team_in_db(team)
+        sqla.session.add(team_in_db)
+        try_commit()
         return team
+
+    def _set_values_of_team_in_db(self, team: Team) -> Team:
+        team_in_db = self.get_team(team.id)
+        team_in_db.name = team.name
+        return team_in_db
 
     def delete_team(self, id: int) -> Optional[Team]:
         """
@@ -117,14 +108,9 @@ class TeamRepository:
         """
         if not self.team_exists(id):
             return None
-
         team = self.get_team(id)
         sqla.session.delete(team)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return team
 
     def team_exists(self, id: int) -> bool:

@@ -1,3 +1,6 @@
+from typing import Any
+
+from sqlalchemy import Result
 from sqlalchemy.sql import text as SQLQuery
 
 from app.data.models.league_season_totals import LeagueSeasonTotals
@@ -24,8 +27,13 @@ class LeagueSeasonTotalsRepository:
         :return: The fetched league_season_totals.
         """
         querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_name}', {season_year};"
-        sql = SQLQuery(querystring)
-        totals = sqla.session.execute(sql).first()
+        result = self._call_procedure(querystring)
+        totals = result.first()
         return LeagueSeasonTotals(
             total_games=totals[0], total_points=totals[1], average_points=totals[2], week_count=totals[3]
         )
+
+    def _call_procedure(self, querystring: str) -> Result[Any]:
+        sql = SQLQuery(querystring)
+        totals = sqla.session.execute(sql)
+        return totals

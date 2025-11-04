@@ -7,8 +7,7 @@ from app.data.models.team_season import TeamSeason
 
 def create_team(old_team: Team=None, **kwargs) -> Team:
     key = 'name'
-    if key not in kwargs:
-        raise ValueError(f"{key} is required.")
+    _validate_key_is_in_kwargs(key, **kwargs)
 
     error_message = f"Team already exists with {key}={kwargs[key]}."
     if old_team:
@@ -18,6 +17,11 @@ def create_team(old_team: Team=None, **kwargs) -> Team:
         _validate_is_unique(key, kwargs[key], error_message=error_message)
 
     return Team(**kwargs)
+
+
+def _validate_key_is_in_kwargs(key, **kwargs):
+    if key not in kwargs:
+        raise ValueError(f"{key} is required.")
 
 
 def _value_has_changed(key: str, team: Team, **kwargs) -> bool:

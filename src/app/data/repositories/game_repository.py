@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.game import Game
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class GameRepository:
@@ -57,10 +57,13 @@ class GameRepository:
 
         :return: The fetched game.
         """
-        games = self.get_games()
-        if len(games) == 0:
+        if self._games_empty():
             return None
         return Game.query.get(id)
+
+    def _games_empty(self) -> bool:
+        games = self.get_games()
+        return len(games) == 0
 
     def add_game(self, game: Game) -> Game:
         """
@@ -71,11 +74,7 @@ class GameRepository:
         :return: The added game.
         """
         sqla.session.add(game)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return game
 
     def add_games(self, games: tuple) -> tuple:
@@ -88,11 +87,7 @@ class GameRepository:
         """
         for game in games:
             sqla.session.add(game)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return games
 
     def update_game(self, game: Game) -> Optional[Game]:
@@ -105,25 +100,23 @@ class GameRepository:
         """
         if not self.game_exists(game.id):
             return game
-
-        old_game = self.get_game(game.id)
-        old_game.season_year = game.season_year
-        old_game.week = game.week
-        old_game.guest_name = game.guest_name
-        old_game.guest_score = game.guest_score
-        old_game.host_name = game.host_name
-        old_game.host_score = game.host_score
-        old_game.is_playoff = game.is_playoff
-        old_game.notes = game.notes
-
-        sqla.session.add(old_game)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        game_in_db = self._set_values_of_game_in_db(game)
+        sqla.session.add(game_in_db)
+        try_commit()
 
         return game
+
+    def _set_values_of_game_in_db(self, game: Game) -> Game:
+        game_in_db = self.get_game(game.id)
+        game_in_db.season_year = game.season_year
+        game_in_db.week = game.week
+        game_in_db.guest_name = game.guest_name
+        game_in_db.guest_score = game.guest_score
+        game_in_db.host_name = game.host_name
+        game_in_db.host_score = game.host_score
+        game_in_db.is_playoff = game.is_playoff
+        game_in_db.notes = game.notes
+        return game_in_db
 
     def delete_game(self, id: int) -> Optional[Game]:
         """
@@ -138,11 +131,7 @@ class GameRepository:
 
         game = self.get_game(id)
         sqla.session.delete(game)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return game
 
     def game_exists(self, id: int) -> bool:

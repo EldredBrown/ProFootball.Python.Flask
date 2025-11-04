@@ -4,12 +4,6 @@ import pytest
 
 from app.data.factories import conference_factory
 from app.data.models.conference import Conference
-from test_app import create_app
-
-
-@pytest.fixture
-def test_app():
-    return create_app()
 
 
 def test_create_conference_when_short_name_not_in_kwargs_should_raise_value_error():
@@ -56,26 +50,25 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_not_p
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_not_provided_and_kwargs_short_name_is_unique_should_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_messages = (
@@ -97,29 +90,28 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_not_p
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provided_and_kwargs_short_name_equals_old_conference_short_name_should_not_validate_unique_key_values_and_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -134,31 +126,30 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provi
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provided_and_kwargs_short_name_does_not_equal_old_conference_short_name_and_kwargs_short_name_is_unique_should_validate_unique_key_values_and_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "AFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "AFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Conference already exists with short_name={kwargs['short_name']}."
@@ -174,30 +165,29 @@ def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provi
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_short_name_is_in_kwargs_and_old_conference_provided_and_kwargs_short_name_does_not_equal_old_conference_short_name_and_kwargs_short_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "AFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "AFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        error_message = f"Conference already exists with short_name={kwargs['short_name']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"Conference already exists with short_name={kwargs['short_name']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('short_name', kwargs['short_name'], error_message=error_message)
@@ -257,26 +247,25 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_not_pr
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_not_provided_and_kwargs_long_name_is_unique_should_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_messages = (
@@ -298,29 +287,28 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_not_pr
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provided_and_kwargs_long_name_equals_old_conference_long_name_should_not_validate_unique_key_values_and_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "National Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "National Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -335,31 +323,30 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provid
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provided_and_kwargs_long_name_does_not_equal_old_conference_long_name_and_kwargs_long_name_is_unique_should_validate_unique_key_values_and_return_conference(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "American Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "American Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        try:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Conference already exists with long_name={kwargs['long_name']}."
@@ -375,30 +362,29 @@ def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provid
 
 @patch('app.data.factories.conference_factory._validate_is_unique')
 def test_create_conference_when_long_name_is_in_kwargs_and_old_conference_provided_and_kwargs_long_name_does_not_equal_old_conference_long_name_and_kwargs_long_name_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'short_name': "NFC",
-            'long_name': "American Football Conference",
-            'league_name': "NFL",
-            'first_season_year': 1970,
-            'last_season_year': None,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'short_name': "NFC",
+        'long_name': "American Football Conference",
+        'league_name': "NFL",
+        'first_season_year': 1970,
+        'last_season_year': None,
+    }
 
-        error_message = f"Conference already exists with long_name={kwargs['long_name']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"Conference already exists with long_name={kwargs['long_name']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_conference = Conference(
-            id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
-            first_season_year=1970, last_season_year=None
-        )
+    old_conference = Conference(
+        id=1, short_name="NFC", long_name="National Football Conference", league_name="NFL",
+        first_season_year=1970, last_season_year=None
+    )
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_conference = conference_factory.create_conference(old_conference, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_conference = conference_factory.create_conference(old_conference, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('long_name', kwargs['long_name'], error_message=error_message)

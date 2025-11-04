@@ -7,8 +7,7 @@ from app.data.models.team_season import TeamSeason
 
 def create_division(old_division: Division=None, **kwargs) -> Division:
     key = 'name'
-    if key not in kwargs:
-        raise ValueError(f"{key} is required.")
+    _validate_key_is_in_kwargs(key, **kwargs)
 
     error_message = f"Division already exists with {key}={kwargs[key]}."
     if old_division:
@@ -18,6 +17,11 @@ def create_division(old_division: Division=None, **kwargs) -> Division:
         _validate_is_unique(key, kwargs[key], error_message=error_message)
 
     return Division(**kwargs)
+
+
+def _validate_key_is_in_kwargs(key, **kwargs):
+    if key not in kwargs:
+        raise ValueError(f"{key} is required.")
 
 
 def _value_has_changed(key: str, division: Division, **kwargs) -> bool:

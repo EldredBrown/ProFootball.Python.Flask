@@ -1,9 +1,7 @@
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
-
 from app.data.models.conference import Conference
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class ConferenceRepository:
@@ -33,8 +31,7 @@ class ConferenceRepository:
 
         :return: The fetched conference.
         """
-        conferences = self.get_conferences()
-        if len(conferences) == 0:
+        if self._conferences_empty():
             return None
         return Conference.query.get(id)
 
@@ -46,10 +43,13 @@ class ConferenceRepository:
 
         :return: The fetched conference.
         """
-        conferences = self.get_conferences()
-        if len(conferences) == 0:
+        if self._conferences_empty():
             return None
         return Conference.query.filter_by(short_name=short_name).first()
+
+    def _conferences_empty(self) -> bool:
+        conferences = self.get_conferences()
+        return len(conferences) == 0
 
     def add_conference(self, conference: Conference) -> Conference:
         """
@@ -60,11 +60,7 @@ class ConferenceRepository:
         :return: The added conference.
         """
         sqla.session.add(conference)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return conference
 
     def add_conferences(self, conferences: tuple) -> tuple:
@@ -77,11 +73,7 @@ class ConferenceRepository:
         """
         for conference in conferences:
             sqla.session.add(conference)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return conferences
 
     def update_conference(self, conference: Conference) -> Optional[Conference]:
@@ -94,22 +86,19 @@ class ConferenceRepository:
         """
         if not self.conference_exists(conference.id):
             return conference
-
-        old_conference = self.get_conference(conference.id)
-        old_conference.short_name = conference.short_name
-        old_conference.long_name = conference.long_name
-        old_conference.league_name = conference.league_name
-        old_conference.first_season_year = conference.first_season_year
-        old_conference.last_season_year = conference.last_season_year
-
-        sqla.session.add(old_conference)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
-
+        conference_in_db = self._set_values_of_conference_in_db(conference)
+        sqla.session.add(conference_in_db)
+        try_commit()
         return conference
+
+    def _set_values_of_conference_in_db(self, conference: Conference) -> Conference:
+        conference_in_db = self.get_conference(conference.id)
+        conference_in_db.short_name = conference.short_name
+        conference_in_db.long_name = conference.long_name
+        conference_in_db.league_name = conference.league_name
+        conference_in_db.first_season_year = conference.first_season_year
+        conference_in_db.last_season_year = conference.last_season_year
+        return conference_in_db
 
     def delete_conference(self, id: int) -> Optional[Conference]:
         """
@@ -121,14 +110,9 @@ class ConferenceRepository:
         """
         if not self.conference_exists(id):
             return None
-
         conference = self.get_conference(id)
         sqla.session.delete(conference)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return conference
 
     def conference_exists(self, id: int) -> bool:

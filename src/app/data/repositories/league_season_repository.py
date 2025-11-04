@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.league_season import LeagueSeason
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class LeagueSeasonRepository:
@@ -33,8 +33,7 @@ class LeagueSeasonRepository:
 
         :return: The fetched league_season.
         """
-        league_seasons = self.get_league_seasons()
-        if len(league_seasons) == 0:
+        if self._league_seasons_empty():
             return None
         return LeagueSeason.query.get(id)
 
@@ -47,10 +46,13 @@ class LeagueSeasonRepository:
 
         :return: The fetched league_season.
         """
-        league_seasons = self.get_league_seasons()
-        if len(league_seasons) == 0:
+        if self._league_seasons_empty():
             return None
         return LeagueSeason.query.filter_by(league_name=league_name, season_year=season_year).first()
+
+    def _league_seasons_empty(self) -> bool:
+        league_seasons = self.get_league_seasons()
+        return len(league_seasons) == 0
 
     def add_league_season(self, league_season: LeagueSeason) -> LeagueSeason:
         """
@@ -61,11 +63,7 @@ class LeagueSeasonRepository:
         :return: The added league_season.
         """
         sqla.session.add(league_season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return league_season
 
     def add_league_seasons(self, league_seasons: tuple) -> tuple:
@@ -78,11 +76,7 @@ class LeagueSeasonRepository:
         """
         for league_season in league_seasons:
             sqla.session.add(league_season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return league_seasons
 
     def update_league_season(self, league_season: LeagueSeason) -> Optional[LeagueSeason]:
@@ -95,20 +89,19 @@ class LeagueSeasonRepository:
         """
         if not self.league_season_exists(league_season.id):
             return league_season
-
-        league_season_to_update = self.get_league_season(league_season.id)
-        league_season_to_update.league_name = league_season.league_name
-        league_season_to_update.season_year = league_season.season_year
-        league_season_to_update.total_games = league_season.total_games
-        league_season_to_update.total_points = league_season.total_points
-        league_season_to_update.average_points = league_season.average_points
-        sqla.session.add(league_season_to_update)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        league_season_in_db = self._set_values_of_league_season_in_db(league_season)
+        sqla.session.add(league_season_in_db)
+        try_commit()
         return league_season
+
+    def _set_values_of_league_season_in_db(self, league_season: LeagueSeason) -> LeagueSeason:
+        league_season_in_db = self.get_league_season(league_season.id)
+        league_season_in_db.league_name = league_season.league_name
+        league_season_in_db.season_year = league_season.season_year
+        league_season_in_db.total_games = league_season.total_games
+        league_season_in_db.total_points = league_season.total_points
+        league_season_in_db.average_points = league_season.average_points
+        return league_season_in_db
 
     def delete_league_season(self, id: int) -> Optional[LeagueSeason]:
         """
@@ -120,14 +113,9 @@ class LeagueSeasonRepository:
         """
         if not self.league_season_exists(id):
             return None
-
         league_season = self.get_league_season(id)
         sqla.session.delete(league_season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return league_season
 
     def league_season_exists(self, id: int) -> bool:

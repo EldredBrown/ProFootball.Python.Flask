@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.team_season import TeamSeason
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class TeamSeasonRepository:
@@ -45,49 +45,49 @@ class TeamSeasonRepository:
 
         :return: The fetched team_season.
         """
-        team_seasons = self.get_team_seasons()
-        if len(team_seasons) == 0:
+        if self._team_seasons_empty():
             return None
         return TeamSeason.query.get(id)
 
-    def get_team_season_by_team_name_and_season_year(self, team_name: str, season_year: int) -> TeamSeason:
+    def get_team_season_by_team_name_and_season_year(self, team_name: str, season_year: int) -> Optional[TeamSeason]:
         return TeamSeason.query.filter_by(team_name=team_name, season_year=season_year).first()
+
+    def _team_seasons_empty(self) -> bool:
+        team_seasons = self.get_team_seasons()
+        return len(team_seasons) == 0
 
     def update_team_season(self, team_season: TeamSeason) -> None:
         if not self.team_season_exists(team_season.id):
             return team_season
-
-        old_team_season = self.get_team_season(team_season.id)
-        old_team_season.team_name = team_season.team_name
-        old_team_season.season_year = team_season.season_year
-        old_team_season.league_name = team_season.league_name
-        old_team_season.conference_name = team_season.conference_name
-        old_team_season.division_name = team_season.division_name
-        old_team_season.games = team_season.games
-        old_team_season.wins = team_season.wins
-        old_team_season.losses = team_season.losses
-        old_team_season.ties = team_season.ties
-        old_team_season.winning_percentage = team_season.winning_percentage
-        old_team_season.points_for = team_season.points_for
-        old_team_season.points_against = team_season.points_against
-        old_team_season.expected_wins = team_season.expected_wins
-        old_team_season.expected_losses = team_season.expected_losses
-        old_team_season.offensive_average = team_season.offensive_average
-        old_team_season.offensive_factor = team_season.offensive_factor
-        old_team_season.offensive_index = team_season.offensive_index
-        old_team_season.defensive_average = team_season.defensive_average
-        old_team_season.defensive_factor = team_season.defensive_factor
-        old_team_season.defensive_index = team_season.defensive_index
-        old_team_season.final_expected_winning_percentage = team_season.final_expected_winning_percentage
-
-        sqla.session.add(old_team_season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
-
+        team_season_in_db = self._set_values_of_team_season_in_db(team_season)
+        sqla.session.add(team_season_in_db)
+        try_commit()
         return team_season
+
+    def _set_values_of_team_season_in_db(self, team_season: TeamSeason) -> TeamSeason:
+        team_season_in_db = self.get_team_season(team_season.id)
+        team_season_in_db.team_name = team_season.team_name
+        team_season_in_db.season_year = team_season.season_year
+        team_season_in_db.league_name = team_season.league_name
+        team_season_in_db.conference_name = team_season.conference_name
+        team_season_in_db.division_name = team_season.division_name
+        team_season_in_db.games = team_season.games
+        team_season_in_db.wins = team_season.wins
+        team_season_in_db.losses = team_season.losses
+        team_season_in_db.ties = team_season.ties
+        team_season_in_db.winning_percentage = team_season.winning_percentage
+        team_season_in_db.points_for = team_season.points_for
+        team_season_in_db.points_against = team_season.points_against
+        team_season_in_db.expected_wins = team_season.expected_wins
+        team_season_in_db.expected_losses = team_season.expected_losses
+        team_season_in_db.offensive_average = team_season.offensive_average
+        team_season_in_db.offensive_factor = team_season.offensive_factor
+        team_season_in_db.offensive_index = team_season.offensive_index
+        team_season_in_db.defensive_average = team_season.defensive_average
+        team_season_in_db.defensive_factor = team_season.defensive_factor
+        team_season_in_db.defensive_index = team_season.defensive_index
+        team_season_in_db.final_expected_winning_percentage = team_season.final_expected_winning_percentage
+        return team_season_in_db
 
     def team_season_exists(self, id: int) -> bool:
         """

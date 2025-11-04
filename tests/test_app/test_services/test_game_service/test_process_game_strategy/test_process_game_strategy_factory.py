@@ -12,24 +12,24 @@ from app.services.game_service.process_game_strategy.subtract_game_strategy impo
 
 
 @pytest.fixture
-def factory() -> ProcessGameStrategyFactory:
+def test_factory() -> ProcessGameStrategyFactory:
     team_season_repository = Mock(TeamSeasonRepository)
     return ProcessGameStrategyFactory(team_season_repository)
 
 
-def test_create_strategy_should_create_add_game_strategy_when_direction_is_up(factory):
-    strategy = factory.create_strategy(Direction.UP)
+def test_create_strategy_should_create_add_game_strategy_when_direction_is_up(test_factory):
+    strategy = test_factory.create_strategy(Direction.UP)
 
     assert isinstance(strategy, AddGameStrategy)
 
 
-def test_create_strategy_should_create_subtract_game_strategy_when_direction_is_down(factory):
-    strategy = factory.create_strategy(Direction.DOWN)
+def test_create_strategy_should_create_subtract_game_strategy_when_direction_is_down(test_factory):
+    strategy = test_factory.create_strategy(Direction.DOWN)
 
     assert isinstance(strategy, SubtractGameStrategy)
 
 
-def test_create_strategy_should_create_null_game_strategy_when_direction_is_neither_up_nor_down(factory):
-    strategy = factory.create_strategy(-1)
+def test_create_strategy_should_create_null_game_strategy_when_direction_is_neither_up_nor_down(test_factory):
+    strategy = test_factory.create_strategy(-1)
 
     assert isinstance(strategy, NullGameStrategy)

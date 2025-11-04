@@ -9,8 +9,7 @@ from app.data.models.team_season import TeamSeason
 
 def create_conference(old_conference: Conference=None, **kwargs) -> Conference:
     for key in ['short_name', 'long_name']:
-        if key not in kwargs:
-            raise ValueError(f"{key} is required.")
+        _validate_key_is_in_kwargs(key, **kwargs)
 
         error_message = f"Conference already exists with {key}={kwargs[key]}."
         if old_conference:
@@ -20,6 +19,11 @@ def create_conference(old_conference: Conference=None, **kwargs) -> Conference:
             _validate_is_unique(key, kwargs[key], error_message=error_message)
 
     return Conference(**kwargs)
+
+
+def _validate_key_is_in_kwargs(key, **kwargs):
+    if key not in kwargs:
+        raise ValueError(f"{key} is required.")
 
 
 def _value_has_changed(key: str, conference: Conference, **kwargs) -> bool:

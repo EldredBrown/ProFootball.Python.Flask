@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Any
 
+from sqlalchemy import Result
 from sqlalchemy.sql import text as SQLQuery
 
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
@@ -30,12 +31,11 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        querystring = f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};"
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql).all()
+        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
+        profile = result.all()
 
         opponent_records = []
-        for row in result:
+        for row in profile:
             opp = TeamSeasonScheduleProfileRecord(
                 opponent=row[0],
                 game_points_for=row[1],
@@ -60,9 +60,8 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        querystring = f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};"
-        sql = SQLQuery(querystring)
-        totals = sqla.session.execute(sql).first()
+        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
+        totals = result.first()
 
         if totals is None:
             return TeamSeasonScheduleTotals()
@@ -89,9 +88,8 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleAverages.
         """
-        querystring = f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};"
-        sql = SQLQuery(querystring)
-        averages = sqla.session.execute(sql).first()
+        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
+        averages = result.first()
 
         if averages is None:
             return TeamSeasonScheduleAverages()
@@ -102,3 +100,8 @@ class TeamSeasonScheduleRepository:
             schedule_points_for=averages[2],
             schedule_points_against=averages[3]
         )
+
+    def _call_procedure(self, querystring: str) -> Result[Any]:
+        sql = SQLQuery(querystring)
+        result = sqla.session.execute(sql)
+        return result

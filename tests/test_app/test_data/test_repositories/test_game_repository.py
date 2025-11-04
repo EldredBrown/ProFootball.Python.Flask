@@ -8,10 +8,7 @@ from app import sqla
 from instance.test_db import db_init
 from test_app import create_app
 
-from app.data.models.season import Season
 from app.data.models.game import Game
-from app.data.models.league_season import LeagueSeason
-from app.data.models.team_season import TeamSeason
 from app.data.repositories.game_repository import GameRepository
 
 
@@ -273,9 +270,7 @@ def test_get_games_by_season_year_when_season_year_arg_is_not_none_should_return
         assert game.season_year == filter_year
 
 
-def test_get_games_by_season_year_and_week_when_season_year_arg_is_none_should_return_empty_list(
-        test_app, test_repo
-):
+def test_get_games_by_season_year_and_week_when_season_year_arg_is_none_should_return_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
@@ -376,9 +371,7 @@ def test_get_games_by_season_year_and_week_when_season_year_arg_is_none_should_r
     assert games_out == []
 
 
-def test_get_games_by_season_year_and_week_when_week_arg_is_none_should_return_empty_list(
-        test_app, test_repo
-):
+def test_get_games_by_season_year_and_week_when_week_arg_is_none_should_return_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
@@ -686,8 +679,9 @@ def test_get_game_when_games_is_not_empty_and_game_is_found_should_return_game(f
     assert game_out is games_in[id]
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_game_when_no_integrity_error_caught_should_add_game(fake_sqla, test_app, test_repo):
+def test_add_game_when_no_integrity_error_caught_should_add_game(fake_sqla, fake_try_commit, test_app, test_repo):
     with test_app.app_context():
         # Arrange
         game_in = Game(
@@ -705,13 +699,14 @@ def test_add_game_when_no_integrity_error_caught_should_add_game(fake_sqla, test
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(game_in)
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert game_out is game_in
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_sqla, test_app, test_repo
+        fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -724,18 +719,20 @@ def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_re
             host_score=48,
             is_playoff=False
         )
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+        fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
             game_out = test_repo.add_game(game_in)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.add.assert_called_once_with(game_in)
+    fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, test_app, test_repo):
+def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, fake_try_commit, test_app, test_repo):
     with test_app.app_context():
         # Arrange
         games_in = ()
@@ -745,13 +742,14 @@ def test_add_games_when_games_arg_is_empty_should_add_no_games(fake_sqla, test_a
 
     # Assert
     fake_sqla.session.add.assert_not_called()
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert games_out == tuple()
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_should_add_games(
-        fake_sqla, test_app, test_repo
+        fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -794,13 +792,14 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
         call(games_in[1]),
         call(games_in[2]),
     ])
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert games_out == games_in
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_sqla, test_app, test_repo
+        fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -833,14 +832,19 @@ def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should
                 is_playoff=False
             ),
         )
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+        fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
             games_out = test_repo.add_games(games_in)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.add.assert_has_calls([
+        call(games_in[0]),
+        call(games_in[1]),
+        call(games_in[2]),
+    ])
+    fake_try_commit.assert_called_once()
 
 
 @patch('app.data.repositories.game_repository.Game')
@@ -929,10 +933,11 @@ def test_game_exists_when_game_exists_should_return_true(fake_game, test_app, te
     assert game_exists
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
 def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_update_database(
-        fake_game_exists, fake_sqla, test_app, test_repo
+        fake_game_exists, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -956,7 +961,7 @@ def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_upda
 
     # Assert
     fake_sqla.session.add.assert_not_called()
-    fake_sqla.session.commit.assert_not_called()
+    fake_try_commit.assert_not_called()
     assert isinstance(game_updated, Game)
     assert game_updated.id == game.id
     assert game_updated.season_year == game.season_year
@@ -968,11 +973,12 @@ def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_upda
     assert game_updated.is_playoff == game.is_playoff
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
 def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_should_return_game_and_update_database(
-        fake_game_exists, fake_game, fake_sqla, test_app, test_repo
+        fake_game_exists, fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -1034,7 +1040,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
 
     # Assert
     fake_sqla.session.add.assert_called_once_with(old_game)
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert isinstance(game_updated, Game)
     assert game_updated.id == new_game.id
     assert game_updated.season_year == new_game.season_year
@@ -1047,11 +1053,12 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
     assert game_updated is new_game
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
 def test_update_game_when_and_game_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_game_exists, fake_game, fake_sqla, test_app, test_repo
+        fake_game_exists, fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -1105,20 +1112,22 @@ def test_update_game_when_and_game_exists_with_id_and_integrity_error_caught_sho
             is_playoff=False
         )
 
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+        fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
             game_updated = test_repo.update_game(new_game)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.add.assert_called_once_with(old_game)
+    fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_game_from_database(
-        fake_game, fake_sqla, test_app, test_repo
+        fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -1162,13 +1171,14 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
     # Assert
     assert game_deleted is None
     fake_sqla.session.delete.assert_not_called()
-    fake_sqla.session.commit.assert_not_called()
+    fake_try_commit.assert_not_called()
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_return_game_and_delete_game_from_database(
-        fake_game, fake_sqla, test_app, test_repo
+        fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -1214,14 +1224,15 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
 
     # Assert
     fake_sqla.session.delete.assert_called_once_with(game_deleted)
-    fake_sqla.session.commit.assert_called_once()
+    fake_try_commit.assert_called_once()
     assert game_deleted is games[id]
 
 
+@patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 def test_delete_game_when_game_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_game, fake_sqla, test_app, test_repo
+        fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -1259,11 +1270,12 @@ def test_delete_game_when_game_exists_and_integrity_error_caught_should_rollback
         id = 1
         fake_game.query.get.return_value = games[id]
 
-        fake_sqla.session.commit.side_effect = IntegrityError('statement', 'params', Exception())
+        fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
             game_deleted = test_repo.delete_game(id)
 
     # Assert
-    fake_sqla.session.rollback.assert_called_once()
+    fake_sqla.session.delete.assert_called_once_with(fake_game.query.get.return_value)
+    fake_try_commit.assert_called_once()

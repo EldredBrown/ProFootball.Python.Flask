@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.orm import validates
 
 from app.data.sqla import sqla
@@ -42,26 +44,35 @@ class Game(sqla.Model):
         :return: None
         """
         if self._host_win():
-            self.winner_name = self.host_name
-            self.winner_score = self.host_score
-            self.loser_name = self.guest_name
-            self.loser_score = self.guest_score
+            self._set_winner_and_loser_names_and_scores(
+                winner_name=self.host_name, winner_score=self.host_score,
+                loser_name=self.guest_name, loser_score=self.guest_score
+            )
         elif self._guest_win():
-            self.winner_name = self.guest_name
-            self.winner_score = self.guest_score
-            self.loser_name = self.host_name
-            self.loser_score = self.host_score
+            self._set_winner_and_loser_names_and_scores(
+                winner_name=self.guest_name, winner_score=self.guest_score,
+                loser_name=self.host_name, loser_score=self.host_score
+            )
         else:   # Game is a tie.
-            self.winner_name = None
-            self.winner_score = None
-            self.loser_name = None
-            self.loser_score = None
+            self._set_winner_and_loser_names_and_scores(
+                winner_name=None, winner_score=None,
+                loser_name=None, loser_score=None
+            )
 
     def _guest_win(self):
         return self.guest_score > self.host_score
 
     def _host_win(self):
         return self.host_score > self.guest_score
+
+    def _set_winner_and_loser_names_and_scores(self,
+            winner_name: Optional[str], winner_score: Optional[int],
+            loser_name: Optional[str], loser_score: Optional[int]
+    ) -> None:
+        self.winner_name = winner_name
+        self.winner_score = winner_score
+        self.loser_name = loser_name
+        self.loser_score = loser_score
 
     def is_tie(self) -> bool:
         """

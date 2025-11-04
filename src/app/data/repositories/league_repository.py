@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.league import League
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class LeagueRepository:
@@ -33,8 +33,7 @@ class LeagueRepository:
 
         :return: The fetched league.
         """
-        leagues = self.get_leagues()
-        if len(leagues) == 0:
+        if self._leagues_empty():
             return None
         return League.query.get(id)
 
@@ -46,10 +45,13 @@ class LeagueRepository:
 
         :return: The fetched league.
         """
-        leagues = self.get_leagues()
-        if len(leagues) == 0:
+        if self._leagues_empty():
             return None
         return League.query.filter_by(short_name=short_name).first()
+
+    def _leagues_empty(self) -> bool:
+        leagues = self.get_leagues()
+        return len(leagues) == 0
 
     def add_league(self, league: League) -> League:
         """
@@ -60,11 +62,7 @@ class LeagueRepository:
         :return: The added league.
         """
         sqla.session.add(league)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return league
 
     def add_leagues(self, leagues: tuple) -> tuple:
@@ -77,11 +75,7 @@ class LeagueRepository:
         """
         for league in leagues:
             sqla.session.add(league)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return leagues
 
     def update_league(self, league: League) -> Optional[League]:
@@ -94,21 +88,19 @@ class LeagueRepository:
         """
         if not self.league_exists(league.id):
             return league
-
-        old_league = self.get_league(league.id)
-        old_league.short_name = league.short_name
-        old_league.long_name = league.long_name
-        old_league.first_season_year = league.first_season_year
-        old_league.last_season_year = league.last_season_year
-
-        sqla.session.add(old_league)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        league_in_db = self._set_values_of_league_in_db(league)
+        sqla.session.add(league_in_db)
+        try_commit()
 
         return league
+
+    def _set_values_of_league_in_db(self, league: League) -> League:
+        league_in_db = self.get_league(league.id)
+        league_in_db.short_name = league.short_name
+        league_in_db.long_name = league.long_name
+        league_in_db.first_season_year = league.first_season_year
+        league_in_db.last_season_year = league.last_season_year
+        return league_in_db
 
     def delete_league(self, id: int) -> Optional[League]:
         """
@@ -123,11 +115,7 @@ class LeagueRepository:
 
         league = self.get_league(id)
         sqla.session.delete(league)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return league
 
     def league_exists(self, id: int) -> bool:

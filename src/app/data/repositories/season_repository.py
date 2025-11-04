@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.season import Season
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class SeasonRepository:
@@ -33,8 +33,7 @@ class SeasonRepository:
 
         :return: The fetched season.
         """
-        seasons = self.get_seasons()
-        if len(seasons) == 0:
+        if self._seasons_empty():
             return None
         return Season.query.get(id)
 
@@ -46,10 +45,13 @@ class SeasonRepository:
 
         :return: The fetched season.
         """
-        seasons = self.get_seasons()
-        if len(seasons) == 0:
+        if self._seasons_empty():
             return None
         return Season.query.filter_by(year=year).first()
+
+    def _seasons_empty(self) -> bool:
+        seasons = self.get_seasons()
+        return len(seasons) == 0
 
     def add_season(self, season: Season) -> Season:
         """
@@ -60,11 +62,7 @@ class SeasonRepository:
         :return: The added season.
         """
         sqla.session.add(season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return season
 
     def add_seasons(self, seasons: tuple) -> tuple:
@@ -77,11 +75,7 @@ class SeasonRepository:
         """
         for season in seasons:
             sqla.session.add(season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return seasons
 
     def update_season(self, season: Season) -> Optional[Season]:
@@ -94,20 +88,18 @@ class SeasonRepository:
         """
         if not self.season_exists(season.id):
             return season
-
-        old_season = self.get_season(season.id)
-        old_season.year = season.year
-        old_season.num_of_weeks_scheduled = season.num_of_weeks_scheduled
-        old_season.num_of_weeks_completed = season.num_of_weeks_completed
-
-        sqla.session.add(old_season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        season_in_db = self._set_values_of_season_in_db(season)
+        sqla.session.add(season_in_db)
+        try_commit()
 
         return season
+
+    def _set_values_of_season_in_db(self, season: Season) -> Season:
+        season_in_db = self.get_season(season.id)
+        season_in_db.year = season.year
+        season_in_db.num_of_weeks_scheduled = season.num_of_weeks_scheduled
+        season_in_db.num_of_weeks_completed = season.num_of_weeks_completed
+        return season_in_db
 
     def delete_season(self, id: int) -> Optional[Season]:
         """
@@ -122,11 +114,7 @@ class SeasonRepository:
 
         season = self.get_season(id)
         sqla.session.delete(season)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return season
 
     def season_exists(self, id: int) -> bool:

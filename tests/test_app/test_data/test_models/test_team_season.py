@@ -11,11 +11,6 @@ from instance.test_db.db_init import init_db
 from test_app import create_app
 
 
-@pytest.fixture
-def test_app():
-    return create_app()
-
-
 def test_calculate_expected_winning_percentage_when_sum_of_points_for_and_points_against_equals_zero_should_return_none():
     # Arrange
     points_for = Decimal('0.00')
@@ -167,23 +162,22 @@ def test_update_rankings_when_games_not_equal_to_zero_and_factor_is_not_none_sho
 
 @patch('app.data.models.team_season.calculate_expected_winning_percentage')
 def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_none_should_set_expected_wins_and_losses_to_zero(
-    fake_calculate_expected_winning_percentage, test_app
+    fake_calculate_expected_winning_percentage
 ):
-    with test_app.app_context():
-        # Arrange
-        exp_pct = None
-        fake_calculate_expected_winning_percentage.return_value = exp_pct
+    # Arrange
+    exp_pct = None
+    fake_calculate_expected_winning_percentage.return_value = exp_pct
 
-        test_team_season = TeamSeason(
-            team_name="Team",
-            season_year=1,
-            league_name="League",
-            points_for = 1,
-            points_against = 1,
-        )
+    test_team_season = TeamSeason(
+        team_name="Team",
+        season_year=1,
+        league_name="League",
+        points_for = 1,
+        points_against = 1,
+    )
 
-        # Act
-        test_team_season.calculate_expected_wins_and_losses()
+    # Act
+    test_team_season.calculate_expected_wins_and_losses()
 
     # Assert
     fake_calculate_expected_winning_percentage.assert_called_once_with(
@@ -203,24 +197,23 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
 )
 @patch('app.data.models.team_season.calculate_expected_winning_percentage')
 def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_not_none_should_set_expected_wins_and_losses_to_correct_values(
-    fake_calculate_expected_winning_percentage, test_input, expected_wins, expected_losses, test_app
+    fake_calculate_expected_winning_percentage, test_input, expected_wins, expected_losses
 ):
-    with test_app.app_context():
-        # Arrange
-        exp_pct = test_input
-        fake_calculate_expected_winning_percentage.return_value = exp_pct
+    # Arrange
+    exp_pct = test_input
+    fake_calculate_expected_winning_percentage.return_value = exp_pct
 
-        test_team_season = TeamSeason(
-            team_name="Team",
-            season_year=1,
-            league_name="League",
-            games=2,
-            points_for = 1,
-            points_against = 1,
-        )
+    test_team_season = TeamSeason(
+        team_name="Team",
+        season_year=1,
+        league_name="League",
+        games=2,
+        points_for = 1,
+        points_against = 1,
+    )
 
-        # Act
-        test_team_season.calculate_expected_wins_and_losses()
+    # Act
+    test_team_season.calculate_expected_wins_and_losses()
 
     # Assert
     fake_calculate_expected_winning_percentage.assert_called_once_with(
@@ -242,22 +235,21 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
     ]
 )
 def test_calculate_winning_percentage_should_calculate_correct_winning_percentage(
-    test_wins, test_losses, test_ties, expected_winning_percentage, test_app
+    test_wins, test_losses, test_ties, expected_winning_percentage
 ):
-    with test_app.app_context():
-        # Arrange
-        test_team_season = TeamSeason(
-            team_name="Team",
-            season_year=1,
-            league_name="League",
-            games=2,
-            wins=test_wins,
-            losses=test_losses,
-            ties=test_ties
-        )
+    # Arrange
+    test_team_season = TeamSeason(
+        team_name="Team",
+        season_year=1,
+        league_name="League",
+        games=2,
+        wins=test_wins,
+        losses=test_losses,
+        ties=test_ties
+    )
 
-        # Act
-        test_team_season.calculate_winning_percentage()
+    # Act
+    test_team_season.calculate_winning_percentage()
 
     # Assert
     assert test_team_season.winning_percentage == expected_winning_percentage
@@ -312,25 +304,24 @@ def test_team_season_update_rankings_should_update_rankings_to_correct_values(
         team_season_schedule_average_points_for, team_season_schedule_average_points_against, league_season_average_points,
         expected_offensive_average, expected_offensive_factor, expected_offensive_index,
         expected_defensive_average, expected_defensive_factor, expected_defensive_index,
-        expected_final_expected_winning_percentage, test_app
+        expected_final_expected_winning_percentage
 ):
-    with test_app.app_context():
-        # Arrange
-        test_team_season = TeamSeason(
-            team_name="Team",
-            season_year=1,
-            league_name="League",
-            games=test_games,
-            points_for=test_points_for,
-            points_against=test_points_against
-        )
+    # Arrange
+    test_team_season = TeamSeason(
+        team_name="Team",
+        season_year=1,
+        league_name="League",
+        games=test_games,
+        points_for=test_points_for,
+        points_against=test_points_against
+    )
 
-        # Act
-        test_team_season.update_rankings(
-            team_season_schedule_average_points_for,
-            team_season_schedule_average_points_against,
-            league_season_average_points
-        )
+    # Act
+    test_team_season.update_rankings(
+        team_season_schedule_average_points_for,
+        team_season_schedule_average_points_against,
+        league_season_average_points
+    )
 
     # Assert
     assert test_team_season.offensive_average == expected_offensive_average

@@ -4,12 +4,6 @@ import pytest
 
 from app.data.factories import season_factory
 from app.data.models.season import Season
-from test_app import create_app
-
-
-@pytest.fixture()
-def test_app():
-    return create_app()
 
 
 def test_create_season_when_year_not_in_kwargs_should_raise_value_error():
@@ -50,24 +44,23 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
 
 @patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kwargs_year_is_unique_should_return_season(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'year': 1920,
-            'num_of_weeks_scheduled': 13,
-            'num_of_weeks_completed': 0,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'year': 1920,
+        'num_of_weeks_scheduled': 13,
+        'num_of_weeks_completed': 0,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        # Act
-        try:
-            test_season = season_factory.create_season(**kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_season = season_factory.create_season(**kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Season already exists with year={kwargs['year']}."
@@ -81,24 +74,23 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_not_provided_and_kw
 
 @patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_equals_old_season_year_should_not_validate_unique_key_values_and_return_season(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'year': 1920,
-            'num_of_weeks_scheduled': 13,
-            'num_of_weeks_completed': 0,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'year': 1920,
+        'num_of_weeks_scheduled': 13,
+        'num_of_weeks_completed': 0,
+    }
 
-        old_season = Season(id=1, year=1920, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
+    old_season = Season(id=1, year=1920, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
 
-        # Act
-        try:
-            test_season = season_factory.create_season(old_season, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_season = season_factory.create_season(old_season, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     fake_validate_is_unique.assert_not_called()
@@ -111,26 +103,25 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs
 
 @patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_does_not_equal_old_season_year_and_kwargs_year_is_unique_should_validate_unique_key_values_and_return_season(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'year': 1920,
-            'num_of_weeks_scheduled': 13,
-            'num_of_weeks_completed': 0,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'year': 1920,
+        'num_of_weeks_scheduled': 13,
+        'num_of_weeks_completed': 0,
+    }
 
-        fake_validate_is_unique.return_value = None
+    fake_validate_is_unique.return_value = None
 
-        old_season = Season(id=2, year=1921, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
+    old_season = Season(id=2, year=1921, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
 
-        # Act
-        try:
-            test_season = season_factory.create_season(old_season, **kwargs)
-        except ValueError:
-            assert False
+    # Act
+    try:
+        test_season = season_factory.create_season(old_season, **kwargs)
+    except ValueError:
+        assert False
 
     # Assert
     error_message = f"Season already exists with year={kwargs['year']}."
@@ -144,25 +135,24 @@ def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs
 
 @patch('app.data.factories.season_factory._validate_is_unique')
 def test_create_season_when_year_is_in_kwargs_and_old_season_provided_and_kwargs_year_does_not_equal_old_season_year_and_kwargs_year_is_not_unique_should_validate_unique_key_values_and_raise_value_error(
-        fake_validate_is_unique, test_app
+        fake_validate_is_unique
 ):
-    with test_app.app_context():
-        # Arrange
-        kwargs = {
-            'id': 1,
-            'year': 1920,
-            'num_of_weeks_scheduled': 13,
-            'num_of_weeks_completed': 0,
-        }
+    # Arrange
+    kwargs = {
+        'id': 1,
+        'year': 1920,
+        'num_of_weeks_scheduled': 13,
+        'num_of_weeks_completed': 0,
+    }
 
-        error_message = f"Season already exists with year={kwargs['year']}."
-        fake_validate_is_unique.side_effect = ValueError(error_message)
+    error_message = f"Season already exists with year={kwargs['year']}."
+    fake_validate_is_unique.side_effect = ValueError(error_message)
 
-        old_season = Season(id=2, year=1921, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
+    old_season = Season(id=2, year=1921, num_of_weeks_scheduled=13, num_of_weeks_completed=0)
 
-        # Act
-        with pytest.raises(ValueError) as err:
-            test_season = season_factory.create_season(old_season, **kwargs)
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_season = season_factory.create_season(old_season, **kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('year', kwargs['year'], error_message=error_message)

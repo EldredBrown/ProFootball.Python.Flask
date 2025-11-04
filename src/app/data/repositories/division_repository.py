@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.data.models.division import Division
-from app.data.sqla import sqla
+from app.data.sqla import sqla, try_commit
 
 
 class DivisionRepository:
@@ -46,10 +46,13 @@ class DivisionRepository:
 
         :return: The fetched division.
         """
-        divisions = self.get_divisions()
-        if len(divisions) == 0:
+        if self._divisions_empty():
             return None
         return Division.query.filter_by(short_name=short_name).first()
+
+    def _divisions_empty(self) -> bool:
+        divisions = self.get_divisions()
+        return len(divisions) == 0
 
     def add_division(self, division: Division) -> Division:
         """
@@ -60,11 +63,7 @@ class DivisionRepository:
         :return: The added division.
         """
         sqla.session.add(division)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return division
 
     def add_divisions(self, divisions: tuple) -> tuple:
@@ -77,11 +76,7 @@ class DivisionRepository:
         """
         for division in divisions:
             sqla.session.add(division)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return divisions
 
     def update_division(self, division: Division) -> Optional[Division]:
@@ -94,22 +89,19 @@ class DivisionRepository:
         """
         if not self.division_exists(division.id):
             return division
-
-        old_division = self.get_division(division.id)
-        old_division.name = division.name
-        old_division.league_name = division.league_name
-        old_division.conference_name = division.conference_name
-        old_division.first_season_year = division.first_season_year
-        old_division.last_season_year = division.last_season_year
-
-        sqla.session.add(old_division)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
-
+        division_in_db = self._set_values_of_division_in_db(division)
+        sqla.session.add(division_in_db)
+        try_commit()
         return division
+
+    def _set_values_of_division_in_db(self, division: Division) -> Division:
+        division_in_db = self.get_division(division.id)
+        division_in_db.name = division.name
+        division_in_db.league_name = division.league_name
+        division_in_db.conference_name = division.conference_name
+        division_in_db.first_season_year = division.first_season_year
+        division_in_db.last_season_year = division.last_season_year
+        return division_in_db
 
     def delete_division(self, id: int) -> Optional[Division]:
         """
@@ -121,14 +113,9 @@ class DivisionRepository:
         """
         if not self.division_exists(id):
             return None
-
         division = self.get_division(id)
         sqla.session.delete(division)
-        try:
-            sqla.session.commit()
-        except IntegrityError:
-            sqla.session.rollback()
-            raise
+        try_commit()
         return division
 
     def division_exists(self, id: int) -> bool:

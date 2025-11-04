@@ -1,5 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 
+from sqlalchemy import Result
 from sqlalchemy.sql import text as SQLQuery
 
 from app.data.models.rankings_team_season \
@@ -21,10 +22,7 @@ class SeasonRankingsRepository:
     def get_offensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
         if season_year is None:
             return []
-
-        querystring = f"EXEC dbo.sp_GetRankingsOffensive {season_year}"
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
+        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsOffensive {season_year}")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -44,10 +42,7 @@ class SeasonRankingsRepository:
     def get_defensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
         if season_year is None:
             return []
-
-        querystring = f"EXEC dbo.sp_GetRankingsDefensive {season_year}"
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
+        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsDefensive {season_year}")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -67,10 +62,7 @@ class SeasonRankingsRepository:
     def get_total_rankings_by_season_year(self, season_year: Optional[int]) -> List[TotalRankingsTeamSeason]:
         if season_year is None:
             return []
-
-        querystring = f"EXEC dbo.sp_GetRankingsTotal {season_year}"
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
+        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsTotal {season_year}")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -90,3 +82,8 @@ class SeasonRankingsRepository:
             )
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
+
+    def _call_procedure(self, querystring: str) -> Result[Any]:
+        sql = SQLQuery(querystring)
+        result = sqla.session.execute(sql)
+        return result
