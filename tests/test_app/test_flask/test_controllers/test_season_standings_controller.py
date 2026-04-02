@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from flask import session
 
 import app.flask.season_standings_controller as mod
 from app.data.repositories.season_repository import SeasonRepository
@@ -14,21 +15,27 @@ def test_app():
 
 
 @patch('app.flask.season_standings_controller.render_template')
-@patch('app.flask.season_standings_controller.injector')
+@patch('app.flask.season_standings_controller.SeasonRepository')
 def test_index_should_render_season_standings_index_template(
-        fake_injector, fake_render_template
+        fake_season_repository, fake_render_template, test_app
 ):
     # Act
-    result = mod.index()
+    with test_app.test_request_context(
+            '/season_standings/',
+            method='GET'
+    ):
+        session['seasons'] = []
+        session['selected_year'] = None
 
-    # Assert
-    fake_injector.get.assert_called_once_with(SeasonRepository)
-    fake_injector.get.return_value.get_seasons.assert_called_once()
-    fake_render_template.assert_called_once_with(
-        'season_standings/index.html',
-        seasons=fake_injector.get.return_value.get_seasons.return_value, selected_year=None, season_standings=[]
-    )
-    assert result is fake_render_template.return_value
+        result = mod.index(fake_season_repository)
+
+        # Assert
+        fake_season_repository.get_seasons.assert_called_once()
+        fake_render_template.assert_called_once_with(
+            'season_standings/index.html',
+            seasons=fake_season_repository.get_seasons.return_value, selected_year=None, season_standings=[]
+        )
+        assert result is fake_render_template.return_value
 
 
 @pytest.mark.skip('WIP')
@@ -46,7 +53,7 @@ def test_select_season_should_render_season_standings_index_template_for_selecte
         selected_year = 0
 
         # Act
-        result = mod.select_season()
+        result = mod.select_season(fake_season_standings_repository)
 
     # Assert
     # fake_request.form.get.assert_called_once_with('season_dropdown')

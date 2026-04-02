@@ -1,169 +1,109 @@
-from flask import Blueprint, render_template, flash, request
+from flask import Blueprint, render_template, flash, request, session
+from injector import inject
 
-from app import injector
+# from app import injector
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.game_predictor_service.game_predictor_service import GamePredictorService
 
 blueprint = Blueprint('game_predictor', __name__)
 
-team_season_repository = injector.get(TeamSeasonRepository)
-
-guest_seasons = None
-selected_guest_year = None
-guests = None
-selected_guest_name = None
-
-host_seasons = None
-selected_host_year = None
-hosts = None
-selected_host_name = None
+# team_season_repository = injector.get(TeamSeasonRepository)
 
 
 @blueprint.route('/')
-def index() -> str:
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
+@inject
+def index(season_repository: SeasonRepository) -> str:
+    session['guest_seasons'] = season_repository.get_seasons()
+    session['selected_guest_year'] = None
 
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
+    session['guests'] = []
+    session['selected_guest_name'] = None
 
-    season_repository = injector.get(SeasonRepository)
+    session['host_seasons'] = season_repository.get_seasons()
+    session['selected_host_year'] = None
 
-    guest_seasons = season_repository.get_seasons()
-    selected_guest_year = None
-
-    guests = []
-    selected_guest_name = None
-
-    host_seasons = season_repository.get_seasons()
-    selected_host_year = None
-
-    hosts = []
-    selected_host_name = None
+    session['hosts'] = []
+    session['selected_host_name'] = None
 
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=session.get('selected_host_year'),
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )
 
 
 @blueprint.route('/select_guest_season', methods=['POST'])
-def select_guest_season() -> str:
-    global team_season_repository
+@inject
+def select_guest_season(team_season_repository: TeamSeasonRepository) -> str:
+    session['selected_guest_year'] = int(request.form.get('guest_season_dropdown'))  # Fetch the selected guest season.
 
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
-
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
-
-    selected_guest_year = int(request.form.get('guest_season_dropdown'))  # Fetch the selected guest season.
-
-    guests = team_season_repository.get_team_seasons_by_season_year(season_year=selected_guest_year)
-
+    selected_guest_year = session.get('selected_guest_year')
+    session['guests'] = team_season_repository.get_team_seasons_by_season_year(season_year=selected_guest_year)
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=selected_guest_year,
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=session.get('selected_host_year'),
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )
 
 
 @blueprint.route('/select_guest', methods=['POST'])
 def select_guest():
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
-
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
-
-    selected_guest_name = str(request.form.get('guest_dropdown'))
+    session['selected_guest_name'] = str(request.form.get('guest_dropdown'))
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=session.get('selected_host_year'),
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )
 
 
 @blueprint.route('/select_host_season', methods=['POST'])
-def select_host_season() -> str:
-    global team_season_repository
+@inject
+def select_host_season(team_season_repository: TeamSeasonRepository) -> str:
+    session['selected_host_year'] = int(request.form.get('host_season_dropdown'))  # Fetch the selected host season.
 
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
-
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
-
-    selected_host_year = int(request.form.get('host_season_dropdown'))  # Fetch the selected host season.
-
-    hosts = team_season_repository.get_team_seasons_by_season_year(season_year=selected_host_year)
-
+    selected_host_year = session.get('selected_host_year')
+    session['hosts'] = team_season_repository.get_team_seasons_by_season_year(season_year=selected_host_year)
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=selected_host_year,
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )
 
 
 @blueprint.route('/select_host', methods=['POST'])
 def select_host():
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
-
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
-
-    selected_host_name = str(request.form.get('host_dropdown'))  # Fetch the selected host season.
+    session['selected_host_name'] = str(request.form.get('host_dropdown'))
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=session.get('selected_host_year'),
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )
 
 
-@blueprint.route('/predict_game')
-def predict_game() -> str:
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
 
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
+@blueprint.route('/predict_game')
+@inject
+def predict_game(game_predictor_service: GamePredictorService) -> str:
+    guest_seasons = session.get('guest_seasons')
+    selected_guest_year = session.get('selected_guest_year')
+    guests = session.get('guests')
+    selected_guest_name = session.get('selected_guest_name')
+
+    host_seasons = session.get('host_seasons')
+    selected_host_year = session.get('selected_host_year')
+    hosts = session.get('hosts')
+    selected_host_name = session.get('selected_host_name')
 
     if selected_guest_year is None:
         return _handle_error(message="Please select one guest season.")
@@ -174,7 +114,7 @@ def predict_game() -> str:
     if selected_host_name is None:
         return _handle_error(message="Please select one host name.")
 
-    game_predictor_service = injector.get(GamePredictorService)
+    # game_predictor_service = injector.get(GamePredictorService)
     try:
         guest_score, host_score = game_predictor_service.predict_game_score(
             selected_guest_name, selected_guest_year, selected_host_name, selected_host_year
@@ -206,21 +146,21 @@ def predict_game() -> str:
 
 
 def _handle_error(message: str) -> str:
-    global guest_seasons
-    global selected_guest_year
-    global guests
-    global selected_guest_name
-
-    global host_seasons
-    global selected_host_year
-    global hosts
-    global selected_host_name
-
+    # global guest_seasons
+    # global selected_guest_year
+    # global guests
+    # global selected_guest_name
+    #
+    # global host_seasons
+    # global selected_host_year
+    # global hosts
+    # global selected_host_name
+    #
     flash(message, 'danger')
     return render_template(
         'game_predictor/index.html',
-        guest_seasons=guest_seasons, selected_guest_year=selected_guest_year,
-        guests=guests, selected_guest_name=selected_guest_name,
-        host_seasons=host_seasons, selected_host_year=selected_host_year,
-        hosts=hosts, selected_host_name=selected_host_name
+        guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
+        guests=session.get('guests'), selected_guest_name=session.get('selected_guest_name'),
+        host_seasons=session.get('host_seasons'), selected_host_year=session.get('selected_host_year'),
+        hosts=session.get('hosts'), selected_host_name=session.get('selected_host_name')
     )

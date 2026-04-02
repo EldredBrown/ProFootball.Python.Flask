@@ -17,10 +17,10 @@ def test_app():
 
 
 @patch('app.flask.division_controller.render_template')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_index_should_render_division_index_template(fake_division_repository, fake_render_template):
     # Act
-    result = mod.index()
+    result = mod.index(fake_division_repository)
 
     # Assert
     fake_division_repository.get_divisions.assert_called_once()
@@ -30,7 +30,7 @@ def test_index_should_render_division_index_template(fake_division_repository, f
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.DeleteDivisionForm')
 @patch('app.flask.division_controller.render_template')
 def test_details_when_division_found_should_render_division_details_template(
@@ -40,7 +40,7 @@ def test_details_when_division_found_should_render_division_details_template(
     id = 1
 
     # Act
-    result = mod.details(id)
+    result = mod.details(fake_division_repository, id)
 
     # Assert
     fake_delete_division_form.assert_called_once()
@@ -53,7 +53,7 @@ def test_details_when_division_found_should_render_division_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.DeleteDivisionForm')
 def test_details_when_division_not_found_should_abort_with_404_error(
         fake_delete_division_form, fake_division_repository
@@ -63,21 +63,22 @@ def test_details_when_division_not_found_should_abort_with_404_error(
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(1)
+        result = mod.details(fake_division_repository, 1)
 
 
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.NewDivisionForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_division_form, fake_flash, fake_render_template
+        fake_new_division_form, fake_division_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_division_form.return_value.validate_on_submit.return_value = False
     fake_new_division_form.return_value.errors = None
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_division_repository)
 
     # Assert
     fake_flash.assert_not_called()
@@ -87,9 +88,10 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.NewDivisionForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_division_form, fake_flash, fake_render_template
+        fake_new_division_form, fake_division_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_division_form.return_value.validate_on_submit.return_value = False
@@ -98,7 +100,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     fake_new_division_form.return_value.errors = errors
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_division_repository)
 
     # Assert
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
@@ -109,7 +111,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.division_controller.redirect')
 @patch('app.flask.division_controller.url_for')
 @patch('app.flask.division_controller.flash')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.NewDivisionForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_division_index(
@@ -135,7 +137,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     fake_division_factory.create_division.return_value = division
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_division_repository)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -148,7 +150,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.NewDivisionForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
@@ -176,7 +178,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     fake_division_repository.add_division.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_division_repository)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -190,7 +192,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.NewDivisionForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
@@ -218,7 +220,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     fake_division_repository.add_division.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_division_repository)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -230,7 +232,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_not_found_should_abort_with_404_error(fake_division_repository):
     # Arrange
     old_division = None
@@ -238,13 +240,13 @@ def test_edit_when_division_not_found_should_abort_with_404_error(fake_division_
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(1)
+        result = mod.edit(fake_division_repository, 1)
 
 
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
 @patch('app.flask.division_controller.EditDivisionForm')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
         fake_division_repository, fake_edit_division_form, fake_flash, fake_render_template
 ):
@@ -262,7 +264,7 @@ def test_edit_when_division_found_and_form_not_submitted_and_no_form_errors_shou
     fake_edit_division_form.return_value.errors = None
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_division_repository, 1)
 
     # Assert
     assert fake_edit_division_form.return_value.name.data == old_division.name
@@ -280,7 +282,7 @@ def test_edit_when_division_found_and_form_not_submitted_and_no_form_errors_shou
 @patch('app.flask.division_controller.render_template')
 @patch('app.flask.division_controller.flash')
 @patch('app.flask.division_controller.EditDivisionForm')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
         fake_division_repository, fake_edit_division_form, fake_flash, fake_render_template
 ):
@@ -300,7 +302,7 @@ def test_edit_when_division_found_and_form_not_submitted_and_form_errors_should_
     fake_edit_division_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_division_repository, 1)
 
     # Assert
     assert fake_edit_division_form.return_value.name.data == old_division.name
@@ -320,7 +322,7 @@ def test_edit_when_division_found_and_form_not_submitted_and_form_errors_should_
 @patch('app.flask.division_controller.flash')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.EditDivisionForm')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_division_details(
         fake_division_repository, fake_edit_division_form, fake_division_factory, fake_flash, fake_url_for,
         fake_redirect
@@ -357,7 +359,7 @@ def test_edit_when_division_found_and_form_submitted_and_no_errors_caught_should
     fake_division_factory.create_division.return_value = new_division
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_division_repository, id)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -374,7 +376,7 @@ def test_edit_when_division_found_and_form_submitted_and_no_errors_caught_should
 @patch('app.flask.division_controller.flash')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.EditDivisionForm')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
         fake_division_repository, fake_edit_division_form, fake_division_factory, fake_flash,
         fake_render_template
@@ -414,7 +416,7 @@ def test_edit_when_division_found_and_form_submitted_and_value_error_caught_shou
     fake_division_repository.update_division.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_division_repository, id)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -430,7 +432,7 @@ def test_edit_when_division_found_and_form_submitted_and_value_error_caught_shou
 @patch('app.flask.division_controller.flash')
 @patch('app.flask.division_controller.division_factory')
 @patch('app.flask.division_controller.EditDivisionForm')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_edit_when_division_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
         fake_division_repository, fake_edit_division_form, fake_division_factory, fake_flash,
         fake_render_template
@@ -470,7 +472,7 @@ def test_edit_when_division_found_and_form_submitted_and_integrity_error_caught_
     fake_division_repository.update_division.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_division_repository, id)
 
     # Assert
     fake_division_factory.create_division.assert_called_once_with(**kwargs)
@@ -483,7 +485,77 @@ def test_edit_when_division_found_and_form_submitted_and_integrity_error_caught_
 
 
 @patch('app.flask.division_controller.render_template')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.flash')
+@patch('app.flask.division_controller.division_factory')
+@patch('app.flask.division_controller.EditDivisionForm')
+@patch('app.flask.division_controller.url_for')
+@patch('app.flask.division_controller.redirect')
+@patch('app.flask.division_controller.DivisionRepository')
+def test_edit_when_division_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
+        fake_division_repository, fake_redirect, fake_url_for, fake_edit_division_form, fake_division_factory,
+        fake_flash, fake_render_template
+):
+    # Arrange
+    id = 1
+
+    old_division = Division(
+        id=id,
+        name="Division 1",
+        league_name="L",
+        conference_name="C",
+        first_season_year=1,
+        last_season_year=2
+    )
+    fake_division_repository.get_division.return_value = old_division
+
+    fake_edit_division_form.return_value.validate_on_submit.return_value = True
+    fake_edit_division_form.return_value.name.data = "Division 2"
+    fake_edit_division_form.return_value.league_name.data = "L"
+    fake_edit_division_form.return_value.conference_name.data = "C"
+    fake_edit_division_form.return_value.first_season_year.data = 3
+    fake_edit_division_form.return_value.last_season_year.data = 4
+
+    kwargs = {
+        'id': id,
+        'name': "Division 2",
+        'league_name': "L",
+        'conference_name': "C",
+        'first_season_year': 3,
+        'last_season_year': 4,
+    }
+
+    err = IndexError()
+    fake_url_for.side_effect = err
+
+    # Act
+    with pytest.raises(NotFound):
+        result = mod.edit(fake_division_repository, 1)
+
+    # Assert
+    fake_division_repository.get_division.assert_called_once_with(id)
+    fake_edit_division_form.assert_called_once()
+    fake_edit_division_form.return_value.validate_on_submit.assert_called_once()
+    fake_division_factory.create_division.assert_called_once_with(**kwargs)
+
+
+@patch('app.flask.division_controller.DivisionRepository')
+def test_delete_when_game_not_found_should_abort_with_404_error(
+        fake_division_repository, test_app
+):
+    # Arrange
+    fake_division_repository.get_division.return_value = None
+
+    # Act
+    with test_app.test_request_context(
+            '/divisions/delete?id=1',
+            method='POST'
+    ):
+        with pytest.raises(NotFound):
+            result = mod.delete(fake_division_repository, 1)
+
+
+@patch('app.flask.division_controller.render_template')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_division_repository, fake_render_template, test_app
 ):
@@ -497,7 +569,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
             method='GET'
     ):
         with test_app.app_context():
-            result = mod.delete(1)
+            result = mod.delete(fake_division_repository, 1)
 
     # Assert
     fake_division_repository.get_division.assert_called_once_with(1)
@@ -508,7 +580,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.division_controller.redirect')
 @patch('app.flask.division_controller.url_for')
 @patch('app.flask.division_controller.flash')
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_delete_when_request_method_is_post_and_division_found_should_flash_success_message_and_redirect_to_divisions_index(
         fake_division_repository, fake_flash, fake_url_for, fake_redirect, test_app
 ):
@@ -523,7 +595,7 @@ def test_delete_when_request_method_is_post_and_division_found_should_flash_succ
             method='POST'
     ):
         with test_app.app_context():
-            result = mod.delete(id)
+            result = mod.delete(fake_division_repository, id)
 
     # Assert
     fake_division_repository.delete_division.assert_called_once_with(id)
@@ -533,7 +605,7 @@ def test_delete_when_request_method_is_post_and_division_found_should_flash_succ
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.division_controller.division_repository')
+@patch('app.flask.division_controller.DivisionRepository')
 def test_delete_when_request_method_is_post_and_division_not_found_should_abort_with_404_error(
         fake_division_repository, test_app
 ):
@@ -549,4 +621,4 @@ def test_delete_when_request_method_is_post_and_division_not_found_should_abort_
     ):
         with test_app.app_context():
             with pytest.raises(NotFound):
-                result = mod.delete(1)
+                result = mod.delete(fake_division_repository, 1)

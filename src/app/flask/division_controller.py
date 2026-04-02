@@ -1,9 +1,9 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
+from injector import inject
 from sqlalchemy.exc import IntegrityError
 
-from app import injector
 from app.data.factories import division_factory
 from app.data.models.division import Division
 from app.data.repositories.division_repository import DivisionRepository
@@ -11,21 +11,17 @@ from app.flask.forms.division_forms import NewDivisionForm, EditDivisionForm, De
 
 blueprint = Blueprint('division', __name__)
 
-division_repository = injector.get(DivisionRepository)
-
 
 @blueprint.route('/')
-def index() -> str:
-    global division_repository
-
+@inject
+def index(division_repository: DivisionRepository) -> str:
     divisions = division_repository.get_divisions()
     return render_template('divisions/index.html', divisions=divisions)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int) -> str:
-    global division_repository
-
+@inject
+def details(division_repository: DivisionRepository, id: int) -> str:
     form = DeleteDivisionForm()
     try:
         division = division_repository.get_division(id)
@@ -35,14 +31,13 @@ def details(id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create() -> Response | str:
-    global division_repository
-
+@inject
+def create(division_repository: DivisionRepository) -> Response | str:
     form = NewDivisionForm()
     if form.validate_on_submit():
-        division = _get_division_from_form(form)
+        new_division = _get_division_from_form(form)
         try:
-            division_repository.add_division(division)
+            division_repository.add_division(new_division)
             flash(f"Item {form.name.data} has been successfully submitted.", 'success')
             return redirect(url_for('division.index'))
         except ValueError as err:
@@ -57,9 +52,8 @@ def create() -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int) -> Response | str:
-    global division_repository
-
+@inject
+def edit(division_repository: DivisionRepository, id: int) -> Response | str:
     old_division = division_repository.get_division(id)
     if old_division:
         form = EditDivisionForm()
@@ -73,6 +67,8 @@ def edit(id: int) -> Response | str:
                 return _handle_error(err, 'divisions/edit.html', form, division=old_division)
             except IntegrityError as err:
                 return _handle_error(err, 'divisions/edit.html', form, division=old_division)
+            except IndexError:
+                abort(404)
         else:
             _get_form_data_from_division(form, old_division)
             if form.errors:
@@ -111,11 +107,13 @@ def _get_form_data_from_division(form: DivisionForm, division: Division) -> None
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    global division_repository
-
-    division = division_repository.get_division(id)
+@inject
+def delete(division_repository: DivisionRepository, id: int) -> Response | str:
     try:
+        division = division_repository.get_division(id)
+        if not division:
+            abort(404)
+
         if request.method == 'POST':
             division_repository.delete_division(id)
             flash(f"Division {division.name} has been successfully deleted.", 'success')

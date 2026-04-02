@@ -17,10 +17,10 @@ def test_app():
 
 
 @patch('app.flask.team_controller.render_template')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_index_should_render_team_index_template(fake_team_repository, fake_render_template):
     # Act
-    result = mod.index()
+    result = mod.index(fake_team_repository)
 
     # Assert
     fake_team_repository.get_teams.assert_called_once()
@@ -30,7 +30,7 @@ def test_index_should_render_team_index_template(fake_team_repository, fake_rend
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.DeleteTeamForm')
 @patch('app.flask.team_controller.render_template')
 def test_details_when_team_found_should_render_team_details_template(
@@ -40,7 +40,7 @@ def test_details_when_team_found_should_render_team_details_template(
     id = 1
 
     # Act
-    result = mod.details(id)
+    result = mod.details(fake_team_repository, id)
 
     # Assert
     fake_delete_team_form.assert_called_once()
@@ -53,7 +53,7 @@ def test_details_when_team_found_should_render_team_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.DeleteTeamForm')
 def test_details_when_team_not_found_should_abort_with_404_error(
         fake_delete_team_form, fake_team_repository
@@ -63,21 +63,22 @@ def test_details_when_team_not_found_should_abort_with_404_error(
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(1)
+        result = mod.details(fake_team_repository, 1)
 
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_team_form, fake_flash, fake_render_template
+        fake_new_team_form, fake_team_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = False
     fake_new_team_form.return_value.errors = None
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_team_repository)
 
     # Assert
     fake_flash.assert_not_called()
@@ -87,9 +88,10 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_team_form, fake_flash, fake_render_template
+        fake_new_team_form, fake_team_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = False
@@ -98,7 +100,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     fake_new_team_form.return_value.errors = errors
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_team_repository)
 
     # Assert
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
@@ -109,7 +111,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.team_controller.redirect')
 @patch('app.flask.team_controller.url_for')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_team_index(
@@ -127,7 +129,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     fake_team_factory.create_team.return_value = team
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_team_repository)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -140,7 +142,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
@@ -160,7 +162,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     fake_team_repository.add_team.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_team_repository)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -174,7 +176,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
@@ -194,7 +196,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     fake_team_repository.add_team.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_team_repository)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -206,7 +208,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_not_found_should_abort_with_404_error(fake_team_repository):
     # Arrange
     old_team = None
@@ -214,13 +216,13 @@ def test_edit_when_team_not_found_should_abort_with_404_error(fake_team_reposito
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(1)
+        result = mod.edit(fake_team_repository, 1)
 
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
         fake_team_repository, fake_edit_team_form, fake_flash, fake_render_template
 ):
@@ -234,7 +236,7 @@ def test_edit_when_team_found_and_form_not_submitted_and_no_form_errors_should_r
     fake_edit_team_form.return_value.errors = None
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_team_repository, 1)
 
     # Assert
     assert fake_edit_team_form.return_value.name.data == old_team.name
@@ -248,7 +250,7 @@ def test_edit_when_team_found_and_form_not_submitted_and_no_form_errors_should_r
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
         fake_team_repository, fake_edit_team_form, fake_flash, fake_render_template
 ):
@@ -264,7 +266,7 @@ def test_edit_when_team_found_and_form_not_submitted_and_form_errors_should_flas
     fake_edit_team_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_team_repository, 1)
 
     # Assert
     assert fake_edit_team_form.return_value.name.data == old_team.name
@@ -280,7 +282,7 @@ def test_edit_when_team_found_and_form_not_submitted_and_form_errors_should_flas
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_team_details(
         fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash, fake_url_for,
         fake_redirect
@@ -305,7 +307,7 @@ def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_fla
     fake_team_factory.create_team.return_value = new_team
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_team_repository, id)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -322,7 +324,7 @@ def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_fla
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
         fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash,
         fake_render_template
@@ -350,7 +352,7 @@ def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_f
     fake_team_repository.update_team.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_team_repository, id)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -366,10 +368,9 @@ def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_f
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash,
-        fake_render_template
+        fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
@@ -394,7 +395,7 @@ def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_shou
     fake_team_repository.update_team.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_team_repository, id)
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
@@ -407,7 +408,65 @@ def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_shou
 
 
 @patch('app.flask.team_controller.render_template')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.flash')
+@patch('app.flask.team_controller.team_factory')
+@patch('app.flask.team_controller.EditTeamForm')
+@patch('app.flask.team_controller.url_for')
+@patch('app.flask.team_controller.redirect')
+@patch('app.flask.team_controller.TeamRepository')
+def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
+        fake_team_repository, fake_redirect, fake_url_for, fake_edit_team_form, fake_team_factory, fake_flash,
+        fake_render_template
+):
+    # Arrange
+    id = 1
+
+    old_team = Team(
+        id=id,
+        name="Team 1"
+    )
+    fake_team_repository.get_team.return_value = old_team
+
+    fake_edit_team_form.return_value.validate_on_submit.return_value = True
+    fake_edit_team_form.return_value.name.data = "Team 2"
+
+    kwargs = {
+        'id': id,
+        'name': "Team 2",
+    }
+
+    err = IndexError()
+    fake_url_for.side_effect = err
+
+    # Act
+    with pytest.raises(NotFound):
+        result = mod.edit(fake_team_repository, 1)
+
+    # Assert
+    fake_team_repository.get_team.assert_called_once_with(id)
+    fake_edit_team_form.assert_called_once()
+    fake_edit_team_form.return_value.validate_on_submit.assert_called_once()
+    fake_team_factory.create_team.assert_called_once_with(**kwargs)
+
+
+@patch('app.flask.team_controller.TeamRepository')
+def test_delete_when_game_not_found_should_abort_with_404_error(
+        fake_team_repository, test_app
+):
+    # Arrange
+    fake_team_repository.get_team.return_value = None
+
+    # Act
+    with test_app.test_request_context(
+            '/teams/delete?id=1',
+            method='POST'
+    ):
+        with pytest.raises(NotFound):
+            result = mod.delete(fake_team_repository, 1)
+
+
+@patch('app.flask.team_controller.render_template')
+@patch('app.flask.team_controller.TeamRepository')
 def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_team_repository, fake_render_template, test_app
 ):
@@ -420,7 +479,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
             '/teams/delete?id=1',
             method='GET'
     ):
-        result = mod.delete(1)
+        result = mod.delete(fake_team_repository, 1)
 
     # Assert
     fake_team_repository.get_team.assert_called_once_with(1)
@@ -431,7 +490,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.team_controller.redirect')
 @patch('app.flask.team_controller.url_for')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_delete_when_request_method_is_post_and_team_found_should_flash_success_message_and_redirect_to_teams_index(
         fake_team_repository, fake_flash, fake_url_for, fake_redirect, test_app
 ):
@@ -445,7 +504,7 @@ def test_delete_when_request_method_is_post_and_team_found_should_flash_success_
             '/teams/delete?id=1',
             method='POST'
     ):
-        result = mod.delete(id)
+        result = mod.delete(fake_team_repository, id)
 
     # Assert
     fake_team_repository.delete_team.assert_called_once_with(id)
@@ -455,7 +514,7 @@ def test_delete_when_request_method_is_post_and_team_found_should_flash_success_
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.team_controller.team_repository')
+@patch('app.flask.team_controller.TeamRepository')
 def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with_404_error(
         fake_team_repository, test_app
 ):
@@ -470,4 +529,4 @@ def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with
             method='POST'
     ):
         with pytest.raises(NotFound):
-            result = mod.delete(1)
+            result = mod.delete(fake_team_repository, 1)

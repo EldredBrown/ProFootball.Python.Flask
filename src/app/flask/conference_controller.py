@@ -1,9 +1,9 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
+from injector import inject
 from sqlalchemy.exc import IntegrityError
 
-from app import injector
 from app.data.factories import conference_factory
 from app.data.models.conference import Conference
 from app.data.repositories.conference_repository import ConferenceRepository
@@ -11,21 +11,17 @@ from app.flask.forms.conference_forms import NewConferenceForm, EditConferenceFo
 
 blueprint = Blueprint('conference', __name__)
 
-conference_repository = injector.get(ConferenceRepository)
-
 
 @blueprint.route('/')
-def index() -> str:
-    global conference_repository
-
+@inject
+def index(conference_repository: ConferenceRepository) -> str:
     conferences = conference_repository.get_conferences()
     return render_template('conferences/index.html', conferences=conferences)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int) -> str:
-    global conference_repository
-
+@inject
+def details(conference_repository: ConferenceRepository, id: int) -> str:
     form = DeleteConferenceForm()
     try:
         conference = conference_repository.get_conference(id)
@@ -35,19 +31,11 @@ def details(id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create() -> Response | str:
-    global conference_repository
-
+@inject
+def create(conference_repository: ConferenceRepository) -> Response | str:
     form = NewConferenceForm()
     if form.validate_on_submit():
-        kwargs = {
-            'short_name': str(form.short_name.data),
-            'long_name': str(form.long_name.data),
-            'league_name': str(form.league_name.data),
-            'first_season_year': int(form.first_season_year.data),
-            'last_season_year': int(form.last_season_year.data),
-        }
-        conference = conference_factory.create_conference(**kwargs)
+        new_conference = _get_conference_from_form(form)
         try:
             conference_repository.add_conference(conference)
             flash(f"Item {form.short_name.data} has been successfully submitted.", 'success')
@@ -64,9 +52,8 @@ def create() -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int) -> Response | str:
-    global conference_repository
-
+@inject
+def edit(conference_repository: ConferenceRepository, id: int) -> Response | str:
     old_conference = conference_repository.get_conference(id)
     if old_conference:
         form = EditConferenceForm()
@@ -80,8 +67,11 @@ def edit(id: int) -> Response | str:
                 return _handle_error(err, 'conferences/edit.html', form, conference=old_conference)
             except IntegrityError as err:
                 return _handle_error(err, 'conferences/edit.html', form, conference=old_conference)
+            except IndexError:
+                abort(404)
         else:
             _get_form_data_from_conference(form, old_conference)
+
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
@@ -118,11 +108,13 @@ def _get_form_data_from_conference(form: ConferenceForm, conference: Conference)
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    global conference_repository
-
-    conference = conference_repository.get_conference(id)
+@inject
+def delete(conference_repository: ConferenceRepository, id: int) -> Response | str:
     try:
+        conference = conference_repository.get_conference(id)
+        if not conference:
+            abort(404)
+
         if request.method == 'POST':
             conference_repository.delete_conference(id)
             flash(f"Conference {conference.short_name} has been successfully deleted.", 'success')

@@ -1,9 +1,9 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
+from injector import inject
 from sqlalchemy.exc import IntegrityError
 
-from app import injector
 from app.data.factories import team_factory
 from app.data.models.team import Team
 from app.data.repositories.team_repository import TeamRepository
@@ -11,21 +11,17 @@ from app.flask.forms.team_forms import NewTeamForm, EditTeamForm, DeleteTeamForm
 
 blueprint = Blueprint('team', __name__)
 
-team_repository = injector.get(TeamRepository)
-
 
 @blueprint.route('/')
-def index() -> str:
-    global team_repository
-
+@inject
+def index(team_repository: TeamRepository) -> str:
     teams = team_repository.get_teams()
     return render_template('teams/index.html', teams=teams)
 
 
 @blueprint.route('/details/<int:id>')
-def details(id: int) -> str:
-    global team_repository
-
+@inject
+def details(team_repository: TeamRepository, id: int) -> str:
     form = DeleteTeamForm()
     try:
         team = team_repository.get_team(id)
@@ -35,14 +31,13 @@ def details(id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-def create() -> Response | str:
-    global team_repository
-
+@inject
+def create(team_repository: TeamRepository) -> Response | str:
     form = NewTeamForm()
     if form.validate_on_submit():
-        team = _get_team_from_form(form)
+        new_team = _get_team_from_form(form)
         try:
-            team_repository.add_team(team)
+            team_repository.add_team(new_team)
             flash(f"Item {form.name.data} has been successfully submitted.", 'success')
             return redirect(url_for('team.index'))
         except ValueError as err:
@@ -57,9 +52,8 @@ def create() -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id: int) -> Response | str:
-    global team_repository
-
+@inject
+def edit(team_repository: TeamRepository, id: int) -> Response | str:
     old_team = team_repository.get_team(id)
     if old_team:
         form = EditTeamForm()
@@ -73,6 +67,8 @@ def edit(id: int) -> Response | str:
                 return _handle_error(err, 'teams/edit.html', form, team=old_team)
             except IntegrityError as err:
                 return _handle_error(err, 'teams/edit.html', form, team=old_team)
+            except IndexError:
+                abort(404)
         else:
             _get_form_data_from_team(form, old_team)
 
@@ -104,11 +100,13 @@ def _get_form_data_from_team(form: TeamForm, team: Team) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    global team_repository
-
-    team = team_repository.get_team(id)
+@inject
+def delete(team_repository: TeamRepository, id: int) -> Response | str:
     try:
+        team = team_repository.get_team(id)
+        if not team:
+            abort(404)
+
         if request.method == 'POST':
             team_repository.delete_team(id)
             flash(f"Team {team.name} has been successfully deleted.", 'success')

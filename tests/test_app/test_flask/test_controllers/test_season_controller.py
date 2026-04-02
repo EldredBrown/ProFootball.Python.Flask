@@ -16,10 +16,10 @@ def test_app():
 
 
 @patch('app.flask.season_controller.render_template')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_index_should_render_season_index_template(fake_season_repository, fake_render_template):
     # Act
-    result = mod.index()
+    result = mod.index(fake_season_repository)
 
     # Assert
     fake_season_repository.get_seasons.assert_called_once()
@@ -29,7 +29,7 @@ def test_index_should_render_season_index_template(fake_season_repository, fake_
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.DeleteSeasonForm')
 @patch('app.flask.season_controller.render_template')
 def test_details_when_season_found_should_render_season_details_template(
@@ -39,7 +39,7 @@ def test_details_when_season_found_should_render_season_details_template(
     id = 1
 
     # Act
-    result = mod.details(id)
+    result = mod.details(fake_season_repository, id)
 
     # Assert
     fake_delete_season_form.assert_called_once()
@@ -52,7 +52,7 @@ def test_details_when_season_found_should_render_season_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.DeleteSeasonForm')
 def test_details_when_season_not_found_should_abort_with_404_error(
         fake_delete_season_form, fake_season_repository
@@ -62,21 +62,22 @@ def test_details_when_season_not_found_should_abort_with_404_error(
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(1)
+        result = mod.details(fake_season_repository, 1)
 
 
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.NewSeasonForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_season_form, fake_flash, fake_render_template
+        fake_new_season_form, fake_season_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_season_form.return_value.validate_on_submit.return_value = False
     fake_new_season_form.return_value.errors = None
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_season_repository)
 
     # Assert
     fake_flash.assert_not_called()
@@ -86,9 +87,10 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.NewSeasonForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_season_form, fake_flash, fake_render_template
+        fake_new_season_form, fake_season_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_season_form.return_value.validate_on_submit.return_value = False
@@ -97,7 +99,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     fake_new_season_form.return_value.errors = errors
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_season_repository)
 
     # Assert
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
@@ -108,7 +110,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.season_controller.redirect')
 @patch('app.flask.season_controller.url_for')
 @patch('app.flask.season_controller.flash')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.NewSeasonForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_season_index(
@@ -130,7 +132,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     fake_season_factory.create_season.return_value = season
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_season_repository)
 
     # Assert
     fake_season_factory.create_season.assert_called_once_with(**kwargs)
@@ -143,7 +145,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.NewSeasonForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
@@ -167,7 +169,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     fake_season_repository.add_season.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_season_repository)
 
     # Assert
     fake_season_factory.create_season.assert_called_once_with(**kwargs)
@@ -179,7 +181,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_edit_when_season_not_found_should_abort_with_404_error(fake_season_repository):
     # Arrange
     old_season = None
@@ -187,13 +189,13 @@ def test_edit_when_season_not_found_should_abort_with_404_error(fake_season_repo
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(1)
+        result = mod.edit(fake_season_repository, 1)
 
 
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.EditSeasonForm')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
         fake_season_repository, fake_edit_season_form, fake_flash, fake_render_template
 ):
@@ -209,7 +211,7 @@ def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should
     fake_edit_season_form.return_value.errors = None
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_season_repository, 1)
 
     # Assert
     assert fake_edit_season_form.return_value.year.data == old_season.year
@@ -225,7 +227,7 @@ def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.EditSeasonForm')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
         fake_season_repository, fake_edit_season_form, fake_flash, fake_render_template
 ):
@@ -244,7 +246,7 @@ def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_fl
     fake_edit_season_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_season_repository, 1)
 
     # Assert
     assert fake_edit_season_form.return_value.year.data == old_season.year
@@ -262,7 +264,7 @@ def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_fl
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.EditSeasonForm')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_season_details(
         fake_season_repository, fake_edit_season_form, fake_season_factory, fake_flash, fake_url_for,
         fake_redirect
@@ -293,7 +295,7 @@ def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_f
     fake_season_factory.create_season.return_value = new_season
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_season_repository, id)
 
     # Assert
     fake_season_factory.create_season.assert_called_once_with(**kwargs)
@@ -310,7 +312,7 @@ def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_f
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.EditSeasonForm')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
         fake_season_repository, fake_edit_season_form, fake_season_factory, fake_flash,
         fake_render_template
@@ -343,7 +345,7 @@ def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should
     fake_season_repository.update_season.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_season_repository, id)
 
     # Assert
     fake_season_factory.create_season.assert_called_once_with(**kwargs)
@@ -356,7 +358,71 @@ def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should
 
 
 @patch('app.flask.season_controller.render_template')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.flash')
+@patch('app.flask.season_controller.season_factory')
+@patch('app.flask.season_controller.EditSeasonForm')
+@patch('app.flask.season_controller.url_for')
+@patch('app.flask.season_controller.redirect')
+@patch('app.flask.season_controller.SeasonRepository')
+def test_edit_when_season_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
+        fake_season_repository, fake_redirect, fake_url_for, fake_edit_season_form, fake_season_factory, fake_flash,
+        fake_render_template
+):
+    # Arrange
+    id = 1
+
+    old_season = Season(
+        id=id,
+        year=1,
+        num_of_weeks_scheduled=0,
+        num_of_weeks_completed=0
+    )
+    fake_season_repository.get_season.return_value = old_season
+
+    fake_edit_season_form.return_value.validate_on_submit.return_value = True
+    fake_edit_season_form.return_value.year.data = 2
+    fake_edit_season_form.return_value.num_of_weeks_scheduled.data = 1
+    fake_edit_season_form.return_value.num_of_weeks_completed.data = 1
+
+    kwargs = {
+        'id': id,
+        'year': 2,
+        'num_of_weeks_scheduled': 1,
+        'num_of_weeks_completed': 1,
+    }
+
+    err = IndexError()
+    fake_url_for.side_effect = err
+
+    # Act
+    with pytest.raises(NotFound):
+        result = mod.edit(fake_season_repository, 1)
+
+    # Assert
+    fake_season_repository.get_season.assert_called_once_with(id)
+    fake_edit_season_form.assert_called_once()
+    fake_edit_season_form.return_value.validate_on_submit.assert_called_once()
+    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+
+
+@patch('app.flask.season_controller.SeasonRepository')
+def test_delete_when_season_not_found_should_abort_with_404_error(
+        fake_season_repository, test_app
+):
+    # Arrange
+    fake_season_repository.get_season.return_value = None
+
+    # Act
+    with test_app.test_request_context(
+            '/seasons/delete?id=1',
+            method='POST'
+    ):
+        with pytest.raises(NotFound):
+            result = mod.delete(fake_season_repository, 1)
+
+
+@patch('app.flask.season_controller.render_template')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_season_repository, fake_render_template, test_app
 ):
@@ -370,7 +436,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
             method='GET'
     ):
         with test_app.app_context():
-            result = mod.delete(1)
+            result = mod.delete(fake_season_repository, 1)
 
     # Assert
     fake_season_repository.get_season.assert_called_once_with(1)
@@ -381,7 +447,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.season_controller.redirect')
 @patch('app.flask.season_controller.url_for')
 @patch('app.flask.season_controller.flash')
-@patch('app.flask.season_controller.season_repository')
+@patch('app.flask.season_controller.SeasonRepository')
 def test_delete_when_request_method_is_post_and_season_found_should_flash_success_message_and_redirect_to_seasons_index(
         fake_season_repository, fake_flash, fake_url_for, fake_redirect, test_app
 ):
@@ -396,7 +462,7 @@ def test_delete_when_request_method_is_post_and_season_found_should_flash_succes
             method='POST'
     ):
         with test_app.app_context():
-            result = mod.delete(id)
+            result = mod.delete(fake_season_repository, id)
 
     # Assert
     fake_season_repository.delete_season.assert_called_once_with(id)
@@ -406,8 +472,8 @@ def test_delete_when_request_method_is_post_and_season_found_should_flash_succes
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.season_controller.season_repository')
-def test_delete_when_request_method_is_post_and_season_not_found_should_abort_with_404_error(
+@patch('app.flask.season_controller.SeasonRepository')
+def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abort_with_404_error(
         fake_season_repository, test_app
 ):
     # Arrange
@@ -422,4 +488,4 @@ def test_delete_when_request_method_is_post_and_season_not_found_should_abort_wi
     ):
         with test_app.app_context():
             with pytest.raises(NotFound):
-                result = mod.delete(1)
+                result = mod.delete(fake_season_repository, 1)

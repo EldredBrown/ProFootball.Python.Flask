@@ -17,10 +17,10 @@ def test_app():
 
 
 @patch('app.flask.league_controller.render_template')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_index_should_render_league_index_template(fake_league_repository, fake_render_template):
     # Act
-    result = mod.index()
+    result = mod.index(fake_league_repository)
 
     # Assert
     fake_league_repository.get_leagues.assert_called_once()
@@ -30,7 +30,7 @@ def test_index_should_render_league_index_template(fake_league_repository, fake_
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.DeleteLeagueForm')
 @patch('app.flask.league_controller.render_template')
 def test_details_when_league_found_should_render_league_details_template(
@@ -40,7 +40,7 @@ def test_details_when_league_found_should_render_league_details_template(
     id = 1
 
     # Act
-    result = mod.details(id)
+    result = mod.details(fake_league_repository, id)
 
     # Assert
     fake_delete_league_form.assert_called_once()
@@ -53,7 +53,7 @@ def test_details_when_league_found_should_render_league_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.DeleteLeagueForm')
 def test_details_when_league_not_found_should_abort_with_404_error(
         fake_delete_league_form, fake_league_repository
@@ -63,21 +63,22 @@ def test_details_when_league_not_found_should_abort_with_404_error(
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(1)
+        result = mod.details(fake_league_repository, 1)
 
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_league_form, fake_flash, fake_render_template
+        fake_new_league_form, fake_league_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_league_form.return_value.validate_on_submit.return_value = False
     fake_new_league_form.return_value.errors = None
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_league_repository)
 
     # Assert
     fake_flash.assert_not_called()
@@ -87,9 +88,10 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_league_form, fake_flash, fake_render_template
+        fake_new_league_form, fake_league_repository, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_league_form.return_value.validate_on_submit.return_value = False
@@ -98,7 +100,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     fake_new_league_form.return_value.errors = errors
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_league_repository)
 
     # Assert
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
@@ -109,7 +111,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.league_controller.redirect')
 @patch('app.flask.league_controller.url_for')
 @patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_index(
@@ -133,7 +135,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     fake_league_factory.create_league.return_value = league
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_league_repository)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -146,7 +148,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
@@ -172,7 +174,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     fake_league_repository.add_league.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_league_repository)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -186,7 +188,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
@@ -212,7 +214,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     fake_league_repository.add_league.side_effect = err
 
     # Act
-    result = mod.create()
+    result = mod.create(fake_league_repository)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -224,7 +226,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_not_found_should_abort_with_404_error(fake_league_repository):
     # Arrange
     old_league = None
@@ -232,13 +234,13 @@ def test_edit_when_league_not_found_should_abort_with_404_error(fake_league_repo
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(1)
+        result = mod.edit(fake_league_repository, 1)
 
 
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
         fake_league_repository, fake_edit_league_form, fake_flash, fake_render_template
 ):
@@ -255,7 +257,7 @@ def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should
     fake_edit_league_form.return_value.errors = None
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_league_repository, 1)
 
     # Assert
     assert fake_edit_league_form.return_value.short_name.data == old_league.short_name
@@ -272,7 +274,7 @@ def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should
 @patch('app.flask.league_controller.render_template')
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
         fake_league_repository, fake_edit_league_form, fake_flash, fake_render_template
 ):
@@ -292,7 +294,7 @@ def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_fl
     fake_edit_league_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(1)
+    result = mod.edit(fake_league_repository, 1)
 
     # Assert
     assert fake_edit_league_form.return_value.short_name.data == old_league.short_name
@@ -311,7 +313,7 @@ def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_fl
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_details(
         fake_league_repository, fake_edit_league_form, fake_league_factory, fake_flash, fake_url_for,
         fake_redirect
@@ -345,7 +347,7 @@ def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_f
     fake_league_factory.create_league.return_value = new_league
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_league_repository, id)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -362,7 +364,7 @@ def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_f
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
         fake_league_repository, fake_edit_league_form, fake_league_factory, fake_flash,
         fake_render_template
@@ -399,7 +401,7 @@ def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should
     fake_league_repository.update_league.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_league_repository, id)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -415,7 +417,7 @@ def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.EditLeagueForm')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
         fake_league_repository, fake_edit_league_form, fake_league_factory, fake_flash,
         fake_render_template
@@ -452,7 +454,7 @@ def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_sh
     fake_league_repository.update_league.side_effect = err
 
     # Act
-    result = mod.edit(id)
+    result = mod.edit(fake_league_repository, id)
 
     # Assert
     fake_league_factory.create_league.assert_called_once_with(**kwargs)
@@ -465,7 +467,74 @@ def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_sh
 
 
 @patch('app.flask.league_controller.render_template')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.flash')
+@patch('app.flask.league_controller.league_factory')
+@patch('app.flask.league_controller.EditLeagueForm')
+@patch('app.flask.league_controller.url_for')
+@patch('app.flask.league_controller.redirect')
+@patch('app.flask.league_controller.LeagueRepository')
+def test_edit_when_league_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
+        fake_league_repository, fake_redirect, fake_url_for, fake_edit_league_form, fake_league_factory, fake_flash,
+        fake_render_template
+):
+    # Arrange
+    id = 1
+
+    old_league = League(
+        id=id,
+        short_name="L1",
+        long_name="League 1",
+        first_season_year=1,
+        last_season_year=2
+    )
+    fake_league_repository.get_league.return_value = old_league
+
+    fake_edit_league_form.return_value.validate_on_submit.return_value = True
+    fake_edit_league_form.return_value.short_name.data = "L2"
+    fake_edit_league_form.return_value.long_name.data = "League 2"
+    fake_edit_league_form.return_value.first_season_year.data = 3
+    fake_edit_league_form.return_value.last_season_year.data = 4
+
+    kwargs = {
+        'id': id,
+        'short_name': "L2",
+        'long_name': "League 2",
+        'first_season_year': 3,
+        'last_season_year': 4,
+    }
+
+    err = IndexError()
+    fake_url_for.side_effect = err
+
+    # Act
+    with pytest.raises(NotFound):
+        result = mod.edit(fake_league_repository, 1)
+
+    # Assert
+    fake_league_repository.get_league.assert_called_once_with(id)
+    fake_edit_league_form.assert_called_once()
+    fake_edit_league_form.return_value.validate_on_submit.assert_called_once()
+    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+
+
+@patch('app.flask.league_controller.LeagueRepository')
+def test_delete_when_league_not_found_should_abort_with_404_error(
+        fake_league_repository, test_app
+):
+    # Arrange
+    fake_league_repository.get_league.return_value = None
+
+    # Act
+    with test_app.test_request_context(
+            '/leagues/delete?id=1',
+            method='POST'
+    ):
+        with pytest.raises(NotFound):
+            result = mod.delete(fake_league_repository, 1)
+
+
+@patch('app.flask.league_controller.render_template')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_league_repository, fake_render_template, test_app
 ):
@@ -479,7 +548,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
             method='GET'
     ):
         with test_app.app_context():
-            result = mod.delete(1)
+            result = mod.delete(fake_league_repository, 1)
 
     # Assert
     fake_league_repository.get_league.assert_called_once_with(1)
@@ -490,7 +559,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.league_controller.redirect')
 @patch('app.flask.league_controller.url_for')
 @patch('app.flask.league_controller.flash')
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_delete_when_request_method_is_post_and_league_found_should_flash_success_message_and_redirect_to_leagues_index(
         fake_league_repository, fake_flash, fake_url_for, fake_redirect, test_app
 ):
@@ -505,7 +574,7 @@ def test_delete_when_request_method_is_post_and_league_found_should_flash_succes
             method='POST'
     ):
         with test_app.app_context():
-            result = mod.delete(id)
+            result = mod.delete(fake_league_repository, id)
 
     # Assert
     fake_league_repository.delete_league.assert_called_once_with(id)
@@ -515,7 +584,7 @@ def test_delete_when_request_method_is_post_and_league_found_should_flash_succes
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.league_controller.league_repository')
+@patch('app.flask.league_controller.LeagueRepository')
 def test_delete_when_request_method_is_post_and_league_not_found_should_abort_with_404_error(
         fake_league_repository, test_app
 ):
@@ -531,4 +600,4 @@ def test_delete_when_request_method_is_post_and_league_not_found_should_abort_wi
     ):
         with test_app.app_context():
             with pytest.raises(NotFound):
-                result = mod.delete(1)
+                result = mod.delete(fake_league_repository, 1)
