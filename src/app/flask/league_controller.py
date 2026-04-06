@@ -1,9 +1,9 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
-from injector import inject
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import league_factory
 from app.data.models.league import League
 from app.data.repositories.league_repository import LeagueRepository
@@ -13,17 +13,17 @@ blueprint = Blueprint('league', __name__)
 
 
 @blueprint.route('/')
-@inject
-def index(league_repository: LeagueRepository) -> str:
+def index() -> str:
+    league_repository = injector.get(LeagueRepository)
     leagues = league_repository.get_leagues()
     return render_template('leagues/index.html', leagues=leagues)
 
 
 @blueprint.route('/details/<int:id>')
-@inject
-def details(league_repository: LeagueRepository, id: int) -> str:
+def details(id: int) -> str:
     form = DeleteLeagueForm()
     try:
+        league_repository = injector.get(LeagueRepository)
         league = league_repository.get_league(id)
         return render_template('leagues/details.html', league=league, form=form)
     except IndexError:
@@ -31,12 +31,12 @@ def details(league_repository: LeagueRepository, id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-@inject
-def create(league_repository: LeagueRepository) -> Response | str:
+def create() -> Response | str:
     form = NewLeagueForm()
     if form.validate_on_submit():
         new_league = _get_league_from_form(form)
         try:
+            league_repository = injector.get(LeagueRepository)
             league_repository.add_league(new_league)
             flash(f"Item {form.short_name.data} has been successfully submitted.", 'success')
             return redirect(url_for('league.index'))
@@ -52,8 +52,8 @@ def create(league_repository: LeagueRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-@inject
-def edit(league_repository: LeagueRepository, id: int) -> Response | str:
+def edit(id: int) -> Response | str:
+    league_repository = injector.get(LeagueRepository)
     old_league = league_repository.get_league(id)
     if old_league:
         form = EditLeagueForm()
@@ -71,7 +71,6 @@ def edit(league_repository: LeagueRepository, id: int) -> Response | str:
                 abort(404)
         else:
             _get_form_data_from_league(form, old_league)
-
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
@@ -106,9 +105,9 @@ def _get_form_data_from_league(form: LeagueForm, league: League) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-@inject
-def delete(league_repository: LeagueRepository, id: int) -> Response | str:
+def delete(id: int) -> Response | str:
     try:
+        league_repository = injector.get(LeagueRepository)
         league = league_repository.get_league(id)
         if not league:
             abort(404)

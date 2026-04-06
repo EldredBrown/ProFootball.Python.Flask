@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 from flask import session
@@ -16,13 +16,16 @@ def test_app():
 
 
 @patch('app.flask.game_predictor_controller.render_template')
-@patch('app.flask.game_predictor_controller.SeasonRepository')
-def test_index_should_render_game_predictor_index_template(fake_season_repository, fake_render_template, test_app):
+@patch('app.flask.game_predictor_controller.injector')
+def test_index_should_render_game_predictor_index_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_season_repository = Mock(SeasonRepository)
+        fake_injector.get.return_value = fake_season_repository
+
         session['guest_seasons'] = [1920, 1921, 1922]
         session['selected_guest_year'] = None
         session['guests'] = None
@@ -35,10 +38,10 @@ def test_index_should_render_game_predictor_index_template(fake_season_repositor
         # fake_injector.get.return_value.get_seasons.side_effect = [guest_seasons, host_seasons]
 
         # Act
-        result = mod.index(fake_season_repository)
+        result = mod.index()
 
         # Assert
-        # fake_injector.get.assert_called_once_with(SeasonRepository)
+        fake_injector.get.assert_called_once_with(SeasonRepository)
         assert fake_season_repository.get_seasons.call_count == 2
 
         fake_render_template.assert_called_once_with(
@@ -127,22 +130,27 @@ def test_select_host_should_render_game_predictor_index_template_with_host_years
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_selected_guest_year_is_none_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         session['selected_guest_year'] = None
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         fake_flash.assert_called_once_with("Please select one guest season.", 'danger')
+        fake_injector.get.assert_not_called()
+        fake_game_predictor_service.predict_game_score.assert_not_called()
         fake_render_template.assert_called_once_with(
             'game_predictor/index.html',
             guest_seasons=session.get('guest_seasons'), selected_guest_year=None,
@@ -155,23 +163,28 @@ def test_predict_game_when_selected_guest_year_is_none_should_flash_error_messag
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_selected_guest_is_none_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         session['selected_guest_year'] = 1
         session['selected_guest_name'] = None
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         fake_flash.assert_called_once_with("Please select one guest name.", 'danger')
+        fake_injector.get.assert_not_called()
+        fake_game_predictor_service.predict_game_score.assert_not_called()
         fake_render_template.assert_called_once_with(
             'game_predictor/index.html',
             guest_seasons=session.get('guest_seasons'), selected_guest_year=1,
@@ -184,24 +197,29 @@ def test_predict_game_when_selected_guest_is_none_should_flash_error_message(
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_selected_host_year_is_none_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         session['selected_guest_year'] = 1
         session['selected_guest_name'] = "Guest"
         session['selected_host_year'] = None
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         fake_flash.assert_called_once_with("Please select one host season.", 'danger')
+        fake_injector.get.assert_not_called()
+        fake_game_predictor_service.predict_game_score.assert_not_called()
         fake_render_template.assert_called_once_with(
             'game_predictor/index.html',
             guest_seasons=session.get('guest_seasons'), selected_guest_year=1,
@@ -214,25 +232,30 @@ def test_predict_game_when_selected_host_year_is_none_should_flash_error_message
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_selected_host_is_none_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         session['selected_guest_year'] = 1
         session['selected_guest_name'] = "Guest"
         session['selected_host_year'] = 1
         session['selected_host_name'] = None
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         fake_flash.assert_called_once_with("Please select one host name.", 'danger')
+        fake_injector.get.assert_not_called()
+        fake_game_predictor_service.predict_game_score.assert_not_called()
         fake_render_template.assert_called_once_with(
             'game_predictor/index.html',
             guest_seasons=session.get('guest_seasons'), selected_guest_year=1,
@@ -245,15 +268,18 @@ def test_predict_game_when_selected_host_is_none_should_flash_error_message(
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_host_year_and_selected_host_are_not_none_and_type_error_is_caught_should_flash_error_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
             method='GET'
     ):
         # Arrange
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         session['selected_guest_year'] = 1
         session['selected_guest_name'] = "Guest"
         session['selected_host_year'] = 1
@@ -262,10 +288,11 @@ def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_h
         fake_game_predictor_service.predict_game_score.side_effect = Exception()
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         fake_flash.assert_called_once_with("The prediction could not be calculated.", 'danger')
+        fake_injector.get.assert_called_once_with(GamePredictorService)
         fake_render_template.assert_called_once_with(
             'game_predictor/index.html',
             guest_seasons=session.get('guest_seasons'), selected_guest_year=session.get('selected_guest_year'),
@@ -278,9 +305,9 @@ def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_h
 
 @patch('app.flask.game_predictor_controller.render_template')
 @patch('app.flask.game_predictor_controller.flash')
-@patch('app.flask.game_predictor_controller.GamePredictorService')
+@patch('app.flask.game_predictor_controller.injector')
 def test_predict_game_when_type_error_is_not_caught_should_flash_success_message(
-        fake_game_predictor_service, fake_flash, fake_render_template, test_app
+        fake_injector, fake_flash, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/game_predictor/',
@@ -292,18 +319,22 @@ def test_predict_game_when_type_error_is_not_caught_should_flash_success_message
         session['selected_host_year'] = 1
         session['selected_host_name'] = "Host"
 
+        fake_game_predictor_service = Mock(GamePredictorService)
+        fake_injector.get.return_value = fake_game_predictor_service
+
         guest_score = 0
         host_score = 0
         fake_game_predictor_service.predict_game_score.return_value = (guest_score, host_score)
 
         # Act
-        result = mod.predict_game(fake_game_predictor_service)
+        result = mod.predict_game()
 
         # Assert
         selected_guest_name = session.get('selected_guest_name')
         selected_guest_year = session.get('selected_guest_year')
         selected_host_name = session.get('selected_host_name')
         selected_host_year = session.get('selected_host_year')
+        fake_injector.get.assert_called_once_with(GamePredictorService)
         fake_game_predictor_service.predict_game_score.assert_called_once_with(
             selected_guest_name, selected_guest_year, selected_host_name, selected_host_year
         )

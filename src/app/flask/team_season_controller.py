@@ -1,20 +1,16 @@
 from flask import Blueprint, abort, render_template, request, session
-from injector import inject
 
+from app import injector
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 
 blueprint = Blueprint('team_season', __name__)
 
-seasons = []
-selected_year = None
-team_seasons = []
-
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
     session['seasons'] = season_repository.get_seasons()
     return render_template(
         'team_seasons/index.html',
@@ -24,15 +20,12 @@ def index(season_repository: SeasonRepository) -> str:
 
 
 @blueprint.route('/details/<int:id>')
-@inject
-def details(
-        team_season_repository: TeamSeasonRepository,
-        team_season_schedule_repository: TeamSeasonScheduleRepository,
-        id: int
-) -> str:
+def details(id: int) -> str:
     try:
+        team_season_repository = injector.get(TeamSeasonRepository)
         team_season = team_season_repository.get_team_season(id)
 
+        team_season_schedule_repository = injector.get(TeamSeasonScheduleRepository)
         team_season_schedule_profile = team_season_schedule_repository.get_team_season_schedule_profile(
             team_season.team_name, team_season.season_year
         )
@@ -56,14 +49,12 @@ def details(
 
 @blueprint.route('/select_season', methods=['POST'])
 def select_season() -> str:
-    global seasons
-    global selected_year
-    global team_season_repository
-    global team_seasons
-
     selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    session['selected_year'] = selected_year
+    team_season_repository = injector.get(TeamSeasonRepository)
     team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)
+    session['team_seasons'] = team_seasons
     return render_template(
         'team_seasons/index.html',
-        seasons=seasons, selected_year=selected_year, team_seasons=team_seasons
+        seasons=session.get('seasons'), selected_year=selected_year, team_seasons=team_seasons
     )

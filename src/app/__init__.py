@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_injector import FlaskInjector
 from flask_migrate import Migrate
 from injector import Injector, singleton
 
@@ -48,9 +47,6 @@ def create_app():
 
     app.add_url_rule('/', endpoint='index')
 
-    # Integrate Flask with Injector
-    FlaskInjector(app=app, modules=[configure])
-
     return app
 
 
@@ -92,4 +88,4 @@ def configure(binder):
     binder.bind(ProcessGameStrategyFactory, to=ProcessGameStrategyFactory, scope=singleton)
 
 
-Injector([configure])
+injector = Injector([configure])

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 from flask import session
@@ -15,21 +15,24 @@ def test_app():
 
 
 @patch('app.flask.season_standings_controller.render_template')
-@patch('app.flask.season_standings_controller.SeasonRepository')
-def test_index_should_render_season_standings_index_template(
-        fake_season_repository, fake_render_template, test_app
-):
-    # Act
+@patch('app.flask.season_standings_controller.injector')
+def test_index_should_render_season_standings_index_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_standings/',
             method='GET'
     ):
+        # Arrange
+        fake_season_repository = Mock(SeasonRepository)
+        fake_injector.get.return_value = fake_season_repository
+
         session['seasons'] = []
         session['selected_year'] = None
 
-        result = mod.index(fake_season_repository)
+        # Act
+        result = mod.index()
 
         # Assert
+        fake_injector.get.assert_called_once_with(SeasonRepository)
         fake_season_repository.get_seasons.assert_called_once()
         fake_render_template.assert_called_once_with(
             'season_standings/index.html',

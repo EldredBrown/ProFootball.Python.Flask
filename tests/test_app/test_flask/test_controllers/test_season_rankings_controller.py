@@ -6,6 +6,10 @@ from flask import session
 import app.flask.season_rankings_controller as mod
 from app.data.models.league import League
 from app.data.models.season import Season
+from app.data.repositories.league_repository import LeagueRepository
+from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
+from app.data.repositories.season_repository import SeasonRepository
+from app.services.weekly_update_service.weekly_update_service import WeeklyUpdateService
 
 from test_app import create_app
 
@@ -16,16 +20,17 @@ def test_app():
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.LeagueRepository')
-@patch('app.flask.season_rankings_controller.SeasonRepository')
-def test_index_should_render_season_rankings_index_template(
-        fake_season_repository, fake_league_repository, fake_render_template, test_app
-):
-    # Arrange
+@patch('app.flask.season_rankings_controller.injector')
+def test_index_should_render_season_rankings_index_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_rankings/',
             method='GET'
     ):
+        # Arrange
+        fake_season_repository = Mock(SeasonRepository)
+        fake_league_repository = Mock(LeagueRepository)
+        fake_injector.get.side_effect = [fake_season_repository, fake_league_repository]
+
         session['seasons'] = []
         session['selected_year'] = None
         session['leagues'] = []
@@ -33,8 +38,13 @@ def test_index_should_render_season_rankings_index_template(
         session['selected_type'] = None
 
         # Act
-        result = mod.index(fake_season_repository, fake_league_repository)
+        result = mod.index()
 
+        # Assert
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(LeagueRepository),
+        ])
         fake_season_repository.get_seasons.assert_called_once()
         fake_league_repository.get_leagues.assert_called_once()
         fake_render_template.assert_called_once_with(
@@ -90,15 +100,16 @@ def test_select_type_should_render_rankings_index_template_for_selected_type(tes
 
 @patch('app.flask.season_rankings_controller.render_template')
 @patch('app.flask.season_rankings_controller.flash')
-@patch('app.flask.season_rankings_controller.WeeklyUpdateService')
-def test_run_weekly_update_should_run_weekly_update(
-        fake_weekly_update_service, fake_flash, fake_render_template, test_app
-):
-    # Arrange
+@patch('app.flask.season_rankings_controller.injector')
+def test_run_weekly_update_should_run_weekly_update(fake_injector, fake_flash, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_rankings/',
             method='GET'
     ):
+        # Arrange
+        fake_weekly_update_service = Mock(WeeklyUpdateService)
+        fake_injector.get.return_value = fake_weekly_update_service
+
         session['seasons'] = [
             Season(year=1),
             Season(year=2),
@@ -116,9 +127,10 @@ def test_run_weekly_update_should_run_weekly_update(
         session['selected_type'] = "Total"
 
         # Act
-        mod.run_weekly_update(fake_weekly_update_service)
+        mod.run_weekly_update()
 
         # Assert
+        fake_injector.get.assert_called_once_with(WeeklyUpdateService)
         selected_league_name = session.get('selected_league_name')
         selected_year = session.get('selected_year')
         fake_weekly_update_service.run_weekly_update.assert_called_once_with(selected_league_name, selected_year)
@@ -135,15 +147,16 @@ def test_run_weekly_update_should_run_weekly_update(
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.SeasonRankingsRepository')
-def test_offense_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
-):
-    # Arrange
+@patch('app.flask.season_rankings_controller.injector')
+def test_offense_should_render_season_offensive_rankings_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_rankings/',
             method='GET'
     ):
+        # Arrange
+        fake_season_rankings_repository = Mock(SeasonRankingsRepository)
+        fake_injector.get.return_value = fake_season_rankings_repository
+
         session['seasons'] = [
             Season(year=1),
             Season(year=2),
@@ -161,9 +174,10 @@ def test_offense_should_render_season_offensive_rankings_template(
         session['selected_type'] = "Offense"
     
         # Act
-        result = mod.offense(fake_season_rankings_repository)
+        result = mod.offense()
     
         # Assert
+        fake_injector.get.assert_called_once_with(SeasonRankingsRepository)
         selected_year = session.get('selected_year')
         fake_season_rankings_repository.get_offensive_rankings_by_season_year.assert_called_once_with(selected_year)
         fake_render_template.assert_called_once_with(
@@ -177,15 +191,16 @@ def test_offense_should_render_season_offensive_rankings_template(
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.SeasonRankingsRepository')
-def test_defense_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
-):
-    # Arrange
+@patch('app.flask.season_rankings_controller.injector')
+def test_defense_should_render_season_offensive_rankings_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_rankings/',
             method='GET'
     ):
+        # Arrange
+        fake_season_rankings_repository = Mock(SeasonRankingsRepository)
+        fake_injector.get.return_value = fake_season_rankings_repository
+
         session['seasons'] = [
             Season(year=1),
             Season(year=2),
@@ -203,9 +218,10 @@ def test_defense_should_render_season_offensive_rankings_template(
         session['selected_type'] = "Defense"
 
         # Act
-        result = mod.defense(fake_season_rankings_repository)
+        result = mod.defense()
 
         # Assert
+        fake_injector.get.assert_called_once_with(SeasonRankingsRepository)
         selected_year = session.get('selected_year')
         fake_season_rankings_repository.get_defensive_rankings_by_season_year.assert_called_once_with(selected_year)
         fake_render_template.assert_called_once_with(
@@ -219,14 +235,16 @@ def test_defense_should_render_season_offensive_rankings_template(
 
 
 @patch('app.flask.season_rankings_controller.render_template')
-@patch('app.flask.season_rankings_controller.SeasonRankingsRepository')
-def test_total_should_render_season_offensive_rankings_template(
-        fake_season_rankings_repository, fake_render_template, test_app
-):
+@patch('app.flask.season_rankings_controller.injector')
+def test_total_should_render_season_offensive_rankings_template(fake_injector, fake_render_template, test_app):
     with test_app.test_request_context(
             '/season_rankings/',
             method='GET'
     ):
+        # Arrange
+        fake_season_rankings_repository = Mock(SeasonRankingsRepository)
+        fake_injector.get.return_value = fake_season_rankings_repository
+
         session['seasons'] = [
             Season(year=1),
             Season(year=2),
@@ -244,9 +262,10 @@ def test_total_should_render_season_offensive_rankings_template(
         session['selected_type'] = "Total"
 
         # Act
-        result = mod.total(fake_season_rankings_repository)
+        result = mod.total()
     
         # Assert
+        fake_injector.get.assert_called_once_with(SeasonRankingsRepository)
         selected_year = session.get('selected_year')
         fake_season_rankings_repository.get_total_rankings_by_season_year.assert_called_once_with(selected_year)
         fake_render_template.assert_called_once_with(

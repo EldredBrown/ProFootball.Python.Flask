@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, url_for, redirect, flash, Response, session
-from injector import inject
 
+from app import injector
 from app.data.repositories.league_repository import LeagueRepository
 from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 from app.data.repositories.season_repository import SeasonRepository
@@ -12,9 +12,11 @@ RANKING_TYPES = ['Offense', 'Defense', 'Total']
 
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository, league_repository: LeagueRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
     session['seasons'] = season_repository.get_seasons()
+
+    league_repository = injector.get(LeagueRepository)
     session['leagues'] = league_repository.get_leagues()
 
     return render_template(
@@ -64,8 +66,8 @@ def select_type() -> Response | str:
 
 
 @blueprint.route('weekly_update', methods=['POST'])
-@inject
-def run_weekly_update(weekly_update_service: WeeklyUpdateService):
+def run_weekly_update():
+    weekly_update_service = injector.get(WeeklyUpdateService)
     selected_league_name = session.get('selected_league_name')
     selected_year = session.get('selected_year')
     weekly_update_service.run_weekly_update(selected_league_name, selected_year)
@@ -83,8 +85,8 @@ def run_weekly_update(weekly_update_service: WeeklyUpdateService):
 
 
 @blueprint.route('/offense')
-@inject
-def offense(season_rankings_repository: SeasonRankingsRepository):
+def offense():
+    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_year = session.get('selected_year')
     season_rankings = season_rankings_repository.get_offensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -96,8 +98,8 @@ def offense(season_rankings_repository: SeasonRankingsRepository):
 
 
 @blueprint.route('/defense')
-@inject
-def defense(season_rankings_repository: SeasonRankingsRepository):
+def defense():
+    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_year = session.get('selected_year')
     season_rankings = season_rankings_repository.get_defensive_rankings_by_season_year(selected_year)
     return render_template(
@@ -109,8 +111,8 @@ def defense(season_rankings_repository: SeasonRankingsRepository):
 
 
 @blueprint.route('/total')
-@inject
-def total(season_rankings_repository: SeasonRankingsRepository):
+def total():
+    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_year = session.get('selected_year')
     season_rankings = season_rankings_repository.get_total_rankings_by_season_year(selected_year)
     return render_template(

@@ -4,6 +4,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from injector import inject
 from werkzeug import Response
 
+from app import injector
 from app.data.factories import season_factory
 from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
@@ -13,17 +14,17 @@ blueprint = Blueprint('season', __name__)
 
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
     seasons = season_repository.get_seasons()
     return render_template('seasons/index.html', seasons=seasons)
 
 
 @blueprint.route('/details/<int:id>')
-@inject
-def details(season_repository: SeasonRepository, id: int) -> str:
+def details(id: int) -> str:
     form = DeleteSeasonForm()
     try:
+        season_repository = injector.get(SeasonRepository)
         season = season_repository.get_season(id)
         return render_template('seasons/details.html', season=season, form=form)
     except IndexError:
@@ -31,12 +32,12 @@ def details(season_repository: SeasonRepository, id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-@inject
-def create(season_repository: SeasonRepository) -> Response | str:
+def create() -> Response | str:
     form = NewSeasonForm()
     if form.validate_on_submit():
         new_season = _get_season_from_form(form)
         try:
+            season_repository = injector.get(SeasonRepository)
             season_repository.add_season(new_season)
             flash(f"Item {form.year.data} has been successfully submitted.", 'success')
             return redirect(url_for('season.index'))
@@ -50,8 +51,8 @@ def create(season_repository: SeasonRepository) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-@inject
-def edit(season_repository: SeasonRepository, id: int) -> Response | str:
+def edit(id: int) -> Response | str:
+    season_repository = injector.get(SeasonRepository)
     old_season = season_repository.get_season(id)
     if old_season:
         form = EditSeasonForm()
@@ -101,8 +102,9 @@ def _get_form_data_from_season(form: SeasonForm, season: Season) -> None:
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 @inject
-def delete(season_repository: SeasonRepository, id: int) -> Response | str:
+def delete(id: int) -> Response | str:
     try:
+        season_repository = injector.get(SeasonRepository)
         season = season_repository.get_season(id)
         if not season:
             abort(404)

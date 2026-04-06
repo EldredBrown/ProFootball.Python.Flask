@@ -1,9 +1,9 @@
 from typing import Any
 
 from flask import Blueprint, Response, abort, flash, redirect, render_template, request, session, url_for
-from injector import inject
 from sqlalchemy.exc import IntegrityError
 
+from app import injector
 from app.data.factories import game_factory
 from app.data.models.game import Game
 from app.data.repositories.season_repository import SeasonRepository
@@ -15,8 +15,10 @@ blueprint = Blueprint('game', __name__)
 
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository, game_repository: GameRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
+    game_repository = injector.get(GameRepository)
+
     session['seasons'] = season_repository.get_seasons()
     games = game_repository.get_games_by_season_year(season_year=None)
     return render_template(
@@ -27,10 +29,10 @@ def index(season_repository: SeasonRepository, game_repository: GameRepository) 
 
 
 @blueprint.route('/details/<int:id>')
-@inject
-def details(game_repository: GameRepository, id: int) -> str:
+def details(id: int) -> str:
     form = DeleteGameForm()
     try:
+        game_repository = injector.get(GameRepository)
         game = game_repository.get_game(id)
         return render_template('games/details.html', game=game, form=form)
     except IndexError:
@@ -38,8 +40,7 @@ def details(game_repository: GameRepository, id: int) -> str:
 
 
 @blueprint.route('/create', methods=['GET', 'POST'])
-@inject
-def create(game_service: GameService) -> Response | str:
+def create() -> Response | str:
     form = NewGameForm()
     if request.method == 'GET':
         selected_season = session.get('selected_season')
@@ -48,6 +49,7 @@ def create(game_service: GameService) -> Response | str:
     if form.validate_on_submit():
         new_game = _get_game_from_form(form)
         try:
+            game_service = injector.get(GameService)
             game_service.add_game(new_game)
             flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name} has been successfully submitted.", 'success')
             return redirect(url_for('game.index'))
@@ -63,14 +65,15 @@ def create(game_service: GameService) -> Response | str:
 
 
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
-@inject
-def edit(game_repository: GameRepository, game_service: GameService, id: int) -> Response | str:
+def edit(id: int) -> Response | str:
+    game_repository = injector.get(GameRepository)
     old_game = game_repository.get_game(id)
     if old_game:
         form = EditGameForm()
         if form.validate_on_submit():
             new_game = _get_game_from_form(form, id)
             try:
+                game_service = injector.get(GameService)
                 game_service.update_game(new_game, old_game)
                 flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('game.details', id=id))
@@ -125,14 +128,15 @@ def _get_form_data_from_game(form: GameForm, game) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-@inject
-def delete(game_repository: GameRepository, game_service: GameService, id: int) -> Response | str:
+def delete(id: int) -> Response | str:
+    game_repository = injector.get(GameRepository)
     try:
         game = game_repository.get_game(id)
         if not game:
             abort(404)
 
         if request.method == 'POST':
+            game_service = injector.get(GameService)
             game_service.delete_game(id)
             flash(f"Game for season={game.season_year} with guest={game.guest_name} and host={game.host_name} has been successfully deleted.", 'success')
             return redirect(url_for('game.index'))
@@ -143,28 +147,35 @@ def delete(game_repository: GameRepository, game_service: GameService, id: int) 
 
 
 @blueprint.route('/select_season', methods=['POST'])
-@inject
-def select_season(season_repository: SeasonRepository, game_repository: GameRepository) -> str:
+def select_season() -> str:
     selected_value = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    session['selected_season'] = season_repository.get_season_by_year(selected_value)
+
+    season_repository = injector.get(SeasonRepository)
+    selected_season = season_repository.get_season_by_year(selected_value)
+    session['selected_season'] = selected_season
+
+    game_repository = injector.get(GameRepository)
     games = game_repository.get_games_by_season_year(season_year=selected_value)
+
     return render_template(
         'games/index.html',
-        seasons=session.get('seasons'), selected_season=session.get('selected_season'),
+        seasons=session.get('seasons'), selected_season=selected_season,
         selected_week=session.get('selected_week'), games=games
     )
 
 
 @blueprint.route('/select_week', methods=['POST'])
-@inject
-def select_week(game_repository: GameRepository) -> str:
+def select_week() -> str:
     selected_week = int(request.form.get('week_dropdown'))  # Fetch the selected week.
+    session['selected_week'] = selected_week
     selected_season = session.get('selected_season')
+
+    game_repository = injector.get(GameRepository)
     games = game_repository.get_games_by_season_year_and_week(season_year=selected_season.year, week=selected_week)
+
     return render_template(
         'games/index.html',
-        seasons=session.get('seasons'), selected_season=selected_season, selected_week=session.get('selected_week'),
-        games=games
+        seasons=session.get('seasons'), selected_season=selected_season, selected_week=selected_week, games=games
     )
 
 

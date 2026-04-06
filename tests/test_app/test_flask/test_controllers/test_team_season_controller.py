@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, call
 
 import pytest
 from flask import session
@@ -6,8 +6,6 @@ from flask import session
 from werkzeug.exceptions import NotFound
 
 import app.flask.team_season_controller as mod
-from app.data.models.game import Game
-from app.data.models.league_season import LeagueSeason
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
@@ -22,50 +20,60 @@ def test_app():
 
 
 @patch('app.flask.team_season_controller.render_template')
-@patch('app.flask.team_season_controller.SeasonRepository')
-def test_index_should_render_team_season_index_template(fake_season_repository, fake_render_template, test_app):
+@patch('app.flask.team_season_controller.injector')
+def test_index_should_render_team_season_index_template(fake_injector, fake_render_template, test_app):
     # Arrange
     with test_app.test_request_context(
-            '/games/',
+            '/team_seasons/',
             method='GET'
     ):
+        fake_season_repository = Mock(SeasonRepository)
+        fake_injector.get.return_value = fake_season_repository
+
         # mod.selected_year = 1
-        session['seasons'] = []
-        session['selected_year'] = None
-        session['team_seasons'] = []
+        seasons = []
+        selected_year = None
+        team_seasons = []
+
+        session['seasons'] = seasons
+        session['selected_year'] = selected_year
+        session['team_seasons'] = team_seasons
 
         # Act
-        result = mod.index(fake_season_repository)
+        result = mod.index()
 
         # Assert
-        # fake_injector.get.assert_called_once_with(SeasonRepository)
+        fake_injector.get.assert_called_once_with(SeasonRepository)
         fake_season_repository.get_seasons.assert_called_once()
-        # fake_injector.get.return_value.get_seasons.assert_called_once()
         fake_render_template.assert_called_once_with(
             'team_seasons/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_year=session.get('selected_year'),
-            team_seasons=[]
+            seasons=fake_season_repository.get_seasons.return_value, selected_year=selected_year,
+            team_seasons=team_seasons
         )
         assert result is fake_render_template.return_value
 
 
 @patch('app.flask.team_season_controller.render_template')
-@patch('app.flask.team_season_controller.TeamSeasonScheduleRepository')
-@patch('app.flask.team_season_controller.TeamSeasonRepository')
-def test_details_when_team_season_found_should_render_team_season_details_template(
-        fake_team_season_repository, fake_team_season_schedule_repository, fake_render_template
-):
+@patch('app.flask.team_season_controller.injector')
+def test_details_when_team_season_found_should_render_team_season_details_template(fake_injector, fake_render_template):
     # Arrange
+    fake_team_season_repository = Mock(TeamSeasonRepository)
     team_season = TeamSeason(team_name="Team", season_year=1)
     fake_team_season_repository.get_team_season.return_value = team_season
+
+    fake_team_season_schedule_repository = Mock(TeamSeasonScheduleRepository)
+    fake_injector.get.side_effect = [fake_team_season_repository, fake_team_season_schedule_repository]
 
     id = 1
 
     # Act
-    result = mod.details(fake_team_season_repository, fake_team_season_schedule_repository, id)
+    result = mod.details(id)
 
     # Assert
-    # fake_injector.get.assert_called_once_with(TeamSeasonScheduleRepository)
+    fake_injector.get.assert_has_calls([
+        call(TeamSeasonRepository),
+        call(TeamSeasonScheduleRepository),
+    ])
 
     fake_team_season_repository.get_team_season.assert_called_once_with(id)
     fake_team_season_schedule_repository.get_team_season_schedule_profile.assert_called_once_with(
@@ -87,17 +95,17 @@ def test_details_when_team_season_found_should_render_team_season_details_templa
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.team_season_controller.TeamSeasonScheduleRepository')
-@patch('app.flask.team_season_controller.TeamSeasonRepository')
-def test_details_when_team_season_not_found_should_abort_with_404_error(
-        fake_team_season_repository, fake_team_season_schedule_repository
-):
+@patch('app.flask.team_season_controller.injector')
+def test_details_when_team_season_not_found_should_abort_with_404_error(fake_injector):
     # Arrange
+    fake_team_season_repository = Mock(TeamSeasonRepository)
     fake_team_season_repository.get_team_season.side_effect = IndexError()
+    fake_team_season_schedule_repository = Mock(TeamSeasonScheduleRepository)
+    fake_injector.get.side_effect = [fake_team_season_repository, fake_team_season_schedule_repository]
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(fake_team_season_repository, fake_team_season_schedule_repository, 1)
+        result = mod.details(1)
 
 
 @pytest.mark.skip('WIP')

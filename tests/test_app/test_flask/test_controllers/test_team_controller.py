@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 
@@ -8,6 +8,7 @@ from werkzeug.exceptions import NotFound
 import app.flask.team_controller as mod
 
 from app.data.models.team import Team
+from app.data.repositories.team_repository import TeamRepository
 from test_app import create_app
 
 
@@ -17,12 +18,17 @@ def test_app():
 
 
 @patch('app.flask.team_controller.render_template')
-@patch('app.flask.team_controller.TeamRepository')
-def test_index_should_render_team_index_template(fake_team_repository, fake_render_template):
+@patch('app.flask.team_controller.injector')
+def test_index_should_render_team_index_template(fake_injector, fake_render_template):
+    # Arrange
+    fake_team_repository = Mock(TeamRepository)
+    fake_injector.get.return_value = fake_team_repository
+
     # Act
-    result = mod.index(fake_team_repository)
+    result = mod.index()
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.get_teams.assert_called_once()
     fake_render_template.assert_called_once_with(
         'teams/index.html', teams=fake_team_repository.get_teams.return_value
@@ -30,20 +36,24 @@ def test_index_should_render_team_index_template(fake_team_repository, fake_rend
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.TeamRepository')
-@patch('app.flask.team_controller.DeleteTeamForm')
 @patch('app.flask.team_controller.render_template')
+@patch('app.flask.team_controller.injector')
+@patch('app.flask.team_controller.DeleteTeamForm')
 def test_details_when_team_found_should_render_team_details_template(
-        fake_render_template, fake_delete_team_form, fake_team_repository
+        fake_delete_team_form, fake_injector, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_team_repository = Mock(TeamRepository)
+    fake_injector.get.return_value = fake_team_repository
+
     # Act
-    result = mod.details(fake_team_repository, id)
+    result = mod.details(id)
 
     # Assert
     fake_delete_team_form.assert_called_once()
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.get_team.assert_called_once_with(id)
     fake_render_template.assert_called_once_with(
         'teams/details.html',
@@ -53,34 +63,39 @@ def test_details_when_team_found_should_render_team_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.DeleteTeamForm')
-def test_details_when_team_not_found_should_abort_with_404_error(
-        fake_delete_team_form, fake_team_repository
-):
+def test_details_when_team_not_found_should_abort_with_404_error(fake_delete_team_form, fake_injector):
     # Arrange
+    fake_team_repository = Mock(TeamRepository)
     fake_team_repository.get_team.side_effect = IndexError()
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(fake_team_repository, 1)
+        result = mod.details(1)
 
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_team_form, fake_team_repository, fake_flash, fake_render_template
+        fake_new_team_form, fake_injector, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = False
     fake_new_team_form.return_value.errors = None
 
+    fake_team_repository = Mock(TeamRepository)
+    fake_injector.get.return_value = fake_team_repository
+
     # Act
-    result = mod.create(fake_team_repository)
+    result = mod.create()
 
     # Assert
+    fake_injector.get.assert_not_called()
+    fake_team_repository.get_teams.assert_not_called()
     fake_flash.assert_not_called()
     fake_render_template('teams/create.html', form=fake_new_team_form.return_value)
     assert result is fake_render_template.return_value
@@ -88,10 +103,10 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_team_form, fake_team_repository, fake_flash, fake_render_template
+        fake_new_team_form, fake_injector, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = False
@@ -99,10 +114,15 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     errors = 'errors'
     fake_new_team_form.return_value.errors = errors
 
+    fake_team_repository = Mock(TeamRepository)
+    fake_injector.get.return_value = fake_team_repository
+
     # Act
-    result = mod.create(fake_team_repository)
+    result = mod.create()
 
     # Assert
+    fake_injector.get.assert_not_called()
+    fake_team_repository.get_teams.assert_not_called()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template('teams/create.html', form=fake_new_team_form.return_value)
     assert result is fake_render_template.return_value
@@ -111,12 +131,11 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.team_controller.redirect')
 @patch('app.flask.team_controller.url_for')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_team_index(
-        fake_new_team_form, fake_team_factory, fake_team_repository, fake_flash, fake_url_for,
-        fake_redirect
+        fake_new_team_form, fake_team_factory, fake_injector, fake_flash, fake_url_for, fake_redirect
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = True
@@ -128,11 +147,15 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     team = Team(**kwargs)
     fake_team_factory.create_team.return_value = team
 
+    fake_team_repository = Mock(TeamRepository)
+    fake_injector.get.return_value = fake_team_repository
+
     # Act
-    result = mod.create(fake_team_repository)
+    result = mod.create()
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.add_team.assert_called_once_with(team)
     fake_flash(f"Item {team.name} has been successfully submitted.", 'success')
     fake_url_for.assert_called_once_with('team.index')
@@ -142,11 +165,11 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_team_form, fake_team_factory, fake_team_repository, fake_flash, fake_render_template
+        fake_new_team_form, fake_team_factory, fake_injector, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = True
@@ -158,14 +181,17 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     team = Team(**kwargs)
     fake_team_factory.create_team.return_value = team
 
+    fake_team_repository = Mock(TeamRepository)
     err = ValueError()
     fake_team_repository.add_team.side_effect = err
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
-    result = mod.create(fake_team_repository)
+    result = mod.create()
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.add_team.assert_called_once_with(team)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
@@ -176,11 +202,11 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.NewTeamForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_team_form, fake_team_factory, fake_team_repository, fake_flash, fake_render_template
+        fake_new_team_form, fake_team_factory, fake_injector, fake_flash, fake_render_template
 ):
     # Arrange
     fake_new_team_form.return_value.validate_on_submit.return_value = True
@@ -192,14 +218,17 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     team = Team(**kwargs)
     fake_team_factory.create_team.return_value = team
 
+    fake_team_repository = Mock(TeamRepository)
     err = IntegrityError('statement', 'params', Exception())
     fake_team_repository.add_team.side_effect = err
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
-    result = mod.create(fake_team_repository)
+    result = mod.create()
 
     # Assert
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.add_team.assert_called_once_with(team)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
@@ -208,37 +237,51 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.team_controller.TeamRepository')
-def test_edit_when_team_not_found_should_abort_with_404_error(fake_team_repository):
+@patch('app.flask.team_controller.injector')
+def test_edit_when_team_not_found_should_abort_with_404_error(fake_injector):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     old_team = None
     fake_team_repository.get_team.return_value = old_team
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(fake_team_repository, 1)
+        result = mod.edit(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
 
 
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_team_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_team_repository, fake_edit_team_form, fake_flash, fake_render_template
+        fake_injector, fake_edit_team_form, fake_flash, fake_render_template
 ):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         name="Team"
     )
     fake_team_repository.get_team.return_value = old_team
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = False
     fake_edit_team_form.return_value.errors = None
 
     # Act
-    result = mod.edit(fake_team_repository, 1)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     assert fake_edit_team_form.return_value.name.data == old_team.name
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
@@ -250,25 +293,32 @@ def test_edit_when_team_found_and_form_not_submitted_and_no_form_errors_should_r
 @patch('app.flask.team_controller.render_template')
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_team_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_team_repository, fake_edit_team_form, fake_flash, fake_render_template
+        fake_injector, fake_edit_team_form, fake_flash, fake_render_template
 ):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         name="Team"
     )
     fake_team_repository.get_team.return_value = old_team
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = False
+    fake_edit_team_form.return_value.errors = None
 
     errors = 'errors'
     fake_edit_team_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(fake_team_repository, 1)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     assert fake_edit_team_form.return_value.name.data == old_team.name
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template.assert_called_once_with(
@@ -282,19 +332,20 @@ def test_edit_when_team_found_and_form_not_submitted_and_form_errors_should_flas
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_team_details(
-        fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash, fake_url_for,
-        fake_redirect
+        fake_injector, fake_edit_team_form, fake_team_factory, fake_flash, fake_url_for, fake_redirect
 ):
     # Arrange
     id = 1
 
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         id=id,
         name="Team 1"
     )
     fake_team_repository.get_team.return_value = old_team
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = True
     fake_edit_team_form.return_value.name.data = "Team 2"
@@ -307,9 +358,11 @@ def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_fla
     fake_team_factory.create_team.return_value = new_team
 
     # Act
-    result = mod.edit(fake_team_repository, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
     fake_team_repository.update_team.assert_called_once_with(new_team)
     fake_flash.assert_called_once_with(
@@ -324,19 +377,22 @@ def test_edit_when_team_found_and_form_submitted_and_no_errors_caught_should_fla
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_edit_team_form, fake_team_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         id=id,
         name="Team 1"
     )
     fake_team_repository.get_team.return_value = old_team
+    err = ValueError()
+    fake_team_repository.update_team.side_effect = err
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = True
     fake_edit_team_form.return_value.name.data = "Team 2"
@@ -348,15 +404,13 @@ def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_f
     new_team = Team(**kwargs)
     fake_team_factory.create_team.return_value = new_team
 
-    err = ValueError()
-    fake_team_repository.update_team.side_effect = err
-
     # Act
-    result = mod.edit(fake_team_repository, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
-    fake_team_repository.update_team.assert_called_once_with(new_team)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
         'teams/edit.html', team=old_team, form=fake_edit_team_form.return_value
@@ -368,18 +422,22 @@ def test_edit_when_team_found_and_form_submitted_and_value_error_caught_should_f
 @patch('app.flask.team_controller.flash')
 @patch('app.flask.team_controller.team_factory')
 @patch('app.flask.team_controller.EditTeamForm')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_team_repository, fake_edit_team_form, fake_team_factory, fake_flash, fake_render_template
+        fake_injector, fake_edit_team_form, fake_team_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         id=id,
         name="Team 1"
     )
     fake_team_repository.get_team.return_value = old_team
+    err = IntegrityError('statement', 'params', Exception())
+    fake_team_repository.update_team.side_effect = err
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = True
     fake_edit_team_form.return_value.name.data = "Team 2"
@@ -391,15 +449,13 @@ def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_shou
     new_team = Team(**kwargs)
     fake_team_factory.create_team.return_value = new_team
 
-    err = IntegrityError('statement', 'params', Exception())
-    fake_team_repository.update_team.side_effect = err
-
     # Act
-    result = mod.edit(fake_team_repository, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
-    fake_team_repository.update_team.assert_called_once_with(new_team)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
         'teams/edit.html', team=old_team, form=fake_edit_team_form.return_value
@@ -413,19 +469,21 @@ def test_edit_when_team_found_and_form_submitted_and_integrity_error_caught_shou
 @patch('app.flask.team_controller.EditTeamForm')
 @patch('app.flask.team_controller.url_for')
 @patch('app.flask.team_controller.redirect')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_team_repository, fake_redirect, fake_url_for, fake_edit_team_form, fake_team_factory, fake_flash,
+        fake_injector, fake_redirect, fake_url_for, fake_edit_team_form, fake_team_factory, fake_flash,
         fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_team_repository = Mock(TeamRepository)
     old_team = Team(
         id=id,
         name="Team 1"
     )
     fake_team_repository.get_team.return_value = old_team
+    fake_injector.get.return_value = fake_team_repository
 
     fake_edit_team_form.return_value.validate_on_submit.return_value = True
     fake_edit_team_form.return_value.name.data = "Team 2"
@@ -440,49 +498,59 @@ def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_a
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(fake_team_repository, 1)
+        result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
     fake_team_repository.get_team.assert_called_once_with(id)
     fake_edit_team_form.assert_called_once()
     fake_edit_team_form.return_value.validate_on_submit.assert_called_once()
     fake_team_factory.create_team.assert_called_once_with(**kwargs)
 
 
-@patch('app.flask.team_controller.TeamRepository')
-def test_delete_when_game_not_found_should_abort_with_404_error(
-        fake_team_repository, test_app
-):
+@patch('app.flask.team_controller.injector')
+def test_delete_when_game_not_found_should_abort_with_404_error(fake_injector, test_app):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     fake_team_repository.get_team.return_value = None
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
     with test_app.test_request_context(
-            '/teams/delete?id=1',
+            f'/teams/delete?id={id}',
             method='POST'
     ):
         with pytest.raises(NotFound):
-            result = mod.delete(fake_team_repository, 1)
+            result = mod.delete(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
 
 
 @patch('app.flask.team_controller.render_template')
-@patch('app.flask.team_controller.TeamRepository')
-def test_delete_when_request_method_is_get_should_render_delete_template(
-        fake_team_repository, fake_render_template, test_app
-):
+@patch('app.flask.team_controller.injector')
+def test_delete_when_request_method_is_get_should_render_delete_template(fake_injector, fake_render_template, test_app):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     team = Team()
     fake_team_repository.get_team.return_value = team
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
     with test_app.test_request_context(
-            '/teams/delete?id=1',
+            f'/teams/delete?id={id}',
             method='GET'
     ):
-        result = mod.delete(fake_team_repository, 1)
+        result = mod.delete(id)
 
     # Assert
-    fake_team_repository.get_team.assert_called_once_with(1)
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     fake_render_template.assert_called_once_with('teams/delete.html', team=team)
     assert result is fake_render_template.return_value
 
@@ -490,23 +558,28 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.team_controller.redirect')
 @patch('app.flask.team_controller.url_for')
 @patch('app.flask.team_controller.flash')
-@patch('app.flask.team_controller.TeamRepository')
+@patch('app.flask.team_controller.injector')
 def test_delete_when_request_method_is_post_and_team_found_should_flash_success_message_and_redirect_to_teams_index(
-        fake_team_repository, fake_flash, fake_url_for, fake_redirect, test_app
+        fake_injector, fake_flash, fake_url_for, fake_redirect, test_app
 ):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     team = Team()
     fake_team_repository.get_team.return_value = team
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
-    id = 1
     with test_app.test_request_context(
-            '/teams/delete?id=1',
+            f'/teams/delete?id={id}',
             method='POST'
     ):
-        result = mod.delete(fake_team_repository, id)
+        result = mod.delete(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)
     fake_team_repository.delete_team.assert_called_once_with(id)
     fake_flash.assert_called_once_with(f"Team {team.name} has been successfully deleted.", 'success')
     fake_url_for.assert_called_once_with('team.index')
@@ -514,19 +587,25 @@ def test_delete_when_request_method_is_post_and_team_found_should_flash_success_
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.team_controller.TeamRepository')
-def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with_404_error(
-        fake_team_repository, test_app
-):
+@patch('app.flask.team_controller.injector')
+def test_delete_when_request_method_is_post_and_team_not_found_should_abort_with_404_error(fake_injector, test_app):
     # Arrange
+    id = 1
+
+    fake_team_repository = Mock(TeamRepository)
     team = Team()
     fake_team_repository.get_team.return_value = team
     fake_team_repository.delete_team.side_effect = IndexError()
+    fake_injector.get.return_value = fake_team_repository
 
     # Act
     with test_app.test_request_context(
-            '/teams/delete?id=1',
+            f'/teams/delete?id={id}',
             method='POST'
     ):
         with pytest.raises(NotFound):
-            result = mod.delete(fake_team_repository, 1)
+            result = mod.delete(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(TeamRepository)
+    fake_team_repository.get_team.assert_called_once_with(id)

@@ -1,19 +1,17 @@
 from flask import Blueprint, render_template, flash, request, session
-from injector import inject
 
-# from app import injector
+from app import injector
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.game_predictor_service.game_predictor_service import GamePredictorService
 
 blueprint = Blueprint('game_predictor', __name__)
 
-# team_season_repository = injector.get(TeamSeasonRepository)
-
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
+
     session['guest_seasons'] = season_repository.get_seasons()
     session['selected_guest_year'] = None
 
@@ -36,10 +34,10 @@ def index(season_repository: SeasonRepository) -> str:
 
 
 @blueprint.route('/select_guest_season', methods=['POST'])
-@inject
-def select_guest_season(team_season_repository: TeamSeasonRepository) -> str:
+def select_guest_season() -> str:
     session['selected_guest_year'] = int(request.form.get('guest_season_dropdown'))  # Fetch the selected guest season.
 
+    team_season_repository = injector.get(TeamSeasonRepository)
     selected_guest_year = session.get('selected_guest_year')
     session['guests'] = team_season_repository.get_team_seasons_by_season_year(season_year=selected_guest_year)
     return render_template(
@@ -64,10 +62,10 @@ def select_guest():
 
 
 @blueprint.route('/select_host_season', methods=['POST'])
-@inject
-def select_host_season(team_season_repository: TeamSeasonRepository) -> str:
+def select_host_season() -> str:
     session['selected_host_year'] = int(request.form.get('host_season_dropdown'))  # Fetch the selected host season.
 
+    team_season_repository = injector.get(TeamSeasonRepository)
     selected_host_year = session.get('selected_host_year')
     session['hosts'] = team_season_repository.get_team_seasons_by_season_year(season_year=selected_host_year)
     return render_template(
@@ -91,10 +89,8 @@ def select_host():
     )
 
 
-
 @blueprint.route('/predict_game')
-@inject
-def predict_game(game_predictor_service: GamePredictorService) -> str:
+def predict_game() -> str:
     guest_seasons = session.get('guest_seasons')
     selected_guest_year = session.get('selected_guest_year')
     guests = session.get('guests')
@@ -114,7 +110,7 @@ def predict_game(game_predictor_service: GamePredictorService) -> str:
     if selected_host_name is None:
         return _handle_error(message="Please select one host name.")
 
-    # game_predictor_service = injector.get(GamePredictorService)
+    game_predictor_service = injector.get(GamePredictorService)
     try:
         guest_score, host_score = game_predictor_service.predict_game_score(
             selected_guest_name, selected_guest_year, selected_host_name, selected_host_year

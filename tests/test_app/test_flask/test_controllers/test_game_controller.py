@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock, call
 
 import pytest
 from flask import session
@@ -10,6 +10,9 @@ import app.flask.game_controller as mod
 
 from app.data.models.season import Season
 from app.data.models.game import Game
+from app.data.repositories.game_repository import GameRepository
+from app.data.repositories.season_repository import SeasonRepository
+from app.services.game_service.game_service import GameService
 
 from test_app import create_app
 
@@ -20,47 +23,61 @@ def test_app():
 
 
 @patch('app.flask.game_controller.render_template')
-@patch('app.flask.game_controller.GameRepository')
-@patch('app.flask.game_controller.SeasonRepository')
-def test_index_should_render_game_index_template(
-        fake_season_repository, fake_game_repository, fake_render_template, test_app
-):
-    # Arrange & Act
+@patch('app.flask.game_controller.injector')
+def test_index_should_render_game_index_template(fake_injector, fake_render_template, test_app):
+    # Arrange
+    fake_season_repository = Mock(SeasonRepository)
+    fake_game_repository = Mock(GameRepository)
+    fake_injector.get.side_effect = [fake_season_repository, fake_game_repository]
+
+    seasons = []
+    selected_season = 1
+    selected_week = 1
+
     with test_app.test_request_context(
             '/games/',
             method='GET'
     ):
-        session['seasons'] = []
-        session['selected_season'] = 1
-        session['selected_week'] = 1
+        # Act
+        session['seasons'] = seasons
+        session['selected_season'] = selected_season
+        session['selected_week'] = selected_week
 
-        result = mod.index(fake_season_repository, fake_game_repository)
+        result = mod.index()
 
         # Assert
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(GameRepository),
+        ])
         fake_season_repository.get_seasons.assert_called_once()
         fake_game_repository.get_games_by_season_year.assert_called_once_with(season_year=None)
         fake_render_template.assert_called_once_with(
             'games/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_season=session.get('selected_season'),
-            selected_week=session.get('selected_week'), games=fake_game_repository.get_games_by_season_year.return_value
+            seasons=fake_season_repository.get_seasons.return_value, selected_season=selected_season,
+            selected_week=selected_week, games=fake_game_repository.get_games_by_season_year.return_value
         )
         assert result is fake_render_template.return_value
 
 
-@patch('app.flask.game_controller.GameRepository')
-@patch('app.flask.game_controller.DeleteGameForm')
 @patch('app.flask.game_controller.render_template')
+@patch('app.flask.game_controller.injector')
+@patch('app.flask.game_controller.DeleteGameForm')
 def test_details_when_game_found_should_render_game_details_template(
-        fake_render_template, fake_delete_game_form, fake_game_repository
+        fake_delete_game_form, fake_injector, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_game_repository = Mock(GameRepository)
+    fake_injector.get.return_value = fake_game_repository
+
     # Act
-    result = mod.details(fake_game_repository, id)
+    result = mod.details(id)
 
     # Assert
     fake_delete_game_form.assert_called_once()
+    fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once_with(id)
     fake_render_template.assert_called_once_with(
         'games/details.html',
@@ -70,27 +87,32 @@ def test_details_when_game_found_should_render_game_details_template(
     assert result == fake_render_template.return_value
 
 
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.DeleteGameForm')
-def test_details_when_game_not_found_should_abort_with_404_error(fake_delete_game_form, fake_game_repository):
+def test_details_when_game_not_found_should_abort_with_404_error(fake_delete_game_form, fake_injector):
     # Arrange
+    fake_game_repository = Mock(GameRepository)
     fake_game_repository.get_game.side_effect = IndexError()
+    fake_injector.get.return_value = fake_game_repository
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(fake_game_repository, 1)
+        result = mod.details(1)
 
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_not_submitted_and_selected_season_year_is_less_than_1920_and_no_form_errors_should_render_create_template(
-        fake_new_game_form, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = False
     fake_new_game_form.return_value.errors = None
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.return_value = fake_game_service
 
     # Act
     with test_app.test_request_context(
@@ -98,12 +120,14 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_less_than_19
             method='GET'
     ):
         session['selected_season'] = Season(year=1919)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     assert fake_new_game_form.return_value.season_year.data == 0
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_injector.get.assert_not_called()
+    fake_game_service.add_game.assert_not_called()
     fake_flash.assert_not_called()
     fake_render_template('games/create.html', form=fake_new_game_form.return_value)
     assert result is fake_render_template.return_value
@@ -111,14 +135,17 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_less_than_19
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_not_submitted_and_selected_season_year_is_equal_to_1920_and_no_form_errors_should_render_create_template(
-        fake_new_game_form, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = False
     fake_new_game_form.return_value.errors = None
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.return_value = fake_game_service
 
     # Act
     with test_app.test_request_context(
@@ -126,12 +153,14 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_equal_to_192
             method='GET'
     ):
         session['selected_season'] = Season(year=1920)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     assert fake_new_game_form.return_value.season_year.data == 1920
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_injector.get.assert_not_called()
+    fake_game_service.add_game.assert_not_called()
     fake_flash.assert_not_called()
     fake_render_template('games/create.html', form=fake_new_game_form.return_value)
     assert result is fake_render_template.return_value
@@ -139,14 +168,17 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_equal_to_192
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_not_submitted_and_selected_season_year_is_greater_than_1920_and_no_form_errors_should_render_create_template(
-        fake_new_game_form, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = False
     fake_new_game_form.return_value.errors = None
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.return_value = fake_game_service
 
     # Act
     with test_app.test_request_context(
@@ -154,12 +186,14 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_greater_than
             method='GET'
     ):
         session['selected_season'] = Season(year=1921)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     assert fake_new_game_form.return_value.season_year.data == 1921
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_injector.get.assert_not_called()
+    fake_game_service.add_game.assert_not_called()
     fake_flash.assert_not_called()
     fake_render_template('games/create.html', form=fake_new_game_form.return_value)
     assert result is fake_render_template.return_value
@@ -167,10 +201,10 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_greater_than
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_game_form, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = False
@@ -178,17 +212,22 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     errors = 'errors'
     fake_new_game_form.return_value.errors = errors
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.return_value = fake_game_service
+
     # Act
     with test_app.test_request_context(
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=1920)
-        result = mod.create(fake_game_service)
+        session['selected_season'] = Season(year=1921)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_injector.get.assert_not_called()
+    fake_game_service.add_game.assert_not_called()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template('games/create.html', form=fake_new_game_form.return_value)
     assert result is fake_render_template.return_value
@@ -197,11 +236,11 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.game_controller.url_for')
 @patch('app.flask.game_controller.redirect')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_game_index(
-        fake_new_game_form, fake_game_factory, fake_game_service, fake_flash, fake_redirect, fake_url_for, test_app
+        fake_new_game_form, fake_game_factory, fake_injector, fake_flash, fake_redirect, fake_url_for, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = True
@@ -225,18 +264,22 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
         'notes': None,
     }
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.return_value = fake_game_service
+
     # Act
     with test_app.test_request_context(
             '/games/create',
             method='GET'
     ):
         session['selected_season'] = Season(year=0)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(GameService)
     fake_game_service.add_game.assert_called_once_with(fake_game_factory.create_game.return_value)
     fake_flash(f"Game for season={kwargs['season_year']} with guest={kwargs['guest_name']} and host={kwargs['host_name']} has been successfully submitted.", 'success')
     fake_url_for.assert_called_once_with('game.index')
@@ -246,11 +289,11 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_game_form, fake_game_factory, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_game_factory, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = True
@@ -274,8 +317,10 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
         'notes': None,
     }
 
+    fake_game_service = Mock(GameService)
     err = ValueError()
     fake_game_service.add_game.side_effect = err
+    fake_injector.get.return_value = fake_game_service
 
     # Act
     with test_app.test_request_context(
@@ -283,12 +328,14 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
             method='GET'
     ):
         session['selected_season'] = Season(year=0)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(GameService)
+    fake_game_service.add_game.assert_called_once_with(fake_game_factory.create_game.return_value)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
         'games/create.html', game=None, form=fake_new_game_form.return_value
@@ -298,11 +345,11 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
+@patch('app.flask.game_controller.injector')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.NewGameForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_game_form, fake_game_factory, fake_game_service, fake_flash, fake_render_template, test_app
+        fake_new_game_form, fake_game_factory, fake_injector, fake_flash, fake_render_template, test_app
 ):
     # Arrange
     fake_new_game_form.return_value.validate_on_submit.return_value = True
@@ -326,8 +373,10 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
         'notes': None,
     }
 
+    fake_game_service = Mock(GameService)
     err = IntegrityError('statement', 'params', Exception())
     fake_game_service.add_game.side_effect = err
+    fake_injector.get.return_value = fake_game_service
 
     # Act
     with test_app.test_request_context(
@@ -335,12 +384,14 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
             method='GET'
     ):
         session['selected_season'] = Season(year=0)
-        result = mod.create(fake_game_service)
+        result = mod.create()
 
     # Assert
     fake_new_game_form.assert_called_once()
     fake_new_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(GameService)
+    fake_game_service.add_game.assert_called_once_with(fake_game_factory.create_game.return_value)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
         'games/create.html', game=None, form=fake_new_game_form.return_value
@@ -348,30 +399,35 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
-def test_edit_when_game_not_found_should_abort_with_404_error(fake_game_repository, fake_game_service):
+@patch('app.flask.game_controller.injector')
+def test_edit_when_game_not_found_should_abort_with_404_error(fake_injector):
     # Arrange
+    fake_game_repository = Mock(GameRepository)
     game = None
     fake_game_repository.get_game.return_value = game
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
+
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(fake_game_repository, fake_game_service, 1)
+        result = mod.edit(1)
 
     # Assert
+    fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
+    fake_game_service.update_game.assert_not_called()
 
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.EditGameForm')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_game_repository, fake_game_service, fake_edit_game_form, fake_flash, fake_render_template
+        fake_injector, fake_edit_game_form, fake_flash, fake_render_template
 ):
     # Arrange
+    fake_game_repository = Mock(GameRepository)
     game = Game(
         season_year=1,
         week=1,
@@ -384,16 +440,21 @@ def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_r
     )
     fake_game_repository.get_game.return_value = game
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
+
     fake_edit_game_form.return_value.validate_on_submit.return_value = False
     fake_edit_game_form.return_value.errors = None
 
     # Act
-    result = mod.edit(fake_game_repository, fake_game_service, 1)
+    result = mod.edit(1)
 
     # Assert
+    fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_game_service.update_game.assert_not_called()
     assert fake_edit_game_form.return_value.season_year.data == game.season_year
     assert fake_edit_game_form.return_value.week.data == game.week
     assert fake_edit_game_form.return_value.guest_name.data == game.guest_name
@@ -412,12 +473,12 @@ def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_r
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.EditGameForm')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_game_repository, fake_game_service, fake_edit_game_form, fake_flash, fake_render_template
+        fake_injector, fake_edit_game_form, fake_flash, fake_render_template
 ):
     # Arrange
+    fake_game_repository = Mock(GameRepository)
     game = Game(
         season_year=1,
         week=1,
@@ -430,6 +491,9 @@ def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flas
     )
     fake_game_repository.get_game.return_value = game
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
+
     fake_edit_game_form.return_value.validate_on_submit.return_value = False
     fake_edit_game_form.return_value.errors = None
 
@@ -437,12 +501,14 @@ def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flas
     fake_edit_game_form.return_value.errors = errors
 
     # Act
-    result = mod.edit(fake_game_repository, fake_game_service, 1)
+    result = mod.edit(1)
 
     # Assert
+    fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
+    fake_game_service.update_game.assert_not_called()
     assert fake_edit_game_form.return_value.season_year.data == game.season_year
     assert fake_edit_game_form.return_value.week.data == game.week
     assert fake_edit_game_form.return_value.guest_name.data == game.guest_name
@@ -463,15 +529,14 @@ def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flas
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_game_details(
-        fake_game_repository, fake_game_service, fake_edit_game_form, fake_game_factory, fake_flash, fake_redirect,
-        fake_url_for
+        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_redirect, fake_url_for
 ):
     # Arrange
     id = 1
 
+    fake_game_repository = Mock(GameRepository)
     old_game = Game(
         id=id,
         season_year=1,
@@ -484,6 +549,9 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
         notes=None
     )
     fake_game_repository.get_game.return_value = old_game
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     fake_edit_game_form.return_value.validate_on_submit.return_value = True
     fake_edit_game_form.return_value.season_year.data = 2
@@ -508,9 +576,13 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
     }
 
     # Act
-    result = mod.edit(fake_game_repository, fake_game_service, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
     fake_game_repository.get_game.assert_called_once()
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
@@ -529,15 +601,14 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_game_repository, fake_game_service, fake_edit_game_form, fake_game_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_game_repository = Mock(GameRepository)
     old_game = Game(
         id=id,
         season_year=1,
@@ -550,6 +621,9 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
         notes=None
     )
     fake_game_repository.get_game.return_value = old_game
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     fake_edit_game_form.return_value.validate_on_submit.return_value = True
     fake_edit_game_form.return_value.season_year.data = 2
@@ -577,9 +651,13 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
     fake_game_service.update_game.side_effect = err
 
     # Act
-    result = mod.edit(fake_game_repository, fake_game_service, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
     fake_game_repository.get_game.assert_called_once()
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
@@ -595,15 +673,14 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_game_repository, fake_game_service, fake_edit_game_form, fake_game_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_game_repository = Mock(GameRepository)
     old_game = Game(
         id=id,
         season_year=1,
@@ -616,6 +693,11 @@ def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_shou
         notes=None
     )
     fake_game_repository.get_game.return_value = old_game
+
+    fake_game_service = Mock(GameService)
+    err = IntegrityError('statement', 'params', Exception())
+    fake_game_service.update_game.side_effect = err
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     fake_edit_game_form.return_value.validate_on_submit.return_value = True
     fake_edit_game_form.return_value.season_year.data = 2
@@ -639,13 +721,14 @@ def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_shou
         'notes': "Notes",
     }
 
-    err = IntegrityError('statement', 'params', Exception())
-    fake_game_service.update_game.side_effect = err
-
     # Act
-    result = mod.edit(fake_game_repository, fake_game_service, id)
+    result = mod.edit(id)
 
     # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
     fake_game_repository.get_game.assert_called_once()
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
@@ -663,15 +746,15 @@ def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_shou
 @patch('app.flask.game_controller.EditGameForm')
 @patch('app.flask.game_controller.url_for')
 @patch('app.flask.game_controller.redirect')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_game_repository, fake_game_service, fake_redirect, fake_url_for, fake_edit_game_form, fake_game_factory,
-        fake_flash, fake_render_template
+        fake_injector, fake_redirect, fake_url_for, fake_edit_game_form, fake_game_factory, fake_flash,
+        fake_render_template
 ):
     # Arrange
     id = 1
 
+    fake_game_repository = Mock(GameRepository)
     old_game = Game(
         id=id,
         season_year=1,
@@ -684,6 +767,9 @@ def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_a
         notes=None
     )
     fake_game_repository.get_game.return_value = old_game
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     fake_edit_game_form.return_value.validate_on_submit.return_value = True
     fake_edit_game_form.return_value.season_year.data = 2
@@ -712,39 +798,51 @@ def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_a
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.edit(fake_game_repository, fake_game_service, 1)
+        result = mod.edit(1)
 
     # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
     fake_game_repository.get_game.assert_called_once_with(id)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
 
 
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
-def test_delete_when_game_not_found_should_abort_with_404_error(
-        fake_game_repository, fake_game_service, test_app
-):
+@patch('app.flask.game_controller.injector')
+def test_delete_when_game_not_found_should_abort_with_404_error(fake_injector, test_app):
     # Arrange
+    id = 1
+
+    fake_game_repository = Mock(GameRepository)
     fake_game_repository.get_game.return_value = None
+
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     # Act
     with test_app.test_request_context(
-            '/games/delete?id=1',
+            f'/games/delete?id={id}',
             method='POST'
     ):
         with pytest.raises(NotFound):
-            result = mod.delete(fake_game_repository, fake_game_service, 1)
+            result = mod.delete(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(GameRepository)
+    fake_game_repository.get_game.assert_called_once_with(id)
+    fake_game_service.delete_game.assert_not_called()
 
 
 @patch('app.flask.game_controller.render_template')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
-def test_delete_when_request_method_is_get_should_render_delete_template(
-        fake_game_repository, fake_game_service, fake_render_template, test_app
-):
+@patch('app.flask.game_controller.injector')
+def test_delete_when_request_method_is_get_should_render_delete_template(fake_injector, fake_render_template, test_app):
     # Arrange
+    id = 1
+
+    fake_game_repository = Mock(GameRepository)
     game = Game(
         season_year=1,
         week=1,
@@ -755,17 +853,20 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
     )
     fake_game_repository.get_game.return_value = game
 
-    id = 1
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     # Act
     with test_app.test_request_context(
-            '/games/delete?id=1',
+            f'/games/delete?id={id}',
             method='GET'
     ):
-        result = mod.delete(fake_game_repository, fake_game_service, id)
+        result = mod.delete(id)
 
     # Assert
+    fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once_with(id)
+    fake_game_service.delete_game.assert_not_called()
     fake_render_template.assert_called_once_with('games/delete.html', game=game)
     assert result is fake_render_template.return_value
 
@@ -773,12 +874,14 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
 @patch('app.flask.game_controller.redirect')
 @patch('app.flask.game_controller.url_for')
 @patch('app.flask.game_controller.flash')
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_delete_when_request_method_is_post_and_game_found_should_delete_game_and_flash_success_message_and_redirect_to_games_index(
-        fake_game_repository, fake_game_service, fake_flash, fake_url_for, fake_redirect, test_app
+        fake_injector, fake_flash, fake_url_for, fake_redirect, test_app
 ):
     # Arrange
+    id = 1
+
+    fake_game_repository = Mock(GameRepository)
     game = Game(
         season_year=1,
         week=1,
@@ -789,15 +892,21 @@ def test_delete_when_request_method_is_post_and_game_found_should_delete_game_an
     )
     fake_game_repository.get_game.return_value = game
 
+    fake_game_service = Mock(GameService)
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
+
     # Act
-    id = 1
     with test_app.test_request_context(
             '/games/delete?id=1',
             method='POST'
     ):
-        result = mod.delete(fake_game_repository, fake_game_service, id)
+        result = mod.delete(id)
 
     # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
     fake_game_repository.get_game.assert_called_once_with(id)
     fake_game_service.delete_game.assert_called_once_with(id)
     fake_flash.assert_called_once_with(
@@ -809,12 +918,14 @@ def test_delete_when_request_method_is_post_and_game_found_should_delete_game_an
     assert result is fake_redirect.return_value
 
 
-@patch('app.flask.game_controller.GameService')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abort_with_404_error(
-        fake_game_repository, fake_game_service, test_app
+        fake_injector, test_app
 ):
     # Arrange
+    id = 1
+
+    fake_game_repository = Mock(GameRepository)
     game = Game(
         season_year=1,
         week=1,
@@ -824,37 +935,57 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
         host_score=3
     )
     fake_game_repository.get_game.return_value = game
+
+    fake_game_service = Mock(GameService)
     fake_game_service.delete_game.side_effect = IndexError()
+
+    fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
 
     # Act
     with test_app.test_request_context(
-            '/games/delete?id=1',
+            f'/games/delete?id={id}',
             method='POST'
     ):
         with pytest.raises(NotFound):
-            result = mod.delete(fake_game_repository, fake_game_service, 1)
+            result = mod.delete(id)
+
+    # Assert
+    fake_injector.get.assert_has_calls([
+        call(GameRepository),
+        call(GameService),
+    ])
+    fake_game_repository.get_game.assert_called_once_with(id)
+    fake_game_service.delete_game.assert_called_once_with(id)
 
 
 @pytest.mark.skip('WIP')
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.GameRepository')
-@patch('app.flask.game_controller.SeasonRepository')
+@patch('app.flask.game_controller.injector')
 def test_select_season_should_render_game_index_template_for_selected_season(
-        fake_season_repository, fake_game_repository, fake_render_template, test_app
+        fake_injector, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/season_standings/select_season',
             method='POST'
     ):
         # Arrange
+        fake_season_repository = Mock(SeasonRepository)
+        fake_game_repository = Mock(GameRepository)
+        fake_injector.get.side_effect = [fake_season_repository, fake_game_repository]
+
         # session['selected_season'] = Season(year=0)
         fake_request.form.return_value.get.return_value = Season(year=0)
 
         # Act
-        result = mod.select_season(fake_season_repository, fake_game_repository)
+        result = mod.select_season()
 
         # Assert
-        fake_request.form.get.assert_called_once_with('season_dropdown')    # Fetch the selected season.
+        fake_request.form.get.assert_called_once_with('season_dropdown')
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(GameRepository),
+        ])
         fake_season_repository.get_season_by_year.assert_called_once_with(
             fake_request.form.get.return_value
         )
@@ -863,7 +994,7 @@ def test_select_season_should_render_game_index_template_for_selected_season(
         )
         fake_render_template.assert_called_once_with(
             'games/index.html',
-            seasons=session.get('seasons'), selected_season=session.get('selected_season'),
+            seasons=session.get('seasons'), selected_season=fake_season_repository.get_season_by_year.return_value,
             selected_week=session.get('selected_week'), games=games
         )
         assert result is fake_render_template.return_value
@@ -871,27 +1002,36 @@ def test_select_season_should_render_game_index_template_for_selected_season(
 
 @pytest.mark.skip('WIP')
 @patch('app.flask.game_controller.render_template')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.injector')
 def test_select_week_should_render_game_index_template_for_selected_season_and_selected_week(
-        fake_game_repository, fake_render_template, test_app
+        fake_injector, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/season_standings/select_season',
             method='POST'
     ):
         # Arrange
+        fake_game_repository = Mock(GameRepository)
+        fake_injector.get.return_value = fake_game_repository
+
         selected_year = 0
 
         # Act
-        result = mod.select_season(fake_game_repository)
+        result = mod.select_week()
 
     # Assert
     fake_request.form.get.assert_called_once_with('week_dropdown')  # Fetch the selected week.
-    games = fake_game_repository.get_games_by_season_year_and_week.assert_called_once_with(
+    fake_injector.get.assert_called_once_with(GameRepository)
+
+    selected_season = session.get('selected_season')
+    selected_week = session.get('selected_week')
+    fake_game_repository.get_games_by_season_year_and_week.assert_called_once_with(
         season_year=selected_season.year, week=selected_week
     )
+
     fake_render_template.assert_called_once_with(
         'games/index.html',
-        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
+        seasons=session.get('seasons'), selected_season=selected_season, selected_week=selected_week,
+        games=fake_game_repository.get_games_by_season_year_and_week.return_value
     )
     assert result is fake_render_template.return_value

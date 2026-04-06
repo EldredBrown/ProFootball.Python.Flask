@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, session
 from injector import inject
 
+from app import injector
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.season_standings_repository import SeasonStandingsRepository
 
@@ -8,8 +9,8 @@ blueprint = Blueprint('season_standings', __name__)
 
 
 @blueprint.route('/')
-@inject
-def index(season_repository: SeasonRepository) -> str:
+def index() -> str:
+    season_repository = injector.get(SeasonRepository)
     session['seasons'] = season_repository.get_seasons()
 
     season_standings = []
