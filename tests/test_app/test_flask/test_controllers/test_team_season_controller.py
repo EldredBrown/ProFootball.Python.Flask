@@ -6,6 +6,7 @@ from flask import session
 from werkzeug.exceptions import NotFound
 
 import app.flask.team_season_controller as mod
+from app.data.models.season import Season
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
@@ -22,22 +23,22 @@ def test_app():
 @patch('app.flask.team_season_controller.render_template')
 @patch('app.flask.team_season_controller.injector')
 def test_index_should_render_team_season_index_template(fake_injector, fake_render_template, test_app):
-    # Arrange
     with test_app.test_request_context(
             '/team_seasons/',
             method='GET'
     ):
+        # Arrange
         fake_season_repository = Mock(SeasonRepository)
+        fake_season_repository.get_seasons.return_value = [
+            Season(year=1920),
+            Season(year=1921),
+            Season(year=1922),
+        ]
         fake_injector.get.return_value = fake_season_repository
 
-        # mod.selected_year = 1
-        seasons = []
-        selected_year = None
-        team_seasons = []
+        session['seasons'] = []
 
-        session['seasons'] = seasons
-        session['selected_year'] = selected_year
-        session['team_seasons'] = team_seasons
+        selected_year = 0
 
         # Act
         result = mod.index()
@@ -45,10 +46,15 @@ def test_index_should_render_team_season_index_template(fake_injector, fake_rend
         # Assert
         fake_injector.get.assert_called_once_with(SeasonRepository)
         fake_season_repository.get_seasons.assert_called_once()
+
+        seasons = [s.to_dict() for s in fake_season_repository.get_seasons.return_value]
+        assert session.get('seasons') == seasons
+
+        assert session.get('selected_year') == selected_year
+
         fake_render_template.assert_called_once_with(
             'team_seasons/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_year=selected_year,
-            team_seasons=team_seasons
+            seasons=seasons, selected_year=selected_year, team_seasons=[]
         )
         assert result is fake_render_template.return_value
 
@@ -109,14 +115,34 @@ def test_details_when_team_season_not_found_should_abort_with_404_error(fake_inj
 
 
 @pytest.mark.skip('WIP')
-def test_select_season_should_render_team_season_index_template_for_selected_year(test_app):
+@patch('app.flask.team_season_controller.render_template')
+@patch('app.flask.team_season_controller.injector')
+@patch('app.flask.team_season_controller.request')
+def test_select_season_should_render_team_season_index_template_for_selected_year(
+        fake_request, fake_injector, fake_render_template, test_app
+):
     with test_app.test_request_context(
             '/team_seasons/select_season',
             method='POST'
-    ):
+    ) as context:
         # Arrange
+        fake_team_season_repository = Mock(TeamSeasonRepository)
+        fake_injector.get.return_value = fake_team_season_repository
 
         # Act
         result = mod.select_season()
 
-    # Assert
+        # Assert
+        fake_request.form.get.assert_called_once_with('season_dropdown')
+
+        fake_injector.get.assert_called_once_with(TeamSeasonRepository)
+
+        selected_year = int(fake_request.form.get.return_value)
+        fake_team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year=selected_year)
+
+        fake_render_template.assert_called_once_with(
+            'team_seasons/index.html',
+            seasons=session.get('seasons'), selected_year=selected_year,
+            team_seasons=fake_team_season_repository.get_team_seasons_by_season_year.return_value
+        )
+        assert result is fake_render_template.return_value

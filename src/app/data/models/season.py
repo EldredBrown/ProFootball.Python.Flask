@@ -26,6 +26,14 @@ class Season(sqla.Model):
 
     games = sqla.relationship('Game', lazy=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'year': self.year,
+            'num_of_weeks_scheduled': self.num_of_weeks_scheduled,
+            'num_of_weeks_completed': self.num_of_weeks_completed,
+        }
+
     @validates('year')
     def validate_not_empty(self, key, value):
         if not value and value != 0:

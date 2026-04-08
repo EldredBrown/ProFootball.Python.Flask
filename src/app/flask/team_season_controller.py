@@ -11,11 +11,18 @@ blueprint = Blueprint('team_season', __name__)
 @blueprint.route('/')
 def index() -> str:
     season_repository = injector.get(SeasonRepository)
-    session['seasons'] = season_repository.get_seasons()
+
+    seasons = [s.to_dict() for s in season_repository.get_seasons()]
+    session['seasons'] = seasons
+
+    selected_year = 0
+    session['selected_year'] = selected_year
+
+    team_seasons = []
+
     return render_template(
         'team_seasons/index.html',
-        seasons=session.get('seasons'), selected_year=session.get('selected_year'),
-        team_seasons=session.get('team_seasons')
+        seasons=seasons, selected_year=selected_year, team_seasons=team_seasons
     )
 
 
@@ -50,10 +57,10 @@ def details(id: int) -> str:
 @blueprint.route('/select_season', methods=['POST'])
 def select_season() -> str:
     selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    session['selected_year'] = selected_year
+
     team_season_repository = injector.get(TeamSeasonRepository)
     team_seasons = team_season_repository.get_team_seasons_by_season_year(season_year=selected_year)
-    session['team_seasons'] = team_seasons
+
     return render_template(
         'team_seasons/index.html',
         seasons=session.get('seasons'), selected_year=selected_year, team_seasons=team_seasons

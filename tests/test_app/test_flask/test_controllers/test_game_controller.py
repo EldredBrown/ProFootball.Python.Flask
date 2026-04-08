@@ -27,22 +27,24 @@ def test_app():
 def test_index_should_render_game_index_template(fake_injector, fake_render_template, test_app):
     # Arrange
     fake_season_repository = Mock(SeasonRepository)
+    seasons = []
+    fake_season_repository.get_seasons.return_value = seasons
+
     fake_game_repository = Mock(GameRepository)
+    games = []
+    fake_game_repository.get_games_by_season_year.return_value = games
+
     fake_injector.get.side_effect = [fake_season_repository, fake_game_repository]
 
-    seasons = []
-    selected_season = 1
-    selected_week = 1
+    selected_year = 0
+    selected_season = {'id': None, 'year': selected_year, 'num_of_weeks_scheduled': 0, 'num_of_weeks_completed': 0}
+    selected_week = 0
 
     with test_app.test_request_context(
             '/games/',
             method='GET'
     ):
         # Act
-        session['seasons'] = seasons
-        session['selected_season'] = selected_season
-        session['selected_week'] = selected_week
-
         result = mod.index()
 
         # Assert
@@ -52,10 +54,16 @@ def test_index_should_render_game_index_template(fake_injector, fake_render_temp
         ])
         fake_season_repository.get_seasons.assert_called_once()
         fake_game_repository.get_games_by_season_year.assert_called_once_with(season_year=None)
+
+        assert session.get('seasons') == seasons
+        assert session.get('selected_year') == selected_year
+        assert session.get('selected_season') == selected_season
+        assert session.get('selected_week') == selected_week
+        assert session.get('games') == games
+
         fake_render_template.assert_called_once_with(
             'games/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_season=selected_season,
-            selected_week=selected_week, games=fake_game_repository.get_games_by_season_year.return_value
+            seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
         )
         assert result is fake_render_template.return_value
 
@@ -119,7 +127,7 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_less_than_19
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=1919)
+        session['selected_season'] = Season(year=1919).to_dict()
         result = mod.create()
 
     # Assert
@@ -152,7 +160,7 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_equal_to_192
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=1920)
+        session['selected_season'] = Season(year=1920).to_dict()
         result = mod.create()
 
     # Assert
@@ -185,7 +193,7 @@ def test_create_when_form_not_submitted_and_selected_season_year_is_greater_than
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=1921)
+        session['selected_season'] = Season(year=1921).to_dict()
         result = mod.create()
 
     # Assert
@@ -220,7 +228,7 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=1921)
+        session['selected_season'] = Season(year=1921).to_dict()
         result = mod.create()
 
     # Assert
@@ -272,7 +280,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=0)
+        session['selected_season'] = Season(year=0).to_dict()
         result = mod.create()
 
     # Assert
@@ -327,7 +335,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=0)
+        session['selected_season'] = Season(year=0).to_dict()
         result = mod.create()
 
     # Assert
@@ -383,7 +391,7 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
             '/games/create',
             method='GET'
     ):
-        session['selected_season'] = Season(year=0)
+        session['selected_season'] = Season(year=0).to_dict()
         result = mod.create()
 
     # Assert
@@ -960,10 +968,10 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
 
 @pytest.mark.skip('WIP')
 @patch('app.flask.game_controller.render_template')
-@patch('app.flask.game_controller.GameRepository')
+@patch('app.flask.game_controller.request')
 @patch('app.flask.game_controller.injector')
 def test_select_season_should_render_game_index_template_for_selected_season(
-        fake_injector, fake_render_template, test_app
+        fake_injector, fake_request, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/season_standings/select_season',
@@ -974,37 +982,43 @@ def test_select_season_should_render_game_index_template_for_selected_season(
         fake_game_repository = Mock(GameRepository)
         fake_injector.get.side_effect = [fake_season_repository, fake_game_repository]
 
-        # session['selected_season'] = Season(year=0)
-        fake_request.form.return_value.get.return_value = Season(year=0)
+        selected_year = 1920
+        fake_request.form.get.return_value = str(selected_year)
 
         # Act
         result = mod.select_season()
 
         # Assert
         fake_request.form.get.assert_called_once_with('season_dropdown')
+        assert session.get('selected_year') == selected_year
+
         fake_injector.get.assert_has_calls([
             call(SeasonRepository),
             call(GameRepository),
         ])
-        fake_season_repository.get_season_by_year.assert_called_once_with(
-            fake_request.form.get.return_value
-        )
-        games = fake_game_repository.get_games_by_season_year.assert_called_once_with(
-            season_year=fake_request.form.get.return_value
-        )
+
+        fake_season_repository.get_season_by_year.assert_called_once_with(selected_year)
+        assert session.get('selected_season') == fake_season_repository.get_season_by_year.return_value.to_dict()
+
+        selected_week = 0
+        assert session.get('selected_week') == selected_week
+
+        fake_game_repository.get_games_by_season_year.assert_called_once_with(season_year=selected_year)
+
         fake_render_template.assert_called_once_with(
             'games/index.html',
             seasons=session.get('seasons'), selected_season=fake_season_repository.get_season_by_year.return_value,
-            selected_week=session.get('selected_week'), games=games
+            selected_week=selected_week, games=fake_game_repository.get_games_by_season_year.return_value
         )
         assert result is fake_render_template.return_value
 
 
 @pytest.mark.skip('WIP')
 @patch('app.flask.game_controller.render_template')
+@patch('app.flask.game_controller.request')
 @patch('app.flask.game_controller.injector')
 def test_select_week_should_render_game_index_template_for_selected_season_and_selected_week(
-        fake_injector, fake_render_template, test_app
+        fake_injector, fake_request, fake_render_template, test_app
 ):
     with test_app.test_request_context(
             '/season_standings/select_season',
@@ -1014,20 +1028,23 @@ def test_select_week_should_render_game_index_template_for_selected_season_and_s
         fake_game_repository = Mock(GameRepository)
         fake_injector.get.return_value = fake_game_repository
 
-        selected_year = 0
+        session['selected_season'] = {
+            'id': None, 'year': 1920, 'num_of_weeks_scheduled': 0, 'num_of_weeks_completed': 0
+        }
+
+        selected_week = 1
+        fake_request.form.get.return_value = str(selected_week)
 
         # Act
         result = mod.select_week()
 
     # Assert
     fake_request.form.get.assert_called_once_with('week_dropdown')  # Fetch the selected week.
-    fake_injector.get.assert_called_once_with(GameRepository)
+    assert session.get('selected_week') == selected_week
 
+    fake_injector.get.assert_called_once_with(GameRepository)
     selected_season = session.get('selected_season')
-    selected_week = session.get('selected_week')
-    fake_game_repository.get_games_by_season_year_and_week.assert_called_once_with(
-        season_year=selected_season.year, week=selected_week
-    )
+    fake_game_repository.get_games_by_season_year_and_week.assert_called_once_with(season_year=1920, week=selected_week)
 
     fake_render_template.assert_called_once_with(
         'games/index.html',

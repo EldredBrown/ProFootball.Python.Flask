@@ -1,7 +1,6 @@
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from injector import inject
 from werkzeug import Response
 
 from app import injector
@@ -101,7 +100,6 @@ def _get_form_data_from_season(form: SeasonForm, season: Season) -> None:
 
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-@inject
 def delete(id: int) -> Response | str:
     try:
         season_repository = injector.get(SeasonRepository)

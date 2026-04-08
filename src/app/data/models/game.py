@@ -30,6 +30,23 @@ class Game(sqla.Model):
     # winner = sqla.relationship('Team')
     # loser = sqla.relationship('Team')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'season_year': self.season_year,
+            'week': self.week,
+            'guest_name': self.guest_name,
+            'guest_score': self.guest_score,
+            'host_name': self.host_name,
+            'host_score': self.host_score,
+            'winner_name': self.winner_name,
+            'winner_score': self.winner_score,
+            'loser_name': self.loser_name,
+            'loser_score': self.loser_score,
+            'is_playoff': self.is_playoff,
+            'notes': self.notes
+        }
+
     @validates('season_year', 'week', 'guest_name', 'guest_score', 'host_name', 'host_score', 'is_playoff')
     def validate_not_empty(self, key, value):
         if not value and value != 0:

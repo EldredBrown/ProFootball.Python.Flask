@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from app import injector
 from app.data.factories import game_factory
 from app.data.models.game import Game
+from app.data.models.season import Season
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.game_repository import GameRepository
 from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm, GameForm
@@ -17,14 +18,26 @@ blueprint = Blueprint('game', __name__)
 @blueprint.route('/')
 def index() -> str:
     season_repository = injector.get(SeasonRepository)
-    game_repository = injector.get(GameRepository)
 
-    session['seasons'] = season_repository.get_seasons()
+    seasons = season_repository.get_seasons()
+    session['seasons'] = [s.to_dict() for s in seasons]
+
+    selected_year = 0
+    session['selected_year'] = selected_year
+
+    selected_season = Season(year=selected_year, num_of_weeks_scheduled=0, num_of_weeks_completed=0).to_dict()
+    session['selected_season'] = selected_season
+
+    selected_week = 0
+    session['selected_week'] = selected_week
+
+    game_repository = injector.get(GameRepository)
     games = game_repository.get_games_by_season_year(season_year=None)
+    session['games'] = [g.to_dict() for g in games]
+
     return render_template(
         'games/index.html',
-        seasons=session.get('seasons'), selected_season=session.get('selected_season'),
-        selected_week=session.get('selected_week'), games=games
+        seasons=seasons, selected_season=selected_season, selected_week=selected_week, games=games
     )
 
 
@@ -44,7 +57,7 @@ def create() -> Response | str:
     form = NewGameForm()
     if request.method == 'GET':
         selected_season = session.get('selected_season')
-        form.season_year.data = selected_season.year if selected_season.year >= 1920 else 0
+        form.season_year.data = selected_season['year'] if selected_season['year'] >= 1920 else 0
 
     if form.validate_on_submit():
         new_game = _get_game_from_form(form)
@@ -129,8 +142,8 @@ def _get_form_data_from_game(form: GameForm, game) -> None:
 
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int) -> Response | str:
-    game_repository = injector.get(GameRepository)
     try:
+        game_repository = injector.get(GameRepository)
         game = game_repository.get_game(id)
         if not game:
             abort(404)
@@ -148,19 +161,22 @@ def delete(id: int) -> Response | str:
 
 @blueprint.route('/select_season', methods=['POST'])
 def select_season() -> str:
-    selected_value = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    session['selected_year'] = selected_year
 
     season_repository = injector.get(SeasonRepository)
-    selected_season = season_repository.get_season_by_year(selected_value)
-    session['selected_season'] = selected_season
+    selected_season = season_repository.get_season_by_year(selected_year)
+    session['selected_season'] = selected_season.to_dict()
+
+    selected_week = 0
+    session['selected_week'] = selected_week
 
     game_repository = injector.get(GameRepository)
-    games = game_repository.get_games_by_season_year(season_year=selected_value)
+    games = game_repository.get_games_by_season_year(season_year=selected_year)
 
     return render_template(
         'games/index.html',
-        seasons=session.get('seasons'), selected_season=selected_season,
-        selected_week=session.get('selected_week'), games=games
+        seasons=session.get('seasons'), selected_season=selected_season, selected_week=selected_week, games=games
     )
 
 
@@ -168,10 +184,11 @@ def select_season() -> str:
 def select_week() -> str:
     selected_week = int(request.form.get('week_dropdown'))  # Fetch the selected week.
     session['selected_week'] = selected_week
+
     selected_season = session.get('selected_season')
 
     game_repository = injector.get(GameRepository)
-    games = game_repository.get_games_by_season_year_and_week(season_year=selected_season.year, week=selected_week)
+    games = game_repository.get_games_by_season_year_and_week(season_year=selected_season['year'], week=selected_week)
 
     return render_template(
         'games/index.html',

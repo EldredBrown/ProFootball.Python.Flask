@@ -21,6 +21,15 @@ class League(sqla.Model):
     league_seasons = sqla.relationship('Season', secondary='LeagueSeason', lazy=True)
     team_seasons = sqla.relationship('TeamSeason', cascade='save-update, delete, delete-orphan, merge')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'short_name': self.short_name,
+            'long_name': self.long_name,
+            'first_season_year': self.first_season_year,
+            'last_season_year': self.last_season_year,
+        }
+
     @validates('short_name', 'long_name', 'first_season_year')
     def validate_not_empty(self, key, value):
         if not value and value != 0:
