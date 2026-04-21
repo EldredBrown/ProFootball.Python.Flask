@@ -34,11 +34,10 @@ def test_index_should_render_season_rankings_index_template(fake_injector, fake_
             Season(year=1922),
         ]
         fake_season_repository.get_seasons.return_value = seasons
-        fake_league_repository = Mock(LeagueRepository)
-        fake_injector.get.side_effect = [fake_season_repository, fake_league_repository]
+        fake_injector.get.return_value = fake_season_repository
 
         session['seasons'] = []
-        selected_year = 0
+        selected_year = None
         leagues = []
         selected_league_name = None
         selected_type = None

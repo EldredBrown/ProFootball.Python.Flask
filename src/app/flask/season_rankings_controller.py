@@ -17,7 +17,7 @@ def index() -> str:
     seasons = [s.to_dict() for s in season_repository.get_seasons()]
     session['seasons'] = seasons
 
-    selected_year = 0
+    selected_year = None
     leagues = []
     selected_league_name = None
     selected_type = None
