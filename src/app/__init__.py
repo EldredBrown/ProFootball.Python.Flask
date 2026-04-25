@@ -4,22 +4,22 @@ from injector import Injector, singleton
 
 from app.data.sqla import sqla
 
+CONN_STR = (
+    'DRIVER={ODBC Driver 17 for SQL Server};'
+    'SERVER=(localdb)\\MSSQLLocalDB;'
+    'DATABASE=ProFootballDb;'
+)
+
 
 def create_app():
     app = Flask(__name__)
-
-    conn_str = (
-        'DRIVER={ODBC Driver 17 for SQL Server};'
-        'SERVER=(localdb)\\MSSQLLocalDB;'
-        'DATABASE=ProFootballDb;'
-    )
 
     app.config.from_mapping(
         SECRET_KEY='secretkey',
         # SQLALCHEMY_DATABASE_URI='mysql+mysqlconnector://root:root@localhost:3306/app',
         # SQLALCHEMY_DATABASE_URI='mssql+pyodbc://<username>:<password>@<server>:<port>/<database>?driver=ODBC+Driver+17+for+SQL+Server',
         # SQLALCHEMY_DATABASE_URI='mssql+pyodbc://<server>:<port>/<database>?driver=ODBC+Driver+17+for+SQL+Server?trusted_connection=yes',
-        SQLALCHEMY_DATABASE_URI=f"mssql+pyodbc:///?odbc_connect={conn_str}",
+        SQLALCHEMY_DATABASE_URI=f"mssql+pyodbc:///?odbc_connect={CONN_STR}",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         DEBUG=True
     )

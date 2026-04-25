@@ -1,11 +1,10 @@
 from typing import List, Optional, Any
 
-from sqlalchemy import Result
-from sqlalchemy.sql import text as SQLQuery
-
+from app import CONN_STR
+from app.data import sqla
 from app.data.models.rankings_team_season \
     import OffensiveRankingsTeamSeason, DefensiveRankingsTeamSeason, TotalRankingsTeamSeason
-from app.data.sqla import sqla
+from app.data.models.team_season import TeamSeason
 
 
 class SeasonRankingsRepository:
@@ -22,7 +21,7 @@ class SeasonRankingsRepository:
     def get_offensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
         if season_year is None:
             return []
-        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsOffensive {season_year}")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -42,7 +41,7 @@ class SeasonRankingsRepository:
     def get_defensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
         if season_year is None:
             return []
-        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsDefensive {season_year}")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -62,7 +61,7 @@ class SeasonRankingsRepository:
     def get_total_rankings_by_season_year(self, season_year: Optional[int]) -> List[TotalRankingsTeamSeason]:
         if season_year is None:
             return []
-        result = self._call_procedure(f"EXEC dbo.sp_GetRankingsTotal {season_year}")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsTotal {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -83,7 +82,37 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def _call_procedure(self, querystring: str) -> Result[Any]:
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
-        return result
+    def get_data_for_rankings_update(self, team_season: TeamSeason) -> dict:
+        # This method calls a stored procedure that returns multiple datasets; therefore, it can access the database
+        # only via lower-level methods than those provided for other data access methods in the repository layer.
+        from sqlalchemy import create_engine
+
+        engine = create_engine(f"mssql+pyodbc:///?odbc_connect={CONN_STR}", future=True)
+
+        results = dict()
+        result_keys = ('team_season_schedule_totals', 'team_season_schedule_averages', 'league_season')
+
+        with engine.raw_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "EXEC dbo.sp_GetDataForRankingsUpdate ?, ?, ?",
+                (team_season.team_name, team_season.league_name, team_season.season_year)
+            )
+
+            try:
+                for i in range(3):
+                    row = cursor.fetchone()
+                    if row:
+                        # Convert to list of dicts with column names
+                        columns = [col[0] for col in cursor.description]
+                        result = dict(zip(columns, row))
+                        results[result_keys[i]] = result
+
+                    cursor.nextset()
+
+                cursor.close()
+            except Exception as e:
+                print(f"Error calling stored procedure: {e}")
+                raise
+
+        return results

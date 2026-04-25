@@ -1,21 +1,21 @@
-from typing import Optional
+from abc import ABC, abstractmethod
 
 from injector import inject
 
+from app.data.errors import EntityNotFoundError
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason
-from app.data.repositories.game_repository import GameRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.utilities import guard
 
 
-class ProcessGameStrategy:
+class ProcessGameStrategy(ABC):
     """
     Base class for the ProcessGameStrategy class hierarchy
     """
 
     @inject
-    def __init__(self, team_season_repository: TeamSeasonRepository):
+    def __init__(self, team_season_repository: TeamSeasonRepository=None):
         """
         Initializes a new instance of the ProcessGameStrategy class.
         """
@@ -24,7 +24,7 @@ class ProcessGameStrategy:
     def __repr__(self):
         return f"{type(self).__name__}(team_season_repository={self.team_season_repository})"
 
-    def process_game(self, game: Optional[Game]) -> None:
+    def process_game(self, game: Game) -> None:
         """
         Processes a Game object into the team data store.
 
@@ -38,7 +38,12 @@ class ProcessGameStrategy:
 
         season_year = game.season_year
         guest_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.guest_name, season_year)
+        if guest_season is None:
+            raise EntityNotFoundError(f"No team season found for guest '{game.guest_name}' in year {season_year}")
+
         host_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.host_name, season_year)
+        if host_season is None:
+            raise EntityNotFoundError(f"No team season found for host '{game.host_name}' in year {season_year}")
 
         self._edit_win_loss_data(guest_season, host_season, game)
         self._edit_scoring_data(guest_season, host_season, game.guest_score, game.host_score)
@@ -51,10 +56,12 @@ class ProcessGameStrategy:
         self._update_wins_losses_and_ties_for_team_seasons(guest_season, host_season, game)
         self._update_winning_percentage_for_team_seasons(guest_season, host_season)
 
+    @abstractmethod
     def _update_games_for_team_seasons(self, guest_season: TeamSeason, host_season: TeamSeason) -> None:
         raise NotImplementedError(f"{type(self).__name__}"
                                   f"._update_games_for_team_seasons must be implemented in a subclass.")
 
+    @abstractmethod
     def _update_wins_losses_and_ties_for_team_seasons(self,
                                                       guest_season: TeamSeason,
                                                       host_season: TeamSeason,
@@ -65,20 +72,19 @@ class ProcessGameStrategy:
 
     @staticmethod
     def _update_winning_percentage_for_team_seasons(guest_season: TeamSeason, host_season: TeamSeason) -> None:
-        if guest_season is not None:
-            guest_season.calculate_winning_percentage()
-
-        if host_season is not None:
-            host_season.calculate_winning_percentage()
+        guest_season.calculate_winning_percentage()
+        host_season.calculate_winning_percentage()
 
     def _edit_scoring_data(self,
                            guest_season: TeamSeason,
                            host_season: TeamSeason,
                            guest_score: int,
                            host_score: int) -> None:
+        # Each team's score is passed as "team_score" and the opponent's as "opponent_score".
         self._edit_scoring_data_for_team_season(guest_season, guest_score, host_score)
         self._edit_scoring_data_for_team_season(host_season, host_score, guest_score)
 
+    @abstractmethod
     def _edit_scoring_data_for_team_season(self, team_season: TeamSeason, team_score: int, opponent_score: int) -> None:
         raise NotImplementedError(f"{type(self).__name__}"
                                   f"._edit_scoring_data_for_team_season must be implemented in a subclass.")

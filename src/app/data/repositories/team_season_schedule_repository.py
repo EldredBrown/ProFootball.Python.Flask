@@ -1,12 +1,9 @@
 from typing import List, Any
 
-from sqlalchemy import Result
-from sqlalchemy.sql import text as SQLQuery
-
+from app.data import sqla
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
 from app.data.models.team_season_schedule_profile import TeamSeasonScheduleProfileRecord
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
-from app.data.sqla import sqla
 
 
 class TeamSeasonScheduleRepository:
@@ -31,7 +28,7 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
         profile = result.all()
 
         opponent_records = []
@@ -60,7 +57,7 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
         totals = result.first()
 
         if totals is None:
@@ -88,7 +85,7 @@ class TeamSeasonScheduleRepository:
 
         :return: The fetched TeamSeasonScheduleAverages.
         """
-        result = self._call_procedure(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
         averages = result.first()
 
         if averages is None:
@@ -100,8 +97,3 @@ class TeamSeasonScheduleRepository:
             schedule_points_for=averages[2],
             schedule_points_against=averages[3]
         )
-
-    def _call_procedure(self, querystring: str) -> Result[Any]:
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
-        return result

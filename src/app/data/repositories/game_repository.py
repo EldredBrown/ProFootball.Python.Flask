@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
-
 from app.data.models.game import Game
 from app.data.sqla import sqla, try_commit
 
@@ -143,3 +141,8 @@ class GameRepository:
         :return: True if the game with the specified id exists in the data store; otherwise false.
         """
         return self.get_game(id) is not None
+
+    def get_max_week_by_season_year(self, season_year):
+        weeks = [game.week for game in self.get_games_by_season_year(season_year)]
+        if weeks:
+            return max(weeks)

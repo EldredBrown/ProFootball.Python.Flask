@@ -5,7 +5,7 @@ from app.services.constants import Direction
 from app.services.game_service.process_game_strategy.add_game_strategy import AddGameStrategy
 from app.services.game_service.process_game_strategy.process_game_strategy import ProcessGameStrategy
 from app.services.game_service.process_game_strategy.subtract_game_strategy import SubtractGameStrategy
-from app.services.game_service.process_game_strategy.null_game_strategy import NullGameStrategy
+from app.services.game_service.process_game_strategy.null_game_strategy import NULL_GAME_STRATEGY
 
 
 class ProcessGameStrategyFactory:
@@ -23,7 +23,7 @@ class ProcessGameStrategyFactory:
     def __repr__(self):
         return f"{type(self).__name__}()"
 
-    def create_strategy(self, direction: int) -> ProcessGameStrategy:
+    def create_strategy(self, direction: Direction) -> ProcessGameStrategy:
         strategies = {
             Direction.UP:   AddGameStrategy,
             Direction.DOWN: SubtractGameStrategy
@@ -33,4 +33,4 @@ class ProcessGameStrategyFactory:
             strategy = strategies[direction]
             return strategy(self.team_season_repository)
         except KeyError:
-            return NullGameStrategy.instance()
+            return NULL_GAME_STRATEGY

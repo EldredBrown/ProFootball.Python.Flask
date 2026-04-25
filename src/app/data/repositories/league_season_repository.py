@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
-
 from app.data.models.league_season import LeagueSeason
 from app.data.sqla import sqla, try_commit
 
