@@ -4,8 +4,6 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
-from test_app import create_app
-
 from app.data.models.conference import Conference
 from app.data.repositories.conference_repository import ConferenceRepository
 

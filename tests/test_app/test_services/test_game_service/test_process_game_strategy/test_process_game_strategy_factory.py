@@ -1,8 +1,7 @@
 import pytest
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.constants import Direction
 from app.services.game_service.process_game_strategy.add_game_strategy import AddGameStrategy
 from app.services.game_service.process_game_strategy.null_game_strategy import NULL_GAME_STRATEGY

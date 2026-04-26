@@ -21,6 +21,7 @@ class SeasonRankingsRepository:
     def get_offensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
         if season_year is None:
             return []
+
         result = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive {season_year};")
 
         # Process results if the stored procedure returns data
@@ -41,6 +42,7 @@ class SeasonRankingsRepository:
     def get_defensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
         if season_year is None:
             return []
+
         result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive {season_year};")
 
         # Process results if the stored procedure returns data

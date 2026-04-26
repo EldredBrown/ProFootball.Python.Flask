@@ -4,8 +4,6 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
-from test_app import create_app
-
 from app.data.models.league_season import LeagueSeason
 from app.data.repositories.league_season_repository import LeagueSeasonRepository
 

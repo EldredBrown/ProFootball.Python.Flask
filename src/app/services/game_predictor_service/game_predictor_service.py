@@ -5,6 +5,11 @@ from injector import inject
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 
 
+class GamePrediction(NamedTuple):
+    guest_score: float
+    host_score: float
+
+
 class GamePredictorService:
     """
     A service for predicting the scores of future games.
@@ -60,8 +65,3 @@ def _predict_score(offensive_team, defensive_team) -> float:
             + defensive_team.defensive_factor * offensive_team.offensive_average) / 2),
         1
     )
-
-
-class GamePrediction(NamedTuple):
-    guest_score: float
-    host_score: float

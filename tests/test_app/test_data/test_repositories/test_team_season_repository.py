@@ -1,11 +1,9 @@
 from decimal import Decimal
-from unittest.mock import patch, call
+from unittest.mock import patch
 
 import pytest
 
 from sqlalchemy.exc import IntegrityError
-
-from test_app import create_app
 
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.team_season_repository import TeamSeasonRepository
