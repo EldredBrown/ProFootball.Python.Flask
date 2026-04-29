@@ -1,3 +1,4 @@
+import copy
 from unittest.mock import patch, Mock
 
 import pytest
@@ -147,7 +148,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     result = mod.create()
 
     # Assert
-    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+    fake_season_factory.create_season.assert_called_once_with(None, **kwargs)
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.add_season.assert_called_once_with(season)
     fake_flash(f"Item {season.year} has been successfully submitted.", 'success')
@@ -187,7 +188,7 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     result = mod.create()
 
     # Assert
-    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+    fake_season_factory.create_season.assert_called_once_with(None, **kwargs)
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.add_season.assert_called_once_with(season)
     fake_flash.assert_called_once_with(str(err), 'danger')
@@ -219,9 +220,10 @@ def test_edit_when_season_not_found_should_abort_with_404_error(fake_injector):
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.EditSeasonForm')
+@patch('app.flask.season_controller.copy')
 @patch('app.flask.season_controller.injector')
 def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_injector, fake_edit_season_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_season_form, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
@@ -234,6 +236,9 @@ def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should
     )
     fake_season_repository.get_season.return_value = old_season
     fake_injector.get.return_value = fake_season_repository
+
+    old_season_copy = copy.deepcopy(old_season)
+    fake_copy.deepcopy.return_value = old_season_copy
 
     fake_edit_season_form.return_value.validate_on_submit.return_value = False
     fake_edit_season_form.return_value.errors = None
@@ -244,12 +249,13 @@ def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.get_season.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_season)
     assert fake_edit_season_form.return_value.year.data == old_season.year
     assert fake_edit_season_form.return_value.num_of_weeks_scheduled.data == old_season.num_of_weeks_scheduled
     assert fake_edit_season_form.return_value.num_of_weeks_completed.data == old_season.num_of_weeks_completed
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
-        'seasons/edit.html', season=old_season, form=fake_edit_season_form.return_value
+        'seasons/edit.html', season=old_season_copy, form=fake_edit_season_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -257,9 +263,10 @@ def test_edit_when_season_found_and_form_not_submitted_and_no_form_errors_should
 @patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.EditSeasonForm')
+@patch('app.flask.season_controller.copy')
 @patch('app.flask.season_controller.injector')
 def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_injector, fake_edit_season_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_season_form, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
@@ -272,6 +279,9 @@ def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_fl
     )
     fake_season_repository.get_season.return_value = old_season
     fake_injector.get.return_value = fake_season_repository
+
+    old_season_copy = copy.deepcopy(old_season)
+    fake_copy.deepcopy.return_value = old_season_copy
 
     fake_edit_season_form.return_value.validate_on_submit.return_value = False
     fake_edit_season_form.return_value.errors = None
@@ -285,12 +295,13 @@ def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_fl
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.get_season.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_season)
     assert fake_edit_season_form.return_value.year.data == old_season.year
     assert fake_edit_season_form.return_value.num_of_weeks_scheduled.data == old_season.num_of_weeks_scheduled
     assert fake_edit_season_form.return_value.num_of_weeks_completed.data == old_season.num_of_weeks_completed
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template.assert_called_once_with(
-        'seasons/edit.html', season=old_season, form=fake_edit_season_form.return_value
+        'seasons/edit.html', season=old_season_copy, form=fake_edit_season_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -300,9 +311,10 @@ def test_edit_when_season_found_and_form_not_submitted_and_form_errors_should_fl
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.EditSeasonForm')
+@patch('app.flask.season_controller.copy')
 @patch('app.flask.season_controller.injector')
 def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_season_details(
-        fake_injector, fake_edit_season_form, fake_season_factory, fake_flash, fake_url_for, fake_redirect
+        fake_injector, fake_copy, fake_edit_season_form, fake_season_factory, fake_flash, fake_url_for, fake_redirect
 ):
     # Arrange
     id = 1
@@ -316,6 +328,9 @@ def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_f
     )
     fake_season_repository.get_season.return_value = old_season
     fake_injector.get.return_value = fake_season_repository
+
+    old_season_copy = copy.deepcopy(old_season)
+    fake_copy.deepcopy.return_value = old_season_copy
 
     fake_edit_season_form.return_value.validate_on_submit.return_value = True
     fake_edit_season_form.return_value.year.data = 2
@@ -337,7 +352,8 @@ def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_f
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.get_season.assert_called_once_with(id)
-    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+    fake_copy.deepcopy.assert_called_once_with(old_season)
+    fake_season_factory.create_season.assert_called_once_with(old_season_copy, **kwargs)
     fake_season_repository.update_season.assert_called_once_with(new_season)
     fake_flash.assert_called_once_with(
         f"Item {fake_edit_season_form.return_value.year.data} has been successfully updated.", 'success'
@@ -351,9 +367,10 @@ def test_edit_when_season_found_and_form_submitted_and_no_errors_caught_should_f
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.EditSeasonForm')
+@patch('app.flask.season_controller.copy')
 @patch('app.flask.season_controller.injector')
 def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_edit_season_form, fake_season_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_season_form, fake_season_factory, fake_flash, fake_render_template
 ):
     id = 1
 
@@ -366,6 +383,9 @@ def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should
     )
     fake_season_repository.get_season.return_value = old_season
     fake_injector.get.return_value = fake_season_repository
+
+    old_season_copy = copy.deepcopy(old_season)
+    fake_copy.deepcopy.return_value = old_season_copy
 
     fake_edit_season_form.return_value.validate_on_submit.return_value = True
     fake_edit_season_form.return_value.year.data = 2
@@ -390,25 +410,24 @@ def test_edit_when_season_found_and_form_submitted_and_value_error_caught_should
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.get_season.assert_called_once_with(id)
-    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+    fake_season_factory.create_season.assert_called_once_with(old_season_copy, **kwargs)
     fake_season_repository.update_season.assert_called_once_with(new_season)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'seasons/edit.html', season=old_season, form=fake_edit_season_form.return_value
+        'seasons/edit.html', season=old_season_copy, form=fake_edit_season_form.return_value
     )
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.season_controller.render_template')
 @patch('app.flask.season_controller.flash')
 @patch('app.flask.season_controller.season_factory')
 @patch('app.flask.season_controller.EditSeasonForm')
 @patch('app.flask.season_controller.url_for')
 @patch('app.flask.season_controller.redirect')
+@patch('app.flask.season_controller.copy')
 @patch('app.flask.season_controller.injector')
 def test_edit_when_season_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_injector, fake_redirect, fake_url_for, fake_edit_season_form, fake_season_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_copy, fake_redirect, fake_url_for, fake_edit_season_form, fake_season_factory, fake_flash
 ):
     # Arrange
     id = 1
@@ -422,6 +441,9 @@ def test_edit_when_season_found_and_form_submitted_and_index_error_caught_should
     )
     fake_season_repository.get_season.return_value = old_season
     fake_injector.get.return_value = fake_season_repository
+
+    old_season_copy = copy.deepcopy(old_season)
+    fake_copy.deepcopy.return_value = old_season_copy
 
     fake_edit_season_form.return_value.validate_on_submit.return_value = True
     fake_edit_season_form.return_value.year.data = 2
@@ -447,7 +469,7 @@ def test_edit_when_season_found_and_form_submitted_and_index_error_caught_should
     fake_season_repository.get_season.assert_called_once_with(id)
     fake_edit_season_form.assert_called_once()
     fake_edit_season_form.return_value.validate_on_submit.assert_called_once()
-    fake_season_factory.create_season.assert_called_once_with(**kwargs)
+    fake_season_factory.create_season.assert_called_once_with(old_season_copy, **kwargs)
 
 
 @patch('app.flask.season_controller.injector')

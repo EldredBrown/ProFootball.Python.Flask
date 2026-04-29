@@ -407,12 +407,16 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
-def test_edit_when_game_not_found_should_abort_with_404_error(fake_injector):
+def test_edit_when_game_not_found_should_abort_with_404_error(fake_injector, fake_copy):
     # Arrange
     fake_game_repository = Mock(GameRepository)
-    game = None
-    fake_game_repository.get_game.return_value = game
+    old_game = Mock(Game)
+    fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -424,29 +428,33 @@ def test_edit_when_game_not_found_should_abort_with_404_error(fake_injector):
     # Assert
     fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_game_service.update_game.assert_not_called()
 
 
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.EditGameForm')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_injector, fake_edit_game_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_game_form, fake_flash, fake_render_template
 ):
     # Arrange
     fake_game_repository = Mock(GameRepository)
-    game = Game(
-        season_year=1,
-        week=1,
-        guest_name="Guest",
-        guest_score=2,
-        host_name="Host",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
-    fake_game_repository.get_game.return_value = game
+    old_game = Mock(Game)
+    fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -460,20 +468,21 @@ def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_r
     # Assert
     fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_service.update_game.assert_not_called()
-    assert fake_edit_game_form.return_value.season_year.data == game.season_year
-    assert fake_edit_game_form.return_value.week.data == game.week
-    assert fake_edit_game_form.return_value.guest_name.data == game.guest_name
-    assert fake_edit_game_form.return_value.guest_score.data == game.guest_score
-    assert fake_edit_game_form.return_value.host_name.data == game.host_name
-    assert fake_edit_game_form.return_value.host_score.data == game.host_score
-    assert fake_edit_game_form.return_value.is_playoff.data == game.is_playoff
-    assert fake_edit_game_form.return_value.notes.data == game.notes
+    assert fake_edit_game_form.return_value.season_year.data == old_game_copy.season_year
+    assert fake_edit_game_form.return_value.week.data == old_game_copy.week
+    assert fake_edit_game_form.return_value.guest_name.data == old_game_copy.guest_name
+    assert fake_edit_game_form.return_value.guest_score.data == old_game_copy.guest_score
+    assert fake_edit_game_form.return_value.host_name.data == old_game_copy.host_name
+    assert fake_edit_game_form.return_value.host_score.data == old_game_copy.host_score
+    assert fake_edit_game_form.return_value.is_playoff.data == old_game_copy.is_playoff
+    assert fake_edit_game_form.return_value.notes.data == old_game_copy.notes
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
-        'games/edit.html', game=game, form=fake_edit_game_form.return_value
+        'games/edit.html', game=old_game_copy, form=fake_edit_game_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -481,23 +490,26 @@ def test_edit_when_game_found_and_form_not_submitted_and_no_form_errors_should_r
 @patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.EditGameForm')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_injector, fake_edit_game_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_game_form, fake_flash, fake_render_template
 ):
     # Arrange
     fake_game_repository = Mock(GameRepository)
-    game = Game(
-        season_year=1,
-        week=1,
-        guest_name="Guest",
-        guest_score=2,
-        host_name="Host",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
-    fake_game_repository.get_game.return_value = game
+    old_game = Mock(Game)
+    fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -514,20 +526,21 @@ def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flas
     # Assert
     fake_injector.get.assert_called_once_with(GameRepository)
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_service.update_game.assert_not_called()
-    assert fake_edit_game_form.return_value.season_year.data == game.season_year
-    assert fake_edit_game_form.return_value.week.data == game.week
-    assert fake_edit_game_form.return_value.guest_name.data == game.guest_name
-    assert fake_edit_game_form.return_value.guest_score.data == game.guest_score
-    assert fake_edit_game_form.return_value.host_name.data == game.host_name
-    assert fake_edit_game_form.return_value.host_score.data == game.host_score
-    assert fake_edit_game_form.return_value.is_playoff.data == game.is_playoff
-    assert fake_edit_game_form.return_value.notes.data == game.notes
+    assert fake_edit_game_form.return_value.season_year.data == old_game_copy.season_year
+    assert fake_edit_game_form.return_value.week.data == old_game_copy.week
+    assert fake_edit_game_form.return_value.guest_name.data == old_game_copy.guest_name
+    assert fake_edit_game_form.return_value.guest_score.data == old_game_copy.guest_score
+    assert fake_edit_game_form.return_value.host_name.data == old_game_copy.host_name
+    assert fake_edit_game_form.return_value.host_score.data == old_game_copy.host_score
+    assert fake_edit_game_form.return_value.is_playoff.data == old_game_copy.is_playoff
+    assert fake_edit_game_form.return_value.notes.data == old_game_copy.notes
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template.assert_called_once_with(
-        'games/edit.html', game=game, form=fake_edit_game_form.return_value
+        'games/edit.html', game=old_game_copy, form=fake_edit_game_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -537,26 +550,28 @@ def test_edit_when_game_found_and_form_not_submitted_and_form_errors_should_flas
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_game_details(
-        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_redirect, fake_url_for
+        fake_injector, fake_copy, fake_edit_game_form, fake_game_factory, fake_flash, fake_redirect, fake_url_for
 ):
     # Arrange
     id = 1
 
     fake_game_repository = Mock(GameRepository)
-    old_game = Game(
-        id=id,
-        season_year=1,
-        week=1,
-        guest_name="Guest 1",
-        guest_score=2,
-        host_name="Host 1",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
+    old_game = Mock(Game)
     fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest 1"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host 1"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -592,10 +607,11 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
         call(GameService),
     ])
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
-    fake_game_service.update_game.assert_called_once_with(fake_game_factory.create_game.return_value, old_game)
+    fake_game_service.update_game.assert_called_once_with(fake_game_factory.create_game.return_value, old_game_copy)
     fake_flash.assert_called_once_with(
         f"Game for season={fake_edit_game_form.return_value.season_year.data} with guest={fake_edit_game_form.return_value.guest_name.data} and host={fake_edit_game_form.return_value.host_name.data} has been successfully updated.",
         'success'
@@ -609,26 +625,28 @@ def test_edit_when_game_found_and_form_submitted_and_no_errors_caught_should_fla
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_game_repository = Mock(GameRepository)
-    old_game = Game(
-        id=id,
-        season_year=1,
-        week=1,
-        guest_name="Guest 1",
-        guest_score=2,
-        host_name="Host 1",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
+    old_game = Mock(Game)
     fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest 1"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host 1"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -667,12 +685,13 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
         call(GameService),
     ])
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'games/edit.html', game=old_game, form=fake_edit_game_form.return_value
+        'games/edit.html', game=old_game_copy, form=fake_edit_game_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -681,26 +700,28 @@ def test_edit_when_game_found_and_form_submitted_and_value_error_caught_should_f
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_game_form, fake_game_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_game_repository = Mock(GameRepository)
-    old_game = Game(
-        id=id,
-        season_year=1,
-        week=1,
-        guest_name="Guest 1",
-        guest_score=2,
-        host_name="Host 1",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
+    old_game = Mock(Game)
     fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest 1"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host 2"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     err = IntegrityError('statement', 'params', Exception())
@@ -738,43 +759,44 @@ def test_edit_when_game_found_and_form_submitted_and_integrity_error_caught_shou
         call(GameService),
     ])
     fake_game_repository.get_game.assert_called_once()
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'games/edit.html', game=old_game, form=fake_edit_game_form.return_value
+        'games/edit.html', game=old_game_copy, form=fake_edit_game_form.return_value
     )
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.game_controller.render_template')
 @patch('app.flask.game_controller.flash')
 @patch('app.flask.game_controller.game_factory')
 @patch('app.flask.game_controller.EditGameForm')
 @patch('app.flask.game_controller.url_for')
 @patch('app.flask.game_controller.redirect')
+@patch('app.flask.game_controller.copy')
 @patch('app.flask.game_controller.injector')
 def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_injector, fake_redirect, fake_url_for, fake_edit_game_form, fake_game_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_copy, fake_redirect, fake_url_for, fake_edit_game_form, fake_game_factory, fake_flash,
 ):
     # Arrange
     id = 1
 
     fake_game_repository = Mock(GameRepository)
-    old_game = Game(
-        id=id,
-        season_year=1,
-        week=1,
-        guest_name="Guest 1",
-        guest_score=2,
-        host_name="Host 1",
-        host_score=3,
-        is_playoff=False,
-        notes=None
-    )
+    old_game = Mock(Game)
     fake_game_repository.get_game.return_value = old_game
+
+    old_game_copy = Mock(Game)
+    old_game_copy.season_year = 1
+    old_game_copy.week = 1
+    old_game_copy.guest_name = "Guest 1"
+    old_game_copy.guest_score.data = 2
+    old_game_copy.host_name = "Host 1"
+    old_game_copy.host_score.data = 3
+    old_game_copy.is_playoff = False
+    old_game_copy.notes = None
+    fake_copy.deepcopy.return_value = old_game_copy
 
     fake_game_service = Mock(GameService)
     fake_injector.get.side_effect = [fake_game_repository, fake_game_service]
@@ -814,6 +836,7 @@ def test_edit_when_game_found_and_form_submitted_and_index_error_caught_should_a
         call(GameService),
     ])
     fake_game_repository.get_game.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_game)
     fake_edit_game_form.assert_called_once()
     fake_edit_game_form.return_value.validate_on_submit.assert_called_once()
     fake_game_factory.create_game.assert_called_once_with(**kwargs)

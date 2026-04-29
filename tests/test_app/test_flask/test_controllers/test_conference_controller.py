@@ -261,15 +261,19 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     assert result is fake_render_template.return_value
 
 
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
-def test_edit_when_conference_not_found_should_abort_with_404_error(fake_injector):
+def test_edit_when_conference_not_found_should_abort_with_404_error(fake_injector, fake_copy):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = None
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     fake_injector.get.return_value = fake_conference_repository
+
+    old_conference_copy = None
+    fake_copy.deepcopy.return_value = old_conference_copy
 
     # Act
     with pytest.raises(NotFound):
@@ -278,28 +282,32 @@ def test_edit_when_conference_not_found_should_abort_with_404_error(fake_injecto
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
 
 
 @patch('app.flask.conference_controller.render_template')
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.EditConferenceForm')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_injector, fake_edit_conference_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_conference_form, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        short_name="C",
-        long_name="Conference",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     fake_injector.get.return_value = fake_conference_repository
+
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C"
+    old_conference_copy.long_name = "Conference"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
 
     fake_edit_conference_form.return_value.validate_on_submit.return_value = False
     fake_edit_conference_form.return_value.errors = None
@@ -310,14 +318,15 @@ def test_edit_when_conference_found_and_form_not_submitted_and_no_form_errors_sh
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
-    assert fake_edit_conference_form.return_value.short_name.data == old_conference.short_name
-    assert fake_edit_conference_form.return_value.long_name.data == old_conference.long_name
-    assert fake_edit_conference_form.return_value.league_name.data == old_conference.league_name
-    assert fake_edit_conference_form.return_value.first_season_year.data == old_conference.first_season_year
-    assert fake_edit_conference_form.return_value.last_season_year.data == old_conference.last_season_year
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
+    assert fake_edit_conference_form.return_value.short_name.data == old_conference_copy.short_name
+    assert fake_edit_conference_form.return_value.long_name.data == old_conference_copy.long_name
+    assert fake_edit_conference_form.return_value.league_name.data == old_conference_copy.league_name
+    assert fake_edit_conference_form.return_value.first_season_year.data == old_conference_copy.first_season_year
+    assert fake_edit_conference_form.return_value.last_season_year.data == old_conference_copy.last_season_year
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
-        'conferences/edit.html', conference=old_conference, form=fake_edit_conference_form.return_value
+        'conferences/edit.html', conference=old_conference_copy, form=fake_edit_conference_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -325,23 +334,26 @@ def test_edit_when_conference_found_and_form_not_submitted_and_no_form_errors_sh
 @patch('app.flask.conference_controller.render_template')
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.EditConferenceForm')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_injector, fake_edit_conference_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_conference_form, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        short_name="C",
-        long_name="Conference",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     fake_injector.get.return_value = fake_conference_repository
+
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C"
+    old_conference_copy.long_name = "Conference"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
 
     fake_edit_conference_form.return_value.validate_on_submit.return_value = False
     fake_edit_conference_form.return_value.errors = None
@@ -355,14 +367,15 @@ def test_edit_when_conference_found_and_form_not_submitted_and_form_errors_shoul
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
-    assert fake_edit_conference_form.return_value.short_name.data == old_conference.short_name
-    assert fake_edit_conference_form.return_value.long_name.data == old_conference.long_name
-    assert fake_edit_conference_form.return_value.league_name.data == old_conference.league_name
-    assert fake_edit_conference_form.return_value.first_season_year.data == old_conference.first_season_year
-    assert fake_edit_conference_form.return_value.last_season_year.data == old_conference.last_season_year
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
+    assert fake_edit_conference_form.return_value.short_name.data == old_conference_copy.short_name
+    assert fake_edit_conference_form.return_value.long_name.data == old_conference_copy.long_name
+    assert fake_edit_conference_form.return_value.league_name.data == old_conference_copy.league_name
+    assert fake_edit_conference_form.return_value.first_season_year.data == old_conference_copy.first_season_year
+    assert fake_edit_conference_form.return_value.last_season_year.data == old_conference_copy.last_season_year
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template.assert_called_once_with(
-        'conferences/edit.html', conference=old_conference, form=fake_edit_conference_form.return_value
+        'conferences/edit.html', conference=old_conference_copy, form=fake_edit_conference_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -372,25 +385,27 @@ def test_edit_when_conference_found_and_form_not_submitted_and_form_errors_shoul
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.conference_factory')
 @patch('app.flask.conference_controller.EditConferenceForm')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_conference_details(
-        fake_injector, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_url_for,
+        fake_injector, fake_copy, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_url_for,
         fake_redirect
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        id=id,
-        short_name="C1",
-        long_name="Conference 1",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     fake_injector.get.return_value = fake_conference_repository
+
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C1"
+    old_conference_copy.long_name = "Conference 1"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
 
     fake_edit_conference_form.return_value.validate_on_submit.return_value = True
     fake_edit_conference_form.return_value.short_name.data = "C2"
@@ -416,6 +431,7 @@ def test_edit_when_conference_found_and_form_submitted_and_no_errors_caught_shou
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
     fake_conference_factory.create_conference.assert_called_once_with(**kwargs)
     fake_conference_repository.update_conference.assert_called_once_with(new_conference)
     fake_flash.assert_called_once_with(
@@ -430,27 +446,29 @@ def test_edit_when_conference_found_and_form_submitted_and_no_errors_caught_shou
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.conference_factory')
 @patch('app.flask.conference_controller.EditConferenceForm')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        id=id,
-        short_name="C1",
-        long_name="Conference 1",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     err = ValueError()
     fake_conference_repository.update_conference.side_effect = err
     fake_injector.get.return_value = fake_conference_repository
 
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C1"
+    old_conference_copy.long_name = "Conference 1"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
+
     fake_edit_conference_form.return_value.validate_on_submit.return_value = True
     fake_edit_conference_form.return_value.short_name.data = "C2"
     fake_edit_conference_form.return_value.long_name.data = "Conference 2"
@@ -475,10 +493,11 @@ def test_edit_when_conference_found_and_form_submitted_and_value_error_caught_sh
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
     fake_conference_factory.create_conference.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'conferences/edit.html', conference=old_conference, form=fake_edit_conference_form.return_value
+        'conferences/edit.html', conference=old_conference_copy, form=fake_edit_conference_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -487,27 +506,29 @@ def test_edit_when_conference_found_and_form_submitted_and_value_error_caught_sh
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.conference_factory')
 @patch('app.flask.conference_controller.EditConferenceForm')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_edit_conference_form, fake_conference_factory, fake_flash, fake_render_template
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        id=id,
-        short_name="C1",
-        long_name="Conference 1",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     err = IntegrityError('statement', 'params', Exception())
     fake_conference_repository.update_conference.side_effect = err
     fake_injector.get.return_value = fake_conference_repository
 
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C1"
+    old_conference_copy.long_name = "Conference 1"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
+
     fake_edit_conference_form.return_value.validate_on_submit.return_value = True
     fake_edit_conference_form.return_value.short_name.data = "C2"
     fake_edit_conference_form.return_value.long_name.data = "Conference 2"
@@ -532,39 +553,41 @@ def test_edit_when_conference_found_and_form_submitted_and_integrity_error_caugh
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
     fake_conference_factory.create_conference.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'conferences/edit.html', conference=old_conference, form=fake_edit_conference_form.return_value
+        'conferences/edit.html', conference=old_conference_copy, form=fake_edit_conference_form.return_value
     )
     assert result is fake_render_template.return_value
 
 
-@patch('app.flask.conference_controller.render_template')
 @patch('app.flask.conference_controller.flash')
 @patch('app.flask.conference_controller.conference_factory')
 @patch('app.flask.conference_controller.EditConferenceForm')
 @patch('app.flask.conference_controller.url_for')
 @patch('app.flask.conference_controller.redirect')
+@patch('app.flask.conference_controller.copy')
 @patch('app.flask.conference_controller.injector')
 def test_edit_when_conference_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_injector, fake_redirect, fake_url_for, fake_edit_conference_form, fake_conference_factory, fake_flash,
-        fake_render_template
+        fake_injector, fake_copy, fake_redirect, fake_url_for, fake_edit_conference_form, fake_conference_factory,
+        fake_flash
 ):
     # Arrange
     id = 1
 
     fake_conference_repository = Mock(ConferenceRepository)
-    old_conference = Conference(
-        id=id,
-        short_name="C1",
-        long_name="Conference 1",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
-    )
+    old_conference = Mock(Conference)
     fake_conference_repository.get_conference.return_value = old_conference
     fake_injector.get.return_value = fake_conference_repository
+
+    old_conference_copy = Mock(Conference)
+    old_conference_copy.short_name = "C1"
+    old_conference_copy.long_name = "Conference 1"
+    old_conference_copy.league_name = "L"
+    old_conference_copy.first_season_year = 1
+    old_conference_copy.last_season_year = 2
+    fake_copy.deepcopy.return_value = old_conference_copy
 
     fake_edit_conference_form.return_value.validate_on_submit.return_value = True
     fake_edit_conference_form.return_value.short_name.data = "C2"
@@ -592,6 +615,7 @@ def test_edit_when_conference_found_and_form_submitted_and_index_error_caught_sh
     # Assert
     fake_injector.get.assert_called_once_with(ConferenceRepository)
     fake_conference_repository.get_conference.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_conference)
     fake_edit_conference_form.assert_called_once()
     fake_edit_conference_form.return_value.validate_on_submit.assert_called_once()
     fake_conference_factory.create_conference.assert_called_once_with(**kwargs)

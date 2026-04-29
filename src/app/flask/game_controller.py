@@ -1,3 +1,4 @@
+import copy
 from typing import Any
 
 from flask import Blueprint, Response, abort, flash, redirect, render_template, request, session, url_for
@@ -80,7 +81,7 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     game_repository = injector.get(GameRepository)
-    old_game = game_repository.get_game(id)
+    old_game = copy.deepcopy(game_repository.get_game(id))
     if old_game:
         form = EditGameForm()
         if form.validate_on_submit():

@@ -1,3 +1,5 @@
+import copy
+
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
@@ -54,7 +56,7 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     league_repository = injector.get(LeagueRepository)
-    old_league = league_repository.get_league(id)
+    old_league = copy.deepcopy(league_repository.get_league(id))
     if old_league:
         form = EditLeagueForm()
         if form.validate_on_submit():
@@ -90,7 +92,7 @@ def _get_kwargs_from_form(form: LeagueForm, id: int=None) -> dict[str, Any]:
         'short_name': str(form.short_name.data),
         'long_name': str(form.long_name.data),
         'first_season_year': int(form.first_season_year.data),
-        'last_season_year': int(form.last_season_year.data),
+        'last_season_year': None if form.last_season_year.data is None else int(form.last_season_year.data),
     }
     if id:
         kwargs['id'] = id

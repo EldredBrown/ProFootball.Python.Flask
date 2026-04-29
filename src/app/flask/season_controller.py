@@ -1,3 +1,5 @@
+import copy
+
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -52,11 +54,11 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     season_repository = injector.get(SeasonRepository)
-    old_season = season_repository.get_season(id)
+    old_season = copy.deepcopy(season_repository.get_season(id))
     if old_season:
         form = EditSeasonForm()
         if form.validate_on_submit():
-            new_season = _get_season_from_form(form, id)
+            new_season = _get_season_from_form(form, id, old_season)
             try:
                 season_repository.update_season(new_season)
                 flash(f"Item {form.year.data} has been successfully updated.", 'success')
@@ -76,9 +78,9 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-def _get_season_from_form(form: SeasonForm, id: int=None) -> Season:
+def _get_season_from_form(form: SeasonForm, id: int=None, old_season: Season=None) -> Season:
     kwargs = _get_kwargs_from_form(form, id)
-    season = season_factory.create_season(**kwargs)
+    season = season_factory.create_season(old_season, **kwargs)
     return season
 
 

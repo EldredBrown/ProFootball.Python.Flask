@@ -371,7 +371,7 @@ def test_get_games_by_season_year_and_week_when_season_year_arg_is_none_should_r
     assert games_out == []
 
 
-def test_get_games_by_season_year_and_week_when_week_arg_is_none_should_return_empty_list(test_app, test_repo):
+def test_get_games_by_season_year_and_week_when_season_year_arg_is_not_none_and_week_arg_is_none_should_return_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
@@ -635,7 +635,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
 
 
 @patch('app.data.repositories.game_repository.Game')
-def test_get_game_when_games_is_not_empty_and_game_is_found_should_return_game(fake_game, test_app, test_repo):
+def test_get_game_when_game_is_found_should_return_game(fake_game, test_app, test_repo):
     with test_app.app_context():
         # Arrange
         games_in = [
@@ -798,7 +798,7 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
 
 @patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
-def test_add_games_when_games_arg_is_not_empty_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
         fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
@@ -970,6 +970,10 @@ def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_upda
     assert game_updated.guest_score == game.guest_score
     assert game_updated.host_name == game.host_name
     assert game_updated.host_score == game.host_score
+    assert game_updated.winner_name == game.winner_name
+    assert game_updated.winner_score == game.winner_score
+    assert game_updated.loser_name == game.loser_name
+    assert game_updated.loser_score == game.loser_score
     assert game_updated.is_playoff == game.is_playoff
 
 
@@ -1049,6 +1053,10 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
     assert game_updated.guest_score == new_game.guest_score
     assert game_updated.host_name == new_game.host_name
     assert game_updated.host_score == new_game.host_score
+    assert game_updated.winner_name == new_game.winner_name
+    assert game_updated.winner_score == new_game.winner_score
+    assert game_updated.loser_name == new_game.loser_name
+    assert game_updated.loser_score == new_game.loser_score
     assert game_updated.is_playoff == new_game.is_playoff
     assert game_updated is new_game
 
@@ -1057,7 +1065,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
 @patch('app.data.repositories.game_repository.GameRepository.game_exists')
-def test_update_game_when_and_game_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+def test_update_game_when_integrity_error_caught_should_rollback_transaction_and_reraise_error(
         fake_game_exists, fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
@@ -1231,7 +1239,7 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
 @patch('app.data.repositories.game_repository.try_commit')
 @patch('app.data.repositories.game_repository.sqla')
 @patch('app.data.repositories.game_repository.Game')
-def test_delete_game_when_game_exists_and_integrity_error_caught_should_rollback_commit(
+def test_delete_game_when_integrity_error_caught_should_rollback_commit(
         fake_game, fake_sqla, fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():

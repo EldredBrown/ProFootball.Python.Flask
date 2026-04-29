@@ -1,3 +1,5 @@
+import copy
+
 from typing import Any
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, Response
@@ -54,7 +56,7 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     team_repository = injector.get(TeamRepository)
-    old_team = team_repository.get_team(id)
+    old_team = copy.deepcopy(team_repository.get_team(id))
     if old_team:
         form = EditTeamForm()
         if form.validate_on_submit():
