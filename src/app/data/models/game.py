@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy.orm import validates
 
 from app.data.sqla import sqla
@@ -18,12 +16,40 @@ class Game(sqla.Model):
     guest_score = sqla.Column(sqla.SmallInteger, nullable=False)
     host_name = sqla.Column(sqla.String(50), nullable=False)
     host_score = sqla.Column(sqla.SmallInteger, nullable=False)
-    winner_name = sqla.Column(sqla.String(50))
-    winner_score = sqla.Column(sqla.SmallInteger)
-    loser_name = sqla.Column(sqla.String(50))
-    loser_score = sqla.Column(sqla.SmallInteger)
     is_playoff = sqla.Column(sqla.Boolean, nullable=False, default=False)
     notes = sqla.Column(sqla.String(256))
+
+    @property
+    def winner_name(self) -> str | None:
+        if self.guest_score > self.host_score:
+            return self.guest_name
+        elif self.host_score > self.guest_score:
+            return self.host_name
+        return None
+
+    @property
+    def winner_score(self) -> int:
+        if self.guest_score > self.host_score:
+            return self.guest_score
+        elif self.host_score > self.guest_score:
+            return self.host_score
+        return None
+
+    @property
+    def loser_name(self) -> str | None:
+        if self.guest_score > self.host_score:
+            return self.host_name
+        elif self.host_score > self.guest_score:
+            return self.guest_name
+        return None
+
+    @property
+    def loser_score(self) -> int:
+        if self.guest_score > self.host_score:
+            return self.host_score
+        elif self.host_score > self.guest_score:
+            return self.guest_score
+        return None
 
     # guest = sqla.relationship('Team')
     # host = sqla.relationship('Team')
@@ -31,65 +57,19 @@ class Game(sqla.Model):
     # loser = sqla.relationship('Team')
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'season_year': self.season_year,
-            'week': self.week,
-            'guest_name': self.guest_name,
-            'guest_score': self.guest_score,
-            'host_name': self.host_name,
-            'host_score': self.host_score,
-            'winner_name': self.winner_name,
-            'winner_score': self.winner_score,
-            'loser_name': self.loser_name,
-            'loser_score': self.loser_score,
-            'is_playoff': self.is_playoff,
-            'notes': self.notes
-        }
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-    @validates('season_year', 'week', 'guest_name', 'guest_score', 'host_name', 'host_score', 'is_playoff')
-    def validate_not_empty(self, key, value):
-        if not value and value != 0:
+    @validates('season_year', 'week', 'guest_score', 'host_score')
+    def validate_not_none_numeric(self, key, value):
+        if value is None:
             raise ValueError(f"{key} is required.")
-
         return value
 
-    def decide_winner_and_loser(self) -> None:
-        """
-        Decides the current Game object's winner and loser.
-
-        :return: None
-        """
-        if self._host_win():
-            self._set_winner_and_loser_names_and_scores(
-                winner_name=self.host_name, winner_score=self.host_score,
-                loser_name=self.guest_name, loser_score=self.guest_score
-            )
-        elif self._guest_win():
-            self._set_winner_and_loser_names_and_scores(
-                winner_name=self.guest_name, winner_score=self.guest_score,
-                loser_name=self.host_name, loser_score=self.host_score
-            )
-        else:   # Game is a tie.
-            self._set_winner_and_loser_names_and_scores(
-                winner_name=None, winner_score=None,
-                loser_name=None, loser_score=None
-            )
-
-    def _guest_win(self):
-        return self.guest_score > self.host_score
-
-    def _host_win(self):
-        return self.host_score > self.guest_score
-
-    def _set_winner_and_loser_names_and_scores(self,
-            winner_name: Optional[str], winner_score: Optional[int],
-            loser_name: Optional[str], loser_score: Optional[int]
-    ) -> None:
-        self.winner_name = winner_name
-        self.winner_score = winner_score
-        self.loser_name = loser_name
-        self.loser_score = loser_score
+    @validates('guest_name', 'host_name')
+    def validate_not_empty_string(self, key, value):
+        if not value or not value.strip():
+            raise ValueError(f"{key} is required.")
+        return value
 
     def is_tie(self) -> bool:
         """

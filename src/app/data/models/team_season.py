@@ -1,9 +1,7 @@
 from decimal import Decimal
-from typing import Optional
 
 from app.data.sqla import sqla
-
-EXPONENT = Decimal('2.37')
+from app.services.utilities import team_season_utils
 
 
 class TeamSeason(sqla.Model):
@@ -15,9 +13,9 @@ class TeamSeason(sqla.Model):
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
     team_name = sqla.Column(sqla.String(50), sqla.ForeignKey('Team.name'), nullable=False)
     season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
-    league_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('League.short_name'), nullable=False)
-    conference_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Conference.short_name'))
-    division_name = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Division.name'))
+    league_name = sqla.Column(sqla.String(5), sqla.ForeignKey('League.short_name'), nullable=False)
+    conference_name = sqla.Column(sqla.String(5), sqla.ForeignKey('Conference.short_name'))
+    division_name = sqla.Column(sqla.String(50), sqla.ForeignKey('Division.name'))
     games = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     wins = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     losses = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
@@ -41,7 +39,7 @@ class TeamSeason(sqla.Model):
 
         :return: None
         """
-        exp_pct = calculate_expected_winning_percentage(self.points_for, self.points_against)
+        exp_pct = team_season_utils.calculate_expected_winning_percentage(self.points_for, self.points_against)
         if exp_pct is None:
             self.expected_wins = 0
             self.expected_losses = 0
@@ -55,7 +53,7 @@ class TeamSeason(sqla.Model):
 
         :return: None
         """
-        self.winning_percentage = divide(2 * self.wins + self.ties, 2 * self.games)
+        self.winning_percentage = team_season_utils.divide(2 * self.wins + self.ties, 2 * self.games)
 
     def update_rankings(
             self,
@@ -66,19 +64,19 @@ class TeamSeason(sqla.Model):
         """
         Updates the current TeamSeason object's offensive and defensive averages, factors, and indices.
 
-        :param team_season_schedule_average_points_for:
-        :param team_season_schedule_average_points_against:
-        :param league_season_average_points:
+        :param team_season_schedule_average_points_for: This TeamSeason's schedule's average points scored per game.
+        :param team_season_schedule_average_points_against: This TeamSeason's schedule's average allowed scored per game.
+        :param league_season_average_points: The LeagueSeason's average points scored per game.
 
         :return: None
         """
         self.offensive_average, self.offensive_factor, self.offensive_index = \
-            update_rankings(
+            team_season_utils.update_rankings(
                 self.points_for, self.games, team_season_schedule_average_points_against, league_season_average_points
             )
 
         self.defensive_average, self.defensive_factor, self.defensive_index = \
-            update_rankings(
+            team_season_utils.update_rankings(
                 self.points_against, self.games, team_season_schedule_average_points_for, league_season_average_points
             )
 
@@ -89,34 +87,4 @@ class TeamSeason(sqla.Model):
             return
 
         self.final_expected_winning_percentage = \
-            calculate_expected_winning_percentage(self.offensive_index, self.defensive_index)
-
-
-def calculate_expected_winning_percentage(points_for: Decimal, points_against: Decimal) -> Optional[Decimal]:
-    o = pow(points_for, EXPONENT)
-    d = pow(points_against, EXPONENT)
-    return divide(o, o + d)
-
-
-def divide(numerator: int | Decimal, denominator: int | Decimal) -> Optional[Decimal]:
-    if denominator == 0:
-        return None
-
-    return Decimal(numerator) / Decimal(denominator)
-
-
-def update_rankings(
-        points: int, games: int, team_season_schedule_average_points: Decimal, league_season_average_points: Decimal
-) -> tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal]]:
-    if games == 0:
-        return None, None, None
-
-    average = divide(points, games)
-    factor = divide(average, team_season_schedule_average_points)
-
-    if factor is None:
-        index = None
-    else:
-        index = divide(average + factor * league_season_average_points, 2)
-
-    return average, factor, index
+            team_season_utils.calculate_expected_winning_percentage(self.offensive_index, self.defensive_index)
