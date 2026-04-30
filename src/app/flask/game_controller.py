@@ -59,14 +59,17 @@ def create() -> Response | str:
     if request.method == 'GET':
         selected_season = session.get('selected_season')
         form.season_year.data = selected_season['year'] if selected_season['year'] >= 1920 else 0
+        form.week.data = session.get('week')
 
     if form.validate_on_submit():
         new_game = _get_game_from_form(form)
         try:
             game_service = injector.get(GameService)
             game_service.add_game(new_game)
-            flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name} has been successfully submitted.", 'success')
-            return redirect(url_for('game.index'))
+            flash(f"Game for season={form.season_year.data}, week={form.week.data}, with guest={form.guest_name.data} and host={form.host_name.data} has been successfully submitted.", 'success')
+
+            session['week'] = form.week.data
+            return redirect(url_for('game.create'))
         except ValueError as err:
             return _handle_error(err, 'games/create.html', form)
         except IntegrityError as err:
