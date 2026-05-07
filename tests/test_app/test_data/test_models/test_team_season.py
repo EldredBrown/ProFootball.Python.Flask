@@ -6,6 +6,7 @@ import pytest
 
 from app.data.models import team_season as mut
 from app.data.models.team_season import TeamSeason
+from app.services.utilities import team_season_utils
 from instance.test_db.db_init import init_db
 
 
@@ -83,7 +84,7 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
         (0, 0, 2, Decimal('0.500')),
     ]
 )
-def test_calculate_winning_percentage_should_calculate_correct_winning_percentage(
+def test_winning_percentage_should_return_correct_winning_percentage(
     test_wins, test_losses, test_ties, expected_winning_percentage
 ):
     # Arrange
@@ -97,10 +98,7 @@ def test_calculate_winning_percentage_should_calculate_correct_winning_percentag
         ties=test_ties
     )
 
-    # Act
-    test_team_season.calculate_winning_percentage()
-
-    # Assert
+    # Act & Assert
     assert test_team_season.winning_percentage == expected_winning_percentage
 
 
@@ -137,14 +135,14 @@ def test_calculate_winning_percentage_should_calculate_correct_winning_percentag
                 Decimal('20.00'), Decimal('20.00'), Decimal('20.00'),
                 Decimal('15.00'), Decimal('0.750'), Decimal('15.00'),
                 Decimal('25.00'), Decimal('1.250'), Decimal('25.00'),
-                (Decimal('15.00')**mut.EXPONENT / (Decimal('15.00')**mut.EXPONENT + Decimal('25.00')**mut.EXPONENT)),
+                (Decimal('15.00')**team_season_utils.EXPONENT / (Decimal('15.00')**team_season_utils.EXPONENT + Decimal('25.00')**team_season_utils.EXPONENT)),
         ),
         (
                 3, 75, 45,
                 Decimal('20.00'), Decimal('20.00'), Decimal('20.00'),
                 Decimal('25.00'), Decimal('1.250'), Decimal('25.00'),
                 Decimal('15.00'), Decimal('0.750'), Decimal('15.00'),
-                (Decimal('25.00')**mut.EXPONENT / (Decimal('15.00')**mut.EXPONENT + Decimal('25.00')**mut.EXPONENT)),
+                (Decimal('25.00')**team_season_utils.EXPONENT / (Decimal('15.00')**team_season_utils.EXPONENT + Decimal('25.00')**team_season_utils.EXPONENT)),
         ),
     ]
 )

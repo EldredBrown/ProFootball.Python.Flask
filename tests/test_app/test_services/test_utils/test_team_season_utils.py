@@ -112,10 +112,9 @@ def test_update_rankings_when_games_equals_zero_should_return_correct_result():
     result = mod.update_rankings(points, games, team_season_schedule_average_points, league_season_average_points)
 
     # Assert
-    average = None
-    factor = None
-    index = None
-    assert result == (average, factor, index)
+    assert result.average is None
+    assert result.factor is None
+    assert result.index is None
 
 
 def test_update_rankings_when_games_not_equal_to_zero_and_factor_is_none_should_return_correct_result():
@@ -132,7 +131,9 @@ def test_update_rankings_when_games_not_equal_to_zero_and_factor_is_none_should_
     average = mod.divide(points, games)
     factor = None
     index = None
-    assert result == (average, factor, index)
+    assert result.average == average
+    assert result.factor is None
+    assert result.index is None
 
 
 def test_update_rankings_when_games_not_equal_to_zero_and_factor_is_not_none_should_return_correct_result():
@@ -146,7 +147,6 @@ def test_update_rankings_when_games_not_equal_to_zero_and_factor_is_not_none_sho
     result = mod.update_rankings(points, games, team_season_schedule_average_points, league_season_average_points)
 
     # Assert
-    average = mod.divide(points, games)
-    factor = mod.divide(average, team_season_schedule_average_points)
-    index = mod.divide(average + factor * league_season_average_points, 2)
-    assert result == (average, factor, index)
+    assert result.average == mod.divide(points, games)
+    assert result.factor == mod.divide(result.average, team_season_schedule_average_points)
+    assert result.index == mod.divide(result.average + result.factor * league_season_average_points, 2)

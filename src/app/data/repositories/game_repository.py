@@ -112,10 +112,6 @@ class GameRepository:
         game_in_db.guest_score = game.guest_score
         game_in_db.host_name = game.host_name
         game_in_db.host_score = game.host_score
-        game_in_db.winner_name = game.winner_name
-        game_in_db.winner_score = game.winner_score
-        game_in_db.loser_name = game.loser_name
-        game_in_db.loser_score = game.loser_score
         game_in_db.is_playoff = game.is_playoff
         game_in_db.notes = game.notes
         return game_in_db

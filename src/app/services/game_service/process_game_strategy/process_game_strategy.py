@@ -39,11 +39,19 @@ class ProcessGameStrategy(ABC):
         season_year = game.season_year
         guest_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.guest_name, season_year)
         if guest_season is None:
-            raise EntityNotFoundError(f"No team season found for guest '{game.guest_name}' in year {season_year}")
+            # raise EntityNotFoundError(f"No team season found for guest '{game.guest_name}' in year {season_year}")
+            pass
 
         host_season = self.team_season_repository.get_team_season_by_team_name_and_season_year(game.host_name, season_year)
         if host_season is None:
-            raise EntityNotFoundError(f"No team season found for host '{game.host_name}' in year {season_year}")
+            # raise EntityNotFoundError(f"No team season found for host '{game.host_name}' in year {season_year}")
+            pass
+
+        # The following if block is only a temporary patch to allow this app to work through the two seasons of the APFA,
+        # when member teams were permitted to play counting games against non-member opponents. This patch will be removed
+        # as soon as I progress to that season where this practice was no longer permitted.
+        if guest_season is None and host_season is None:
+            raise EntityNotFoundError(f"No team season found for either guest '{game.guest_name}' or host '{game.host_name}' in year {season_year}")
 
         self._edit_win_loss_data(guest_season, host_season, game)
         self._edit_scoring_data(guest_season, host_season, game.guest_score, game.host_score)
@@ -72,8 +80,11 @@ class ProcessGameStrategy(ABC):
 
     @staticmethod
     def _update_winning_percentage_for_team_seasons(guest_season: TeamSeason, host_season: TeamSeason) -> None:
-        guest_season.calculate_winning_percentage()
-        host_season.calculate_winning_percentage()
+        if guest_season is not None:
+            guest_season.calculate_winning_percentage()
+
+        if host_season is not None:
+            host_season.calculate_winning_percentage()
 
     def _edit_scoring_data(self,
                            guest_season: TeamSeason,

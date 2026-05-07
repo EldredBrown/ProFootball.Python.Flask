@@ -57,12 +57,13 @@ class TeamSeasonRepository:
         return len(team_seasons) == 0
 
     def update_team_season(self, team_season: TeamSeason) -> None:
-        if not self.team_season_exists(team_season.id):
+        if team_season is not None:
+            if not self.team_season_exists(team_season.id):
+                return team_season
+            team_season_in_db = self._set_values_of_team_season_in_db(team_season)
+            sqla.session.add(team_season_in_db)
+            try_commit()
             return team_season
-        team_season_in_db = self._set_values_of_team_season_in_db(team_season)
-        sqla.session.add(team_season_in_db)
-        try_commit()
-        return team_season
 
     def _set_values_of_team_season_in_db(self, team_season: TeamSeason) -> TeamSeason:
         team_season_in_db = self.get_team_season(team_season.id)

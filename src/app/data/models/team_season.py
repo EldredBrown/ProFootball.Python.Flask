@@ -4,6 +4,12 @@ from app.data.sqla import sqla
 from app.services.utilities import team_season_utils
 
 
+_PCT_NUMERIC = dict(precision=18, scale=17)   # e.g. winning percentages (0.000...–1.000...)
+_EXP_NUMERIC = dict(precision=18, scale=16)   # e.g. expected wins/losses
+_AVG_NUMERIC = dict(precision=18, scale=15)   # e.g. averages
+_FCT_NUMERIC = dict(precision=18, scale=14)   # e.g. factors
+
+
 class TeamSeason(sqla.Model):
     """
     Class to represent the association between one pro football team and one pro football season.
@@ -20,18 +26,36 @@ class TeamSeason(sqla.Model):
     wins = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     losses = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     ties = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    winning_percentage = sqla.Column(sqla.Numeric(precision=18, scale=17), nullable=False, default=0)
     points_for = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
     points_against = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    expected_wins = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
-    expected_losses = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=False, default=0)
-    offensive_average = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    offensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=14))
-    offensive_index = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    defensive_average = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    defensive_factor = sqla.Column(sqla.Numeric(precision=18, scale=14))
-    defensive_index = sqla.Column(sqla.Numeric(precision=18, scale=15))
-    final_expected_winning_percentage = sqla.Column(sqla.Numeric(precision=18, scale=17))
+    expected_wins = sqla.Column(sqla.Numeric(**_EXP_NUMERIC), nullable=False, default=0)
+    expected_losses = sqla.Column(sqla.Numeric(**_EXP_NUMERIC), nullable=False, default=0)
+    offensive_average = sqla.Column(sqla.Numeric(**_AVG_NUMERIC))
+    offensive_factor = sqla.Column(sqla.Numeric(**_FCT_NUMERIC))
+    offensive_index = sqla.Column(sqla.Numeric(**_AVG_NUMERIC))
+    defensive_average = sqla.Column(sqla.Numeric(**_AVG_NUMERIC))
+    defensive_factor = sqla.Column(sqla.Numeric(**_FCT_NUMERIC))
+    defensive_index = sqla.Column(sqla.Numeric(**_AVG_NUMERIC))
+    final_expected_winning_percentage = sqla.Column(sqla.Numeric(**_PCT_NUMERIC))
+
+    __table_args__ = (
+        sqla.UniqueConstraint('team_name', 'season_year', name='uq_team_season'),
+    )
+
+    def __repr__(self) -> str:
+        return (f"<TeamSeason id={self.id!r} team={self.team_name!r} "
+                f"season={self.season_year} record={self.wins}-{self.losses}-{self.ties}>")
+
+    def to_dict(self) -> dict[str, object]:
+        d = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        d.update({
+            'winning_percentage': self.winning_percentage,
+        })
+        return d
+
+    @property
+    def winning_percentage(self) -> Decimal | None:
+        return team_season_utils.divide(2 * self.wins + self.ties, 2 * self.games)
 
     def calculate_expected_wins_and_losses(self) -> None:
         """
@@ -39,21 +63,17 @@ class TeamSeason(sqla.Model):
 
         :return: None
         """
+        if self.games == 0:
+            self.expected_wins = Decimal(0)
+            self.expected_losses = Decimal(0)
+
         exp_pct = team_season_utils.calculate_expected_winning_percentage(self.points_for, self.points_against)
         if exp_pct is None:
-            self.expected_wins = 0
-            self.expected_losses = 0
+            self.expected_wins = Decimal(0)
+            self.expected_losses = Decimal(0)
         else:
             self.expected_wins = exp_pct * self.games
             self.expected_losses = (1 - exp_pct) * self.games
-
-    def calculate_winning_percentage(self) -> None:
-        """
-        Calculates the current TeamSeason object's winning percentage.
-
-        :return: None
-        """
-        self.winning_percentage = team_season_utils.divide(2 * self.wins + self.ties, 2 * self.games)
 
     def update_rankings(
             self,
@@ -70,20 +90,29 @@ class TeamSeason(sqla.Model):
 
         :return: None
         """
-        self.offensive_average, self.offensive_factor, self.offensive_index = \
-            team_season_utils.update_rankings(
-                self.points_for, self.games, team_season_schedule_average_points_against, league_season_average_points
-            )
+        offense = team_season_utils.update_rankings(
+            self.points_for, self.games,
+            team_season_schedule_average_points_against,
+            league_season_average_points
+        )
+        self.offensive_average = offense.average
+        self.offensive_factor = offense.factor
+        self.offensive_index = offense.index
 
-        self.defensive_average, self.defensive_factor, self.defensive_index = \
-            team_season_utils.update_rankings(
-                self.points_against, self.games, team_season_schedule_average_points_for, league_season_average_points
-            )
+        defense = team_season_utils.update_rankings(
+            self.points_against, self.games,
+            team_season_schedule_average_points_for,
+            league_season_average_points
+        )
+        self.defensive_average = defense.average
+        self.defensive_factor = defense.factor
+        self.defensive_index = defense.index
 
         self._calculate_final_expected_winning_percentage()
 
     def _calculate_final_expected_winning_percentage(self) -> None:
         if self.offensive_index is None or self.defensive_index is None:
+            self.final_expected_winning_percentage = None
             return
 
         self.final_expected_winning_percentage = \

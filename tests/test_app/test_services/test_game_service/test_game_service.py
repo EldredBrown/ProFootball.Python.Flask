@@ -35,16 +35,19 @@ def test_add_game_when_new_game_arg_is_not_none_and_no_team_season_found_for_gue
     # Arrange
     fake_game.guest_name = "Guest"
     fake_game.host_name = "Host"
+    fake_game.season_year = 1
 
-    test_service.team_season_repository.get_team_season.return_value = None
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.return_value = None
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_service.add_game(fake_game)
-        assert err.value.args[0] == f"No team season found for '{fake_game.guest_name}' in year {fake_game.season_year}"
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_called_once_with(fake_game.guest_name)
+    assert err.value.args[0] == f"No team season found for '{fake_game.guest_name}' in year {fake_game.season_year}"
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_called_once_with(
+        fake_game.guest_name, fake_game.season_year
+    )
 
 
 @patch('app.services.game_service.game_service.Game')
@@ -52,18 +55,19 @@ def test_add_game_when_team_season_found_for_guest_and_no_team_season_found_for_
     # Arrange
     fake_game.guest_name = "Guest"
     fake_game.host_name = "Host"
+    fake_game.season_year = 1
 
-    test_service.team_season_repository.get_team_season.side_effect = [Mock(TeamSeason), None]
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = [Mock(TeamSeason), None]
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_service.add_game(fake_game)
-        assert err.value.args[0] == f"No team season found for '{fake_game.host_name}' in year {fake_game.season_year}"
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_has_calls([
-        call(fake_game.guest_name),
-        call(fake_game.host_name),
+    assert err.value.args[0] == f"No team season found for '{fake_game.host_name}' in year {fake_game.season_year}"
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
+        call(fake_game.guest_name, fake_game.season_year),
+        call(fake_game.host_name, fake_game.season_year),
     ])
 
 
@@ -72,8 +76,9 @@ def test_add_game_when_team_seasons_found_for_both_teams_should_add_game_to_repo
     # Arrange
     fake_game.guest_name = "Guest"
     fake_game.host_name = "Host"
+    fake_game.season_year = 1
 
-    test_service.team_season_repository.get_team_season.side_effect = [Mock(TeamSeason), Mock(TeamSeason)]
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = [Mock(TeamSeason), Mock(TeamSeason)]
 
     fake_process_game_strategy = Mock(ProcessGameStrategy)
     test_service.process_game_strategy_factory.create_strategy.return_value = fake_process_game_strategy
@@ -82,11 +87,10 @@ def test_add_game_when_team_seasons_found_for_both_teams_should_add_game_to_repo
     test_service.add_game(fake_game)
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_has_calls([
-        call(fake_game.guest_name),
-        call(fake_game.host_name),
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
+        call(fake_game.guest_name, fake_game.season_year),
+        call(fake_game.host_name, fake_game.season_year),
     ])
-    fake_game.decide_winner_and_loser.assert_called_once()
     test_service.game_repository.add_game.assert_called_once_with(fake_game)
     test_service.process_game_strategy_factory.create_strategy.assert_called_once_with(Direction.UP)
     fake_process_game_strategy.process_game.assert_called_once_with(fake_game)
@@ -97,11 +101,12 @@ def test_update_game_when_new_game_arg_is_none_should_raise_value_error(test_ser
     new_game = None
     old_game = None
 
-    # Act and Assert
+    # Act
     with pytest.raises(ValueError) as err:
         test_service.update_game(new_game, old_game)
 
-        assert err.value.args[0] == f"{type(GameService).__name__}.update_game: new_game"
+    # Assert
+    assert err.value.args[0] == f"{type(GameService).__name__}.update_game: new_game"
 
 
 def test_update_game_when_new_game_arg_is_not_none_and_old_game_arg_is_none_should_raise_value_error(test_service):
@@ -109,11 +114,12 @@ def test_update_game_when_new_game_arg_is_not_none_and_old_game_arg_is_none_shou
     new_game = Mock(Game)
     old_game = None
 
-    # Act and Assert
+    # Act
     with pytest.raises(ValueError) as err:
         test_service.update_game(new_game, old_game)
 
-        assert err.value.args[0] == f"{type(GameService).__name__}.update_game: old_game"
+    # Assert
+    assert err.value.args[0] == f"{type(GameService).__name__}.update_game: old_game"
 
 
 def test_update_game_when_both_args_are_not_none_and_no_team_season_found_for_guest_should_raise_entity_not_found_error(test_service):
@@ -121,15 +127,17 @@ def test_update_game_when_both_args_are_not_none_and_no_team_season_found_for_gu
     new_game = Mock(Game)
     old_game = Mock(Game)
 
-    test_service.team_season_repository.get_team_season.return_value = None
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.return_value = None
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_service.update_game(new_game, old_game)
-        assert err.value.args[0] == f"No team season found for '{new_game.guest_name}' in year {new_game.season_year}"
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_called_once_with(new_game.guest_name)
+    assert err.value.args[0] == f"No team season found for '{new_game.guest_name}' in year {new_game.season_year}"
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_called_once_with(
+        new_game.guest_name, new_game.season_year
+    )
 
 
 def test_update_game_when_team_season_found_for_guest_and_no_team_season_found_for_host_should_raise_entity_not_found_error(test_service):
@@ -137,7 +145,8 @@ def test_update_game_when_team_season_found_for_guest_and_no_team_season_found_f
     new_game = Mock(Game)
     old_game = Mock(Game)
 
-    test_service.team_season_repository.get_team_season.side_effect = [Mock(TeamSeason), None]
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
+        [Mock(TeamSeason), None]
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
@@ -145,9 +154,9 @@ def test_update_game_when_team_season_found_for_guest_and_no_team_season_found_f
         assert err.value.args[0] == f"No team season found for '{new_game.host_name}' in year {new_game.season_year}"
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_has_calls([
-        call(new_game.guest_name),
-        call(new_game.host_name),
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
+        call(new_game.guest_name, new_game.season_year),
+        call(new_game.host_name, new_game.season_year),
     ])
 
 
@@ -156,7 +165,8 @@ def test_update_game_when_team_seasons_found_for_both_teams_and_selected_game_do
     new_game = Mock(Game)
     old_game = Mock(Game)
 
-    test_service.team_season_repository.get_team_season.side_effect = [Mock(TeamSeason), Mock(TeamSeason)]
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
+        [Mock(TeamSeason), Mock(TeamSeason)]
 
     selected_game = None
     test_service.game_repository.get_game.return_value = selected_game
@@ -164,12 +174,12 @@ def test_update_game_when_team_seasons_found_for_both_teams_and_selected_game_do
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_service.update_game(new_game, old_game)
-        assert err.value.args[0] == f"{type(GameService).__name__}.update_game: A game with id={old_game.id} could not be found."
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_has_calls([
-        call(new_game.guest_name),
-        call(new_game.host_name),
+    assert err.value.args[0] == f"{type(GameService).__name__}.update_game: A game with id={old_game.id} could not be found."
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
+        call(new_game.guest_name, new_game.season_year),
+        call(new_game.host_name, new_game.season_year),
     ])
     test_service.game_repository.get_game.assert_called_once_with(old_game.id)
 
@@ -179,7 +189,8 @@ def test_update_game_when_selected_game_exists_and_should_update_game_in_reposit
     new_game = Mock(Game)
     old_game = Mock(Game)
 
-    test_service.team_season_repository.get_team_season.side_effect = [Mock(TeamSeason), Mock(TeamSeason)]
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
+        [Mock(TeamSeason), Mock(TeamSeason)]
 
     selected_game = Mock(Game)
     test_service.game_repository.get_game.return_value = selected_game
@@ -192,18 +203,18 @@ def test_update_game_when_selected_game_exists_and_should_update_game_in_reposit
     test_service.update_game(new_game, old_game)
 
     # Assert
-    test_service.team_season_repository.get_team_season.assert_has_calls([
-        call(new_game.guest_name),
-        call(new_game.host_name),
+    test_service.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
+        call(new_game.guest_name, new_game.season_year),
+        call(new_game.host_name, new_game.season_year),
     ])
     test_service.game_repository.get_game.assert_called_once_with(old_game.id)
-    new_game.decide_winner_and_loser.assert_called_once()
     test_service.game_repository.update_game.assert_called_once_with(new_game)
 
-    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
+    test_service.process_game_strategy_factory.create_strategy.assert_has_calls([
+        call(Direction.DOWN),
+        call(Direction.UP),
+    ])
     subtract_strategy.process_game.assert_called_once_with(old_game)
-
-    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.UP)
     add_strategy.process_game.assert_called_once_with(new_game)
 
 
@@ -218,7 +229,7 @@ def test_delete_game_when_game_with_passed_id_is_not_found_should_raise_entity_n
         assert err.value.args[0] == f"{type(GameService).__name__}.delete_game: A game with id={id} could not be found."
 
     # Assert
-    test_service.game_repository.get_game.assert_any_call(id)
+    test_service.game_repository.get_game.assert_called_once_with(id)
 
 
 def test_delete_game_when_game_with_passed_id_is_found_should_delete_game_from_repository(test_service):
@@ -234,7 +245,7 @@ def test_delete_game_when_game_with_passed_id_is_found_should_delete_game_from_r
     test_service.delete_game(id)
 
     # Assert
-    test_service.game_repository.get_game.assert_any_call(id)
-    test_service.process_game_strategy_factory.create_strategy.assert_any_call(Direction.DOWN)
+    test_service.game_repository.get_game.assert_called_once_with(id)
+    test_service.process_game_strategy_factory.create_strategy.assert_called_once_with(Direction.DOWN)
     strategy.process_game.assert_called_once_with(old_game)
-    test_service.game_repository.delete_game.assert_any_call(id)
+    test_service.game_repository.delete_game.assert_called_once_with(id)

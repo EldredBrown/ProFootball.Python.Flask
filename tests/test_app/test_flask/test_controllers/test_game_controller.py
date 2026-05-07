@@ -885,7 +885,7 @@ def test_delete_when_request_method_is_get_should_render_delete_template(fake_in
 
     fake_game_repository = Mock(GameRepository)
     game = Game(
-        season_year=1,
+        season_year=1920,
         week=1,
         guest_name="Guest",
         guest_score=2,
@@ -924,7 +924,7 @@ def test_delete_when_request_method_is_post_and_game_found_should_delete_game_an
 
     fake_game_repository = Mock(GameRepository)
     game = Game(
-        season_year=1,
+        season_year=1920,
         week=1,
         guest_name="Guest",
         guest_score=2,
@@ -968,7 +968,7 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
 
     fake_game_repository = Mock(GameRepository)
     game = Game(
-        season_year=1,
+        season_year=1920,
         week=1,
         guest_name="Guest",
         guest_score=2,

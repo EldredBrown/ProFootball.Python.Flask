@@ -1,7 +1,14 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
 
 EXPONENT = Decimal('2.37')
+
+@dataclass
+class TeamSeasonRankingsData:
+    average: Optional[Decimal]
+    factor: Optional[Decimal]
+    index: Optional[Decimal]
 
 
 def calculate_expected_winning_percentage(points_for: Decimal, points_against: Decimal) -> Optional[Decimal]:
@@ -21,9 +28,9 @@ def divide(numerator: int | Decimal, denominator: int | Decimal) -> Optional[Dec
 
 def update_rankings(
         points: int, games: int, team_season_schedule_average_points: Decimal, league_season_average_points: Decimal
-) -> tuple[Optional[Decimal], Optional[Decimal], Optional[Decimal]]:
+) -> TeamSeasonRankingsData:
     if games == 0:
-        return None, None, None
+        return TeamSeasonRankingsData(average=None, factor=None, index=None)
 
     average = divide(points, games)
     factor = divide(average, team_season_schedule_average_points)
@@ -33,4 +40,4 @@ def update_rankings(
     else:
         index = divide(average + factor * league_season_average_points, 2)
 
-    return average, factor, index
+    return TeamSeasonRankingsData(average=average, factor=factor, index=index)

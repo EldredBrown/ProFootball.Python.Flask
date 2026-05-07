@@ -52,9 +52,8 @@ class GameService:
         """
         guard.raise_if_none(new_game, f"{type(self).__name__}.add_game: new_game")
 
-        self._validate_existence_of_teams_in_new_game(new_game)
+        # self._validate_existence_of_teams_in_new_game(new_game)
 
-        new_game.decide_winner_and_loser()
         self.game_repository.add_game(new_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
@@ -73,7 +72,7 @@ class GameService:
         guard.raise_if_none(new_game, f"{type(self).__name__}.update_game: new_game")
         guard.raise_if_none(old_game, f"{type(self).__name__}.update_game: old_game")
 
-        self._validate_existence_of_teams_in_new_game(new_game)
+        # self._validate_existence_of_teams_in_new_game(new_game)
 
         selected_game = self.game_repository.get_game(old_game.id)
         if selected_game is None:
@@ -81,14 +80,13 @@ class GameService:
                 f"{type(self).__name__}.update_game: A game with id={old_game.id} could not be found."
             )
 
-        new_game.decide_winner_and_loser()
         self.game_repository.update_game(new_game)
         self._edit_team_seasons(Direction.DOWN, old_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
     def _validate_existence_of_teams_in_new_game(self, new_game: Game | None):
         for name in (new_game.guest_name, new_game.host_name):
-            if not self.team_season_repository.get_team_season(name):
+            if not self.team_season_repository.get_team_season_by_team_name_and_season_year(name, new_game.season_year):
                 raise EntityNotFoundError(f"No team season found for '{name}' in year {new_game.season_year}")
 
     def delete_game(self, id: int) -> None:
