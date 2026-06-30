@@ -11,6 +11,7 @@ from app.data.models.division import Division
 from app.data.repositories.division_repository import DivisionRepository
 from app.flask.forms.division_forms import NewDivisionForm, EditDivisionForm, DeleteDivisionForm, DivisionForm
 
+
 blueprint = Blueprint('division', __name__)
 
 
@@ -36,8 +37,8 @@ def details(id: int) -> str:
 def create() -> Response | str:
     form = NewDivisionForm()
     if form.validate_on_submit():
-        new_division = _get_division_from_form(form)
         try:
+            new_division = _get_model_from_form(form)
             division_repository = injector.get(DivisionRepository)
             division_repository.add_division(new_division)
             flash(f"Item {form.name.data} has been successfully submitted.", 'success')
@@ -56,12 +57,13 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     division_repository = injector.get(DivisionRepository)
-    old_division = copy.deepcopy(division_repository.get_division(id))
+    division = division_repository.get_division(id)
+    old_division = copy.deepcopy(division)
     if old_division:
         form = EditDivisionForm()
         if form.validate_on_submit():
-            new_division = _get_division_from_form(form, id)
             try:
+                new_division = _get_model_from_form(form, id)
                 division_repository.update_division(new_division)
                 flash(f"Item {form.name.data} has been successfully updated.", 'success')
                 return redirect(url_for('division.details', id=id))
@@ -72,7 +74,7 @@ def edit(id: int) -> Response | str:
             except IndexError:
                 abort(404)
         else:
-            _get_form_data_from_division(form, old_division)
+            _get_form_data_from_model(form, old_division)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
@@ -81,10 +83,31 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-def _get_division_from_form(form: DivisionForm, id: int=None) -> Division:
-    kwargs = _get_kwargs_from_form(form, id)
-    division = division_factory.create_division(**kwargs)
-    return division
+@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id: int) -> Response | str:
+    form = DeleteDivisionForm()
+    try:
+        division_repository = injector.get(DivisionRepository)
+        division = division_repository.get_division(id)
+        if not division:
+            abort(404)
+
+        if request.method == 'POST':
+            division_repository.delete_division(id)
+            flash(f"Division {division.name} has been successfully deleted.", 'success')
+            return redirect(url_for('division.index'))
+        else:
+            return render_template('divisions/delete.html', division=division, form=form)
+    except IndexError:
+        abort(404)
+
+
+def _get_form_data_from_model(form: DivisionForm, division: Division) -> None:
+    form.name.data = division.name
+    form.league_name.data = division.league.short_name
+    form.conference_name.data = division.conference.short_name
+    form.first_season_year.data = division.first_season_id
+    form.last_season_year.data = division.last_season_id
 
 
 def _get_kwargs_from_form(form: DivisionForm, id: int=None) -> dict[str, Any]:
@@ -100,30 +123,10 @@ def _get_kwargs_from_form(form: DivisionForm, id: int=None) -> dict[str, Any]:
     return kwargs
 
 
-def _get_form_data_from_division(form: DivisionForm, division: Division) -> None:
-    form.name.data = division.name
-    form.league_name.data = division.league_name
-    form.conference_name.data = division.conference_name
-    form.first_season_year.data = division.first_season_year
-    form.last_season_year.data = division.last_season_year
-
-
-@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    try:
-        division_repository = injector.get(DivisionRepository)
-        division = division_repository.get_division(id)
-        if not division:
-            abort(404)
-
-        if request.method == 'POST':
-            division_repository.delete_division(id)
-            flash(f"Division {division.name} has been successfully deleted.", 'success')
-            return redirect(url_for('division.index'))
-        else:
-            return render_template('divisions/delete.html', division=division)
-    except IndexError:
-        abort(404)
+def _get_model_from_form(form: DivisionForm, id: int=None) -> Division:
+    kwargs = _get_kwargs_from_form(form, id)
+    division = division_factory.create_division(**kwargs)
+    return division
 
 
 def _handle_error(err: Any, template_name: str, form: DivisionForm, division: Division=None) -> str:

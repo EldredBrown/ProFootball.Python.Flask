@@ -4,10 +4,39 @@ from unittest.mock import patch
 
 import pytest
 
-from app.data.models import team_season as mut
 from app.data.models.team_season import TeamSeason
 from app.services.utilities import team_season_utils
 from instance.test_db.db_init import init_db
+
+
+@pytest.mark.parametrize(
+    "test_games, test_wins,test_losses,test_ties,expected_winning_percentage",
+    [
+        (0, 0, 0, 0, None),
+        (2, 2, 0, 0, Decimal('1.000')),
+        (2, 1, 1, 0, Decimal('0.500')),
+        (2, 0, 2, 0, Decimal('0.000')),
+        (2, 1, 0, 1, Decimal('0.750')),
+        (2, 0, 1, 1, Decimal('0.250')),
+        (2, 0, 0, 2, Decimal('0.500')),
+    ]
+)
+def test_winning_percentage_should_return_correct_winning_percentage(
+    test_games: int, test_wins, test_losses, test_ties, expected_winning_percentage
+):
+    # Arrange
+    test_team_season = TeamSeason(
+        team_id=1,
+        season_id=1920,
+        league_id=1,
+        games=test_games,
+        wins=test_wins,
+        losses=test_losses,
+        ties=test_ties
+    )
+
+    # Act & Assert
+    assert test_team_season.winning_percentage == expected_winning_percentage
 
 
 @patch('app.data.models.team_season.team_season_utils')
@@ -19,11 +48,11 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
     fake_team_season_utils.calculate_expected_winning_percentage.return_value = exp_pct
 
     test_team_season = TeamSeason(
-        team_name="Team",
-        season_year=1,
-        league_name="League",
-        points_for = 1,
-        points_against = 1,
+        team_id=1,
+        season_id=1920,
+        league_id=1,
+        points_for = 0,
+        points_against = 0,
     )
 
     # Act
@@ -54,9 +83,9 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
     fake_team_season_utils.calculate_expected_winning_percentage.return_value = exp_pct
 
     test_team_season = TeamSeason(
-        team_name="Team",
-        season_year=1,
-        league_name="League",
+        team_id=1,
+        season_id=1920,
+        league_id=1,
         games=2,
         points_for = 1,
         points_against = 1,
@@ -71,35 +100,6 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
     )
     assert test_team_season.expected_wins == expected_wins
     assert test_team_season.expected_losses == expected_losses
-
-
-@pytest.mark.parametrize(
-    "test_wins,test_losses,test_ties,expected_winning_percentage",
-    [
-        (2, 0, 0, Decimal('1.000')),
-        (1, 1, 0, Decimal('0.500')),
-        (0, 2, 0, Decimal('0.000')),
-        (1, 0, 1, Decimal('0.750')),
-        (0, 1, 1, Decimal('0.250')),
-        (0, 0, 2, Decimal('0.500')),
-    ]
-)
-def test_winning_percentage_should_return_correct_winning_percentage(
-    test_wins, test_losses, test_ties, expected_winning_percentage
-):
-    # Arrange
-    test_team_season = TeamSeason(
-        team_name="Team",
-        season_year=1,
-        league_name="League",
-        games=2,
-        wins=test_wins,
-        losses=test_losses,
-        ties=test_ties
-    )
-
-    # Act & Assert
-    assert test_team_season.winning_percentage == expected_winning_percentage
 
 
 @pytest.mark.parametrize(
@@ -155,9 +155,9 @@ def test_team_season_update_rankings_should_update_rankings_to_correct_values(
 ):
     # Arrange
     test_team_season = TeamSeason(
-        team_name="Team",
-        season_year=1,
-        league_name="League",
+        team_id=1,
+        season_id=1920,
+        league_id=1,
         games=test_games,
         points_for=test_points_for,
         points_against=test_points_against

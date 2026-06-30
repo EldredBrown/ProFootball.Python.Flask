@@ -1,4 +1,4 @@
-from unittest.mock import patch, call
+from unittest.mock import patch, call, MagicMock
 
 import pytest
 
@@ -16,11 +16,11 @@ def test_repo():
 @patch('app.data.repositories.team_repository.Team')
 def test_get_teams_should_get_teams(fake_team, test_repo):
     # Arrange
-    teams_in = [
+    teams_in = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams_in
 
     # Act
@@ -33,7 +33,7 @@ def test_get_teams_should_get_teams(fake_team, test_repo):
 @patch('app.data.repositories.team_repository.Team')
 def test_get_team_when_teams_is_empty_should_return_none(fake_team, test_repo):
     # Arrange
-    teams_in = []
+    teams_in = ()
     fake_team.query.all.return_value = teams_in
 
     # Act
@@ -44,18 +44,21 @@ def test_get_team_when_teams_is_empty_should_return_none(fake_team, test_repo):
 
 
 @patch('app.data.repositories.team_repository.Team')
-def test_get_team_when_teams_is_not_empty_and_team_is_not_found_should_return_none(fake_team, test_repo):
+def test_get_team_when_teams_is_not_empty_and_team_is_not_found_should_return_none(
+        fake_team, test_repo
+):
     # Arrange
-    teams_in = [
+    teams_in = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams_in
     fake_team.query.get.return_value = None
 
-    # Act
     id = len(teams_in) + 1
+
+    # Act
     team_out = test_repo.get_team(id)
 
     # Assert
@@ -63,15 +66,16 @@ def test_get_team_when_teams_is_not_empty_and_team_is_not_found_should_return_no
 
 
 @patch('app.data.repositories.team_repository.Team')
-def test_get_team_when_teams_is_not_empty_and_team_is_found_should_return_team(fake_team, test_repo):
+def test_get_team_when_teams_is_not_empty_and_team_is_found_should_return_team(
+        fake_team, test_repo
+):
     # Arrange
-    teams_in = [
+    teams_in = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams_in
-
     id = len(teams_in) - 1
     fake_team.query.get.return_value = teams_in[id]
 
@@ -85,49 +89,51 @@ def test_get_team_when_teams_is_not_empty_and_team_is_found_should_return_team(f
 @patch('app.data.repositories.team_repository.Team')
 def test_get_team_by_name_when_teams_is_empty_should_return_none(fake_team, test_repo):
     # Arrange
-    teams_in = []
+    teams_in = ()
     fake_team.query.all.return_value = teams_in
 
     # Act
-    team_out = test_repo.get_team_by_name("NFC")
+    team_out = test_repo.get_team_by_name("Team")
 
     # Assert
     assert team_out is None
 
 
 @patch('app.data.repositories.team_repository.Team')
-def test_get_team_by_name_when_teams_is_not_empty_and_team_with_short_name_is_not_found_should_return_none(
+def test_get_team_by_name_when_teams_is_not_empty_and_team_with_name_is_not_found_should_return_none(
         fake_team, test_repo
 ):
     # Arrange
-    teams_in = [
+    teams_in = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams_in
     fake_team.query.filter_by.return_value.first.return_value = None
 
     # Act
-    team_out = test_repo.get_team_by_name("C4")
+    team_out = test_repo.get_team_by_name("Team 4")
 
     # Assert
     assert team_out is None
 
 
 @patch('app.data.repositories.team_repository.Team')
-def test_get_team_by_name_when_teams_is_not_empty_and_team_with_name_is_found_should_return_team(fake_team, test_repo):
+def test_get_team_by_name_when_teams_is_not_empty_and_team_with_name_is_found_should_return_team(
+        fake_team, test_repo
+):
     # Arrange
-    teams_in = [
+    teams_in = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams_in
     fake_team.query.filter_by.return_value.first.return_value = teams_in[-1]
 
     # Act
-    team_out = test_repo.get_team_by_name("AAFC")
+    team_out = test_repo.get_team_by_name("Team 3")
 
     # Assert
     assert team_out is teams_in[-1]
@@ -135,9 +141,11 @@ def test_get_team_by_name_when_teams_is_not_empty_and_team_with_name_is_found_sh
 
 @patch('app.data.repositories.team_repository.try_commit')
 @patch('app.data.repositories.team_repository.sqla')
-def test_add_team_when_no_integrity_error_caught_should_add_team(fake_sqla, fake_try_commit, test_repo):
+def test_add_team_when_no_integrity_error_caught_should_add_team(
+        fake_sqla, fake_try_commit, test_repo
+):
     # Arrange
-    team_in = Team(name="Team")
+    team_in = Team(name="Team 1")
 
     # Act
     team_out = test_repo.add_team(team_in)
@@ -154,7 +162,7 @@ def test_add_team_when_integrity_error_caught_should_rollback_transaction_and_re
         fake_sqla, fake_try_commit, test_repo
 ):
     # Arrange
-    team_in = Team(name="Team")
+    team_in = Team(name="Team 1")
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
     # Act
@@ -168,7 +176,9 @@ def test_add_team_when_integrity_error_caught_should_rollback_transaction_and_re
 
 @patch('app.data.repositories.team_repository.try_commit')
 @patch('app.data.repositories.team_repository.sqla')
-def test_add_teams_when_teams_arg_is_empty_should_add_no_teams(fake_sqla, fake_try_commit, test_repo):
+def test_add_teams_when_teams_arg_is_empty_should_add_no_teams(
+        fake_sqla, fake_try_commit, test_repo
+):
     # Arrange
     teams_in = ()
 
@@ -235,11 +245,11 @@ def test_add_teams_when_teams_arg_is_not_empty_and_integrity_error_caught_should
 @patch('app.data.repositories.team_repository.Team')
 def test_team_exists_when_team_does_not_exist_should_return_false(fake_team, test_repo):
     # Arrange
-    teams = [
+    teams = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams
     fake_team.query.get.return_value = None
 
@@ -253,11 +263,11 @@ def test_team_exists_when_team_does_not_exist_should_return_false(fake_team, tes
 @patch('app.data.repositories.team_repository.Team')
 def test_team_exists_when_team_exists_should_return_true(fake_team, test_repo):
     # Arrange
-    teams = [
+    teams = (
         Team(name="Team 1"),
         Team(name="Team 2"),
         Team(name="Team 3"),
-    ]
+    )
     fake_team.query.all.return_value = teams
     fake_team.query.get.return_value = teams[1]
 
@@ -278,7 +288,10 @@ def test_update_team_when_no_team_exists_with_id_should_return_team_and_not_upda
     fake_team_exists.return_value = False
 
     # Act
-    team = Team(id=1, name="Team")
+    team = Team(
+        id=1,
+        name="Team 1"
+    )
 
     try:
         team_updated = test_repo.update_team(team)
@@ -299,18 +312,18 @@ def test_update_team_when_no_team_exists_with_id_should_return_team_and_not_upda
 @patch('app.data.repositories.team_repository.Team')
 @patch('app.data.repositories.team_repository.TeamRepository.team_exists')
 def test_update_team_when_team_exists_with_id_and_no_integrity_error_caught_should_return_team_and_update_database(
-        fake_team_exists, fake_team, fake_sqla, fake_try_commit, test_repo
+        fake_team_exists, fake_team, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
     fake_team_exists.return_value = True
 
-    teams = [
-        Team(id=1, name="Team 1"),
-        Team(id=2, name="Team 2"),
-        Team(id=3, name="Team 3"),
-    ]
+    teams = (
+        Team(name="Team 1"),
+        Team(name="Team 2"),
+        Team(name="Team 3"),
+    )
     fake_team.query.all.return_value = teams
-
     old_team = teams[1]
     fake_team.query.get.return_value = old_team
 
@@ -329,25 +342,24 @@ def test_update_team_when_team_exists_with_id_and_no_integrity_error_caught_shou
     assert isinstance(team_updated, Team)
     assert team_updated.id == new_team.id
     assert team_updated.name == new_team.name
+    assert team_updated is new_team
 
 
 @patch('app.data.repositories.team_repository.try_commit')
 @patch('app.data.repositories.team_repository.sqla')
 @patch('app.data.repositories.team_repository.Team')
 @patch('app.data.repositories.team_repository.TeamRepository.team_exists')
-def test_update_team_when_and_team_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_team_exists, fake_team, fake_sqla, fake_try_commit, test_repo
+def test_update_team_when_team_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_team_exists, fake_team, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    fake_team_exists.return_value = True
-
-    teams = [
-        Team(id=1, name="Team 1"),
-        Team(id=2, name="Team 2"),
-        Team(id=3, name="Team 3"),
-    ]
+    teams = (
+        Team(name="Team 1"),
+        Team(name="Team 2"),
+        Team(name="Team 3"),
+    )
     fake_team.query.all.return_value = teams
-
     old_team = teams[1]
     fake_team.query.get.return_value = old_team
 
@@ -371,11 +383,11 @@ def test_delete_team_when_team_does_not_exist_should_return_none_and_not_delete_
         fake_team, fake_sqla, fake_try_commit, test_repo
 ):
     # Arrange
-    teams = [
-        Team(id=1, name="Team 1"),
-        Team(id=2, name="Team 2"),
-        Team(id=3, name="Team 3"),
-    ]
+    teams = (
+        Team(name="Team 1"),
+        Team(name="Team 2"),
+        Team(name="Team 3"),
+    )
     fake_team.query.all.return_value = teams
     fake_team.query.get.return_value = None
 
@@ -394,16 +406,16 @@ def test_delete_team_when_team_does_not_exist_should_return_none_and_not_delete_
 @patch('app.data.repositories.team_repository.sqla')
 @patch('app.data.repositories.team_repository.Team')
 def test_delete_team_when_team_exists_and_integrity_error_not_caught_should_return_team_and_delete_team_from_database(
-        fake_team, fake_sqla, fake_try_commit, test_repo
+        fake_team, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    teams = [
-        Team(id=1, name="Team 1"),
-        Team(id=2, name="Team 2"),
-        Team(id=3, name="Team 3"),
-    ]
+    teams = (
+        Team(name="Team 1"),
+        Team(name="Team 2"),
+        Team(name="Team 3"),
+    )
     fake_team.query.all.return_value = teams
-
     id = 1
     fake_team.query.get.return_value = teams[id]
 
@@ -423,16 +435,16 @@ def test_delete_team_when_team_exists_and_integrity_error_not_caught_should_retu
 @patch('app.data.repositories.team_repository.sqla')
 @patch('app.data.repositories.team_repository.Team')
 def test_delete_team_when_team_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_team, fake_sqla, fake_try_commit, test_repo
+        fake_team, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    teams = [
-        Team(id=1, name="Team 1"),
-        Team(id=2, name="Team 2"),
-        Team(id=3, name="Team 3"),
-    ]
+    teams = (
+        Team(name="Team 1"),
+        Team(name="Team 2"),
+        Team(name="Team 3"),
+    )
     fake_team.query.all.return_value = teams
-
     id = 1
     fake_team.query.get.return_value = teams[id]
 
@@ -443,5 +455,5 @@ def test_delete_team_when_team_exists_and_integrity_error_caught_should_rollback
         team_deleted = test_repo.delete_team(id)
 
     # Assert
-    fake_sqla.session.delete.assert_called_once_with(fake_team.query.get.return_value)
+    fake_sqla.session.delete.assert_called_once_with(teams[id])
     fake_try_commit.assert_called_once()

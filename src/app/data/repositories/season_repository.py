@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from sqlalchemy import text
+
 from app.data.models.season import Season
 from app.data.sqla import sqla, try_commit
 
@@ -8,12 +10,6 @@ class SeasonRepository:
     """
     Provides CRUD access to an external data store.
     """
-
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the SeasonRepository class.
-        """
-        pass
 
     def get_seasons(self) -> List[Season]:
         """
@@ -35,22 +31,6 @@ class SeasonRepository:
             return None
         return Season.query.get(id)
 
-    def get_season_by_year(self, year: int) -> Optional[Season]:
-        """
-        Gets the season in the data store with the specified id.
-
-        :param year: The year of the season to fetch.
-
-        :return: The fetched season.
-        """
-        if self._seasons_empty():
-            return None
-        return Season.query.filter_by(year=year).first()
-
-    def _seasons_empty(self) -> bool:
-        seasons = self.get_seasons()
-        return len(seasons) == 0
-
     def add_season(self, season: Season) -> Season:
         """
         Adds a season to the data store.
@@ -59,7 +39,12 @@ class SeasonRepository:
 
         :return: The added season.
         """
+        # I only need to set IDENTITY_INSERT for the Season model because this is the only table in the database where
+        # I want to set the primary key values explicitly, without an auto-incrementer.
+        sqla.session.execute(text("SET IDENTITY_INSERT [Season] ON"))
         sqla.session.add(season)
+        sqla.session.flush()
+        sqla.session.execute(text("SET IDENTITY_INSERT [Season] OFF"))
         try_commit()
         return season
 
@@ -71,8 +56,15 @@ class SeasonRepository:
 
         :return: The added seasons.
         """
+        # I only need to set IDENTITY_INSERT for the Season model because this is the only table in the database where
+        # I want to set the primary key values explicitly, without an auto-incrementer.
+        sqla.session.execute(text("SET IDENTITY_INSERT [Season] ON"))
+
         for season in seasons:
             sqla.session.add(season)
+
+        sqla.session.flush()
+        sqla.session.execute(text("SET IDENTITY_INSERT [Season] OFF"))
         try_commit()
         return seasons
 
@@ -89,15 +81,7 @@ class SeasonRepository:
         season_in_db = self._set_values_of_season_in_db(season)
         sqla.session.add(season_in_db)
         try_commit()
-
         return season
-
-    def _set_values_of_season_in_db(self, season: Season) -> Season:
-        season_in_db = self.get_season(season.id)
-        season_in_db.year = season.year
-        season_in_db.num_of_weeks_scheduled = season.num_of_weeks_scheduled
-        season_in_db.num_of_weeks_completed = season.num_of_weeks_completed
-        return season_in_db
 
     def delete_season(self, id: int) -> Optional[Season]:
         """
@@ -124,3 +108,14 @@ class SeasonRepository:
         :return: True if the season with the specified id exists in the data store; otherwise false.
         """
         return self.get_season(id) is not None
+
+    def _seasons_empty(self) -> bool:
+        seasons = self.get_seasons()
+        return len(seasons) == 0
+
+    def _set_values_of_season_in_db(self, season: Season) -> Season:
+        season_in_db = self.get_season(season.id)
+        season_in_db.id = season.id
+        season_in_db.num_of_weeks_scheduled = season.num_of_weeks_scheduled
+        season_in_db.num_of_weeks_completed = season.num_of_weeks_completed
+        return season_in_db

@@ -12,21 +12,13 @@ class LeagueSeasonTotalsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the LeagueSeasonTotalsRepository class.
-
-        :param db_context: In-memory representation of the database.
-        """
-        pass
-
-    def get_league_season_totals(self, league_name: str, season_year: int) -> LeagueSeasonTotals:
+    def get_league_season_totals(self, league_id: int, season_id: int) -> LeagueSeasonTotals:
         """
         Gets the league_season_totals in the data store with the specified team_name and season_year.
 
         :return: The fetched league_season_totals.
         """
-        querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_name}', {season_year};"
+        querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_id}', {season_id};"
         result = self._call_procedure(querystring)
         totals = result.first()
         return LeagueSeasonTotals(

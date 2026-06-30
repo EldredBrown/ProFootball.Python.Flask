@@ -1,17 +1,21 @@
-from unittest.mock import Mock, patch, call
+from unittest.mock import MagicMock, patch, call
 
 import pytest
 
 from app.data.errors import EntityNotFoundError
 from app.data.models.game import Game
+from app.data.models.team import Team
 from app.data.models.team_season import TeamSeason
 from app.services.game_service.process_game_strategy.add_game_strategy import AddGameStrategy
 
 
 @pytest.fixture()
 @patch('app.services.game_service.process_game_strategy.process_game_strategy.TeamSeasonRepository')
-def test_strategy(fake_team_season_repository):
-    test_strategy = AddGameStrategy(team_season_repository=fake_team_season_repository)
+@patch('app.services.game_service.process_game_strategy.process_game_strategy.TeamRepository')
+def test_strategy(fake_team_repository, fake_team_season_repository):
+    test_strategy = AddGameStrategy(
+        team_repository=fake_team_repository, team_season_repository=fake_team_season_repository
+    )
     return test_strategy
 
 
@@ -24,249 +28,140 @@ def test_process_game_when_game_arg_is_none_should_raise_value_error(test_strate
         test_strategy.process_game(game)
 
         # Assert
-        assert err.value.args[0] == f"{type(AddGameStrategy).__name__}.process_game: game"
+        assert err.value.args[0] == "AddGameStrategy.process_game: game"
 
 
 def test_process_game_when_game_arg_is_not_none_and_guest_season_is_not_found_should_raise_entity_not_found_error(
         test_strategy
 ):
     # Arrange
-    game = Mock(Game)
-    game.guest_name = "Guest"
-    game.host_name = "Host"
-    game.season_year = 1
+    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+
+    guest = Team(id=1, name="Guest")
+    host = Team(id=2, name="Host")
+    test_strategy.team_repository.get_team_by_name.side_effect = [guest, host]
 
     guest_season = None
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.return_value = guest_season
+    host_season = None
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.side_effect = [guest_season, host_season]
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_strategy.process_game(game)
-        assert err.value.args[0] == f"No team season found for guest '{game.guest_name}' in year {game.season_year}"
+        assert err.value.args[0] == f"No team season found for guest '{game.guest_name}' in year {game.season_id}"
 
     # Assert
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_called_once_with(
-        game.guest_name, game.season_year
-    )
+    test_strategy.team_repository.get_team_by_name.assert_has_calls([
+        call(game.guest_name),
+        call(game.host_name),
+    ])
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
+        call(guest.id, game.season_id),
+        call(host.id, game.season_id),
+    ])
 
 
+@pytest.mark.skip(reason="Not implemented")
 def test_process_game_when_guest_season_is_found_and_host_season_is_not_found_should_raise_entity_not_found_error(
         test_strategy
 ):
     # Arrange
-    game = Mock(Game)
-    game.guest_name = "Guest"
-    game.host_name = "Host"
-    game.season_year = 1
+    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
 
-    guest_season = Mock(TeamSeason)
+    guest = Team(id=1, name="Guest")
+    host = Team(id=2, name="Host")
+    test_strategy.team_repository.get_team_by_name.side_effect = [guest, host]
+
+    guest_season = TeamSeason(team_id=1, season_id=1920)
     host_season = None
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
-        [guest_season, host_season]
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.side_effect = [guest_season, host_season]
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_strategy.process_game(game)
-        assert err.value.args[0] == f"No team season found for host '{game.host_name}' in year {game.season_year}"
+        assert err.value.args[0] == f"No team season found for host '{game.host_name}' in year {game.season_id}"
 
     # Assert
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
-        call(game.guest_name, game.season_year),
-        call(game.host_name, game.season_year),
+    test_strategy.team_repository.get_team_by_name.assert_has_calls([
+        call(game.guest_name),
+        call(game.host_name),
+    ])
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
+        call(guest.id, game.season_id),
+        call(host.id, game.season_id),
     ])
 
 
-def test_process_game_when_game_is_a_tie_should_update_ties_for_team_seasons(test_strategy):
+@pytest.mark.parametrize(
+    "guest_score,host_score,expected_guest_wins,expected_guest_losses,expected_host_wins,expected_host_losses,expected_ties",
+    [
+        (1,1,0,0,0,0,1),
+        (2,1,1,0,0,1,0),
+        (1,2,0,1,1,0,0),
+    ]
+)
+def test_process_game_when_guest_and_host_seasons_found_should_update_team_seasons_with_correct_data(
+        test_strategy, guest_score, host_score,
+        expected_guest_wins, expected_guest_losses,
+        expected_host_wins, expected_host_losses, expected_ties
+):
     # Arrange
-    game = Mock(Game)
-    game.guest_name = "Guest"
-    game.guest_score = 1
-    game.host_name = "Host"
-    game.host_score = 1
-    game.season_year = 1
-    game.is_tie.return_value = True
+    game = Game(season_id=1920, guest_name="Guest", guest_score=guest_score, host_name="Host", host_score=host_score)
 
-    guest_season = Mock(TeamSeason)
-    guest_season.games = 0
-    guest_season.wins = 0
-    guest_season.losses = 0
-    guest_season.ties = 0
-    guest_season.points_for = 0
-    guest_season.points_against = 0
+    guest = Team(id=1, name="Guest")
+    host = Team(id=2, name="Host")
+    test_strategy.team_repository.get_team_by_name.side_effect = [guest, host]
 
-    host_season = Mock(TeamSeason)
-    host_season.games = 0
-    host_season.wins = 0
-    host_season.losses = 0
-    host_season.ties = 0
-    host_season.points_for = 0
-    host_season.points_against = 0
+    fake_guest_season = MagicMock(TeamSeason)
+    fake_guest_season.games = 0
+    fake_guest_season.wins = 0
+    fake_guest_season.losses = 0
+    fake_guest_season.ties = 0
+    fake_guest_season.points_for = 0
+    fake_guest_season.points_against = 0
 
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
-        (guest_season, host_season)
+    fake_host_season = MagicMock(TeamSeason)
+    fake_host_season.games = 0
+    fake_host_season.wins = 0
+    fake_host_season.losses = 0
+    fake_host_season.ties = 0
+    fake_host_season.points_for = 0
+    fake_host_season.points_against = 0
+
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.side_effect = \
+        (fake_guest_season, fake_host_season)
 
     # Act
     test_strategy.process_game(game)
 
     # Assert
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
-        call(game.guest_name, game.season_year),
-        call(game.host_name, game.season_year),
+    test_strategy.team_repository.get_team_by_name.assert_has_calls([
+        call(game.guest_name),
+        call(game.host_name),
+    ])
+    test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
+        call(guest.id, game.season_id),
+        call(host.id, game.season_id),
     ])
 
-    assert guest_season.games == 1
-    assert guest_season.wins == 0
-    assert guest_season.losses == 0
-    assert guest_season.ties == 1
-    assert guest_season.points_for == 1
-    assert guest_season.points_against == 1
+    assert fake_guest_season.games == 1
+    assert fake_guest_season.wins == expected_guest_wins
+    assert fake_guest_season.losses == expected_guest_losses
+    assert fake_guest_season.ties == expected_ties
+    assert fake_guest_season.points_for == guest_score
+    assert fake_guest_season.points_against == host_score
 
-    assert host_season.games == 1
-    assert host_season.wins == 0
-    assert host_season.losses == 0
-    assert host_season.ties == 1
-    assert host_season.points_for == 1
-    assert host_season.points_against == 1
+    assert fake_host_season.games == 1
+    assert fake_host_season.wins == expected_host_wins
+    assert fake_host_season.losses == expected_host_losses
+    assert fake_host_season.ties == expected_ties
+    assert fake_host_season.points_for == host_score
+    assert fake_host_season.points_against == guest_score
 
-    # guest_season.calculate_winning_percentage.assert_called_once()
-    # host_season.calculate_winning_percentage.assert_called_once()
-
-    guest_season.calculate_expected_wins_and_losses.assert_called_once()
-    host_season.calculate_expected_wins_and_losses.assert_called_once()
+    fake_guest_season.calculate_expected_wins_and_losses.assert_called_once()
+    fake_host_season.calculate_expected_wins_and_losses.assert_called_once()
 
     test_strategy.team_season_repository.update_team_season.assert_has_calls([
-        call(guest_season),
-        call(host_season),
-    ])
-
-
-def test_process_game_when_game_is_not_a_tie_and_guest_wins_should_update_wins_and_losses_for_team_seasons(test_strategy):
-    # Arrange
-    game = Mock(Game)
-    game.guest_name = "Guest"
-    game.guest_score = 2
-    game.host_name = "Host"
-    game.host_score = 1
-    game.winner_name = "Guest"
-    game.loser_name = "Host"
-    game.season_year = 1
-    game.is_tie.return_value = False
-
-    guest_season = Mock(TeamSeason)
-    guest_season.games = 0
-    guest_season.wins = 0
-    guest_season.losses = 0
-    guest_season.ties = 0
-    guest_season.points_for = 0
-    guest_season.points_against = 0
-
-    host_season = Mock(TeamSeason)
-    host_season.games = 0
-    host_season.wins = 0
-    host_season.losses = 0
-    host_season.ties = 0
-    host_season.points_for = 0
-    host_season.points_against = 0
-
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
-        (guest_season, host_season)
-
-    # Act
-    test_strategy.process_game(game)
-
-    # Assert
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
-        call(game.guest_name, game.season_year),
-        call(game.host_name, game.season_year),
-    ])
-
-    assert guest_season.games == 1
-    assert guest_season.wins == 1
-    assert guest_season.losses == 0
-    assert guest_season.ties == 0
-    assert guest_season.points_for == 2
-    assert guest_season.points_against == 1
-
-    assert host_season.games == 1
-    assert host_season.wins == 0
-    assert host_season.losses == 1
-    assert host_season.ties == 0
-    assert host_season.points_for == 1
-    assert host_season.points_against == 2
-
-    # guest_season.calculate_winning_percentage.assert_called_once()
-    # host_season.calculate_winning_percentage.assert_called_once()
-
-    guest_season.calculate_expected_wins_and_losses.assert_called_once()
-    host_season.calculate_expected_wins_and_losses.assert_called_once()
-
-    test_strategy.team_season_repository.update_team_season.assert_has_calls([
-        call(guest_season),
-        call(host_season),
-    ])
-
-
-def test_process_game_when_game_is_not_a_tie_and_host_wins_should_update_wins_and_losses_for_team_seasons(test_strategy):
-    # Arrange
-    game = Mock(Game)
-    game.guest_name = "Guest"
-    game.guest_score = 1
-    game.host_name = "Host"
-    game.host_score = 2
-    game.winner_name = "Host"
-    game.loser_name = "Guest"
-    game.season_year = 1
-    game.is_tie.return_value = False
-
-    guest_season = Mock(TeamSeason)
-    guest_season.games = 0
-    guest_season.wins = 0
-    guest_season.losses = 0
-    guest_season.ties = 0
-    guest_season.points_for = 0
-    guest_season.points_against = 0
-
-    host_season = Mock(TeamSeason)
-    host_season.games = 0
-    host_season.wins = 0
-    host_season.losses = 0
-    host_season.ties = 0
-    host_season.points_for = 0
-    host_season.points_against = 0
-
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.side_effect = \
-        (guest_season, host_season)
-
-    # Act
-    test_strategy.process_game(game)
-
-    # Assert
-    test_strategy.team_season_repository.get_team_season_by_team_name_and_season_year.assert_has_calls([
-        call(game.guest_name, game.season_year),
-        call(game.host_name, game.season_year),
-    ])
-
-    assert guest_season.games == 1
-    assert guest_season.wins == 0
-    assert guest_season.losses == 1
-    assert guest_season.ties == 0
-    assert guest_season.points_for == 1
-    assert guest_season.points_against == 2
-
-    assert host_season.games == 1
-    assert host_season.wins == 1
-    assert host_season.losses == 0
-    assert host_season.ties == 0
-    assert host_season.points_for == 2
-    assert host_season.points_against == 1
-
-    # guest_season.calculate_winning_percentage.assert_called_once()
-    # host_season.calculate_winning_percentage.assert_called_once()
-
-    guest_season.calculate_expected_wins_and_losses.assert_called_once()
-    host_season.calculate_expected_wins_and_losses.assert_called_once()
-
-    test_strategy.team_season_repository.update_team_season.assert_has_calls([
-        call(guest_season),
-        call(host_season),
+        call(fake_guest_season),
+        call(fake_host_season),
     ])

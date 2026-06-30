@@ -35,8 +35,9 @@ class DivisionForm(FlaskForm):
     )
     conference_name = StringField(
         "Conference Name",
-        validators=[Optional()],
-        filters=[lambda x: x or None]  # Convert empty string to None
+        validators=[
+            short_name_length_check,
+        ]
     )
     first_season_year = IntegerField(
         "First Season",

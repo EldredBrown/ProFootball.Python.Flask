@@ -13,22 +13,24 @@ class Game(sqla.Model):
     __tablename__ = 'game'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
-    week = sqla.Column(sqla.SmallInteger, nullable=False)
+    season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=False)
+    week = sqla.Column(sqla.Integer, nullable=False)
     guest_name = sqla.Column(sqla.String(50), nullable=False)
-    guest_score = sqla.Column(sqla.SmallInteger, nullable=False)
+    guest_score = sqla.Column(sqla.Integer, nullable=False)
     host_name = sqla.Column(sqla.String(50), nullable=False)
-    host_score = sqla.Column(sqla.SmallInteger, nullable=False)
+    host_score = sqla.Column(sqla.Integer, nullable=False)
     is_playoff = sqla.Column(sqla.Boolean, nullable=False, default=False)
     notes = sqla.Column(sqla.Text)
 
     __table_args__ = (
-        sqla.UniqueConstraint('season_year', 'week', 'guest_name', 'host_name',
+        sqla.UniqueConstraint('season_id', 'week', 'guest_name', 'host_name',
                               name='uq_game_season_week_teams'),
     )
 
+    season = sqla.relationship('Season', back_populates='games')
+
     def __repr__(self) -> str:
-        return (f"<Game id={self.id!r} week={self.week} "
+        return (f"<Game id={self.id!r} season={self.season_id} week={self.week} "
                 f"{self.guest_name} {self.guest_score} @ "
                 f"{self.host_name} {self.host_score}>")
 
@@ -77,8 +79,8 @@ class Game(sqla.Model):
         """
         return self.guest_score == self.host_score
 
-    @validates('season_year')
-    def validate_season_year(self, key, value):
+    @validates('season_id')
+    def validate_season_id(self, key, value):
         if value is None:
             raise ValueError(f"{key} is required.")
         if value < FIRST_YEAR:

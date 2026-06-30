@@ -30,8 +30,9 @@ def create_app():
     Migrate(app, sqla, render_as_batch=True)
 
     from app.flask import (home_controller, season_controller, league_controller, conference_controller,
-                           division_controller, team_controller, game_controller, team_season_controller,
-                           season_standings_controller, season_rankings_controller, game_predictor_controller)
+                           division_controller, team_controller, game_controller, league_season_controller,
+                           team_season_admin_controller, team_season_controller, season_standings_controller,
+                           season_rankings_controller, game_predictor_controller)
 
     app.register_blueprint(home_controller.blueprint, url_prefix='/')
     app.register_blueprint(season_controller.blueprint, url_prefix='/seasons')
@@ -40,6 +41,8 @@ def create_app():
     app.register_blueprint(division_controller.blueprint, url_prefix='/divisions')
     app.register_blueprint(team_controller.blueprint, url_prefix='/teams')
     app.register_blueprint(game_controller.blueprint, url_prefix='/games')
+    app.register_blueprint(league_season_controller.blueprint, url_prefix='/league_seasons')
+    app.register_blueprint(team_season_admin_controller.blueprint, url_prefix='/team_seasons_admin')
     app.register_blueprint(team_season_controller.blueprint, url_prefix='/team_seasons')
     app.register_blueprint(season_standings_controller.blueprint, url_prefix='/season_standings')
     app.register_blueprint(season_rankings_controller.blueprint, url_prefix='/season_rankings')
@@ -63,6 +66,7 @@ def configure(binder):
     from app.data.repositories.team_repository import TeamRepository
     from app.data.repositories.team_season_repository import TeamSeasonRepository
     from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
+
     from app.services.game_predictor_service.game_predictor_service import GamePredictorService
     from app.services.game_service.game_service import GameService
     from app.services.game_service.process_game_strategy.process_game_strategy_factory import ProcessGameStrategyFactory

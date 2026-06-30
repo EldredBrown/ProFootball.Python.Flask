@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
-from app.data.models.team_season_schedule_profile import TeamSeasonScheduleProfileRecord
+from app.data.models.team_season_schedule_profile import TeamSeasonOpponentProfile
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
 from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 
@@ -22,14 +22,14 @@ def test_get_team_season_schedule_profile_when_query_returns_empty_list_should_g
     profile = []
     fake_sqla.callproc.return_value.all.return_value = profile
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_profile(team_name, season_year)
+    result = test_repo.get_team_season_schedule_profile(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_id};")
     assert result == []
 
 
@@ -45,14 +45,14 @@ def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_shou
     ]
     fake_sqla.callproc.return_value.all.return_value = profile
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_profile(team_name, season_year)
+    result = test_repo.get_team_season_schedule_profile(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_id};")
     fake_sqla.callproc.return_value.all.assert_called_once()
 
     assert isinstance(result, list)
@@ -61,7 +61,7 @@ def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_shou
         profile_item = profile[i]
         result_item = result[i]
 
-        assert isinstance(result_item, TeamSeasonScheduleProfileRecord)
+        assert isinstance(result_item, TeamSeasonOpponentProfile)
         assert result_item.opponent == profile_item[0]
         assert result_item.game_points_for == profile_item[1]
         assert result_item.game_points_against == profile_item[2]
@@ -82,14 +82,14 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
     totals = None
     fake_sqla.callproc.return_value.first.return_value = totals
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_totals(team_name, season_year)
+    result = test_repo.get_team_season_schedule_totals(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_id};")
 
     assert isinstance(result, TeamSeasonScheduleTotals)
     assert result.games is None
@@ -124,14 +124,14 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
         schedule_games, schedule_points_for, schedule_points_against
     )
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_totals(team_name, season_year)
+    result = test_repo.get_team_season_schedule_totals(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_id};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleTotals)
@@ -155,21 +155,21 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
     averages = None
     fake_sqla.callproc.return_value.first.return_value = averages
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_averages(team_name, season_year)
+    result = test_repo.get_team_season_schedule_averages(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_id};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleAverages)
-    assert result.points_for is None
-    assert result.points_against is None
-    assert result.schedule_points_for is None
-    assert result.schedule_points_against is None
+    assert result.avg_points_for is None
+    assert result.avg_points_against is None
+    assert result.avg_schedule_points_for is None
+    assert result.avg_schedule_points_against is None
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
@@ -185,18 +185,18 @@ def test_get_team_season_schedule_averages_when_query_does_not_return_none_shoul
         points_for, points_against, schedule_points_for, schedule_points_against
     )
 
-    team_name = "Team"
-    season_year = 1
+    team_id = 1
+    season_id = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_averages(team_name, season_year)
+    result = test_repo.get_team_season_schedule_averages(team_id, season_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_id};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleAverages)
-    assert result.points_for == points_for
-    assert result.points_against == points_against
-    assert result.schedule_points_for == schedule_points_for
-    assert result.schedule_points_against == schedule_points_against
+    assert result.avg_points_for == points_for
+    assert result.avg_points_against == points_against
+    assert result.avg_schedule_points_for == schedule_points_for
+    assert result.avg_schedule_points_against == schedule_points_against

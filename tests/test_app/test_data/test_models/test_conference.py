@@ -31,7 +31,7 @@ def test_validate_not_empty_when_short_name_is_not_empty_should_not_raise_value_
 
     # Act
     try:
-        test_conference = Conference(short_name="NFC")
+        test_conference = Conference(short_name="C")
     except ValueError as err:
         pass
 
@@ -43,7 +43,7 @@ def test_validate_not_empty_when_long_name_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_conference = Conference(short_name="NFC", long_name=None)
+        test_conference = Conference(short_name="C", long_name=None)
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -54,7 +54,7 @@ def test_validate_not_empty_when_long_name_is_empty_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_conference = Conference(short_name="NFC", long_name="")
+        test_conference = Conference(short_name="C", long_name="")
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -67,7 +67,7 @@ def test_validate_not_empty_when_long_name_is_not_empty_should_not_raise_value_e
 
     # Act
     try:
-        test_conference = Conference(short_name="NFC", long_name="National Football Conference")
+        test_conference = Conference(short_name="C", long_name="Conference")
     except ValueError as err:
         pass
 
@@ -75,63 +75,31 @@ def test_validate_not_empty_when_long_name_is_not_empty_should_not_raise_value_e
     assert err is None
 
 
-def test_validate_not_empty_when_league_name_is_none_should_raise_value_error():
-    # Arrange
-    # Act
-    with pytest.raises(ValueError) as err:
-        test_conference = Conference(short_name="NFC", long_name="National Football Conference", league_name=None)
-
-    # Assert
-    assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "league_name is required."
-
-
-def test_validate_not_empty_when_league_name_is_empty_should_raise_value_error():
-    # Arrange
-    # Act
-    with pytest.raises(ValueError) as err:
-        test_conference = Conference(short_name="NFC", long_name="National Football Conference", league_name="")
-
-    # Assert
-    assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "league_name is required."
-
-
-def test_validate_not_empty_when_league_name_is_not_empty_should_not_raise_value_error():
-    # Arrange
-    err = None
-
-    # Act
-    try:
-        test_conference = Conference(short_name="NFC", long_name="National Football Conference", league_name="NFL")
-    except ValueError as err:
-        pass
-
-    # Assert
-    assert err is None
-
-
-def test_validate_not_empty_when_first_season_year_is_none_should_raise_value_error():
+def test_validate_not_empty_when_league_id_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
         test_conference = Conference(
-            short_name="NFC", long_name="National Football Conference", league_name="NFL", first_season_year=None
+            short_name="C",
+            long_name="Conference",
+            league_id=None
         )
 
     # Assert
     assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "first_season_year is required."
+    assert err.value.args[0] == "league_id is required."
 
 
-def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_league_id_is_zero_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
         test_conference = Conference(
-            short_name="NFC", long_name="National Football Conference", league_name="NFL", first_season_year=0
+            short_name="C",
+            long_name="Conference",
+            league_id=0
         )
     except ValueError as err:
         pass
@@ -140,14 +108,70 @@ def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_valu
     assert err is None
 
 
-def test_validate_not_empty_when_first_season_year_is_greater_than_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_league_id_is_greater_than_zero_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
         test_conference = Conference(
-            short_name="NFC", long_name="National Football Conference", league_name="NFL", first_season_year=1
+            short_name="C",
+            long_name="Conference",
+            league_id=1
+        )
+    except ValueError as err:
+        pass
+
+    # Assert
+    assert err is None
+
+
+def test_validate_not_empty_when_first_season_id_is_none_should_raise_value_error():
+    # Arrange
+    # Act
+    with pytest.raises(ValueError) as err:
+        test_conference = Conference(
+            short_name="C",
+            long_name="Conference",
+            league_id=1,
+            first_season_id=None
+        )
+
+    # Assert
+    assert isinstance(err.value, ValueError)
+    assert err.value.args[0] == "first_season_id is required."
+
+
+def test_validate_not_empty_when_first_season_id_is_zero_should_not_raise_value_error():
+    # Arrange
+    err = None
+
+    # Act
+    try:
+        test_conference = Conference(
+            short_name="C",
+            long_name="Conference",
+            league_id=1,
+            first_season_id=0
+        )
+    except ValueError as err:
+        pass
+
+    # Assert
+    assert err is None
+
+
+def test_validate_not_empty_when_first_season_id_is_greater_than_zero_should_not_raise_value_error():
+    # Arrange
+    err = None
+
+    # Act
+    try:
+        test_conference = Conference(
+            short_name="C",
+            long_name="Conference",
+            league_id=1,
+            first_season_id=1
         )
     except ValueError as err:
         pass

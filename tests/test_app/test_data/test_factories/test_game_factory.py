@@ -5,12 +5,12 @@ from app.data.models.game import Game
 def test_create_game_should_return_game():
     # Arrange
     kwargs = {
-        'season_year': 1920,
+        'season_id': 1920,
         'week': 1,
-        'guest_name': "St. Paul Ideals",
-        'guest_score': 0,
-        'host_name': "Rock Island Independents",
-        'host_score': 48,
+        'guest_name': "Guest",
+        'guest_score': 3,
+        'host_name': "Host",
+        'host_score': 3,
         'is_playoff': False,
     }
 
@@ -19,7 +19,7 @@ def test_create_game_should_return_game():
 
     # Assert
     assert isinstance(test_game, Game)
-    assert test_game.season_year == kwargs['season_year']
+    assert test_game.season_id == kwargs['season_id']
     assert test_game.week == kwargs['week']
     assert test_game.guest_name == kwargs['guest_name']
     assert test_game.guest_score == kwargs['guest_score']

@@ -1,5 +1,6 @@
 from injector import inject
 
+from app.data.repositories.team_repository import TeamRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.constants import Direction
 from app.services.game_service.process_game_strategy.add_game_strategy import AddGameStrategy
@@ -14,10 +15,11 @@ class ProcessGameStrategyFactory:
     """
 
     @inject
-    def __init__(self, team_season_repository: TeamSeasonRepository):
+    def __init__(self, team_repository: TeamRepository, team_season_repository: TeamSeasonRepository):
         """
         Initializes a new instance of the ProcessGameStrategyFactory class
         """
+        self.team_repository = team_repository
         self.team_season_repository = team_season_repository
 
     def __repr__(self):
@@ -31,6 +33,6 @@ class ProcessGameStrategyFactory:
 
         try:
             strategy = strategies[direction]
-            return strategy(self.team_season_repository)
+            return strategy(self.team_repository, self.team_season_repository)
         except KeyError:
             return NULL_GAME_STRATEGY

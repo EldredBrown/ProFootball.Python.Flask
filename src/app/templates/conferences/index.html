@@ -38,13 +38,13 @@
                 {{ conference.long_name }}
             </td>
             <td class="text-left">
-                {{ conference.league_name }}
+                {{ conference.league.short_name }}
             </td>
             <td class="text-right align-right-override">
-                {{ conference.first_season_year }}
+                {{ conference.first_season_id }}
             </td>
             <td class="text-right align-right-override">
-                {{ conference.last_season_year }}
+                {{ conference.last_season_id }}
             </td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{{ url_for('conference.details', id=conference.id) }}">Details</a>

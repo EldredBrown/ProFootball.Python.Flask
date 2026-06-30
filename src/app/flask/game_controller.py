@@ -13,27 +13,39 @@ from app.data.repositories.game_repository import GameRepository
 from app.flask.forms.game_forms import NewGameForm, EditGameForm, DeleteGameForm, GameForm
 from app.services.game_service.game_service import GameService
 
+
 blueprint = Blueprint('game', __name__)
 
 
 @blueprint.route('/')
 def index() -> str:
-    season_repository = injector.get(SeasonRepository)
+    if 'seasons' in session:
+        seasons = session.get('seasons')
+    else:
+        season_repository = injector.get(SeasonRepository)
+        seasons = season_repository.get_seasons()
+        session['seasons'] = [s.to_dict() for s in seasons]
 
-    seasons = season_repository.get_seasons()
-    session['seasons'] = [s.to_dict() for s in seasons]
+    if 'selected_season_id' in session:
+        selected_season_id = session.get('selected_season_id')
+    else:
+        selected_season_id = 0
+        session['selected_season_id'] = selected_season_id
 
-    selected_year = 0
-    session['selected_year'] = selected_year
+    if 'selected_season' in session:
+        selected_season = session.get('selected_season')
+    else:
+        selected_season = Season(id=selected_season_id, num_of_weeks_scheduled=0, num_of_weeks_completed=0).to_dict()
+        session['selected_season'] = selected_season
 
-    selected_season = Season(year=selected_year, num_of_weeks_scheduled=0, num_of_weeks_completed=0).to_dict()
-    session['selected_season'] = selected_season
-
-    selected_week = 0
-    session['selected_week'] = selected_week
+    if 'selected_week' in session:
+        selected_week = session.get('selected_week')
+    else:
+        selected_week = 0
+        session['selected_week'] = selected_week
 
     game_repository = injector.get(GameRepository)
-    games = game_repository.get_games_by_season_year(season_year=None)
+    games = game_repository.get_games_by_season(season_id=selected_season_id)
     session['games'] = [g.to_dict() for g in games]
 
     return render_template(
@@ -57,13 +69,13 @@ def details(id: int) -> str:
 def create() -> Response | str:
     form = NewGameForm()
     if request.method == 'GET':
-        selected_season = session.get('selected_season')
-        form.season_year.data = selected_season['year'] if selected_season['year'] >= 1920 else 0
-        form.week.data = session.get('week')
+        selected_season_id = session.get('selected_season_id')
+        form.season_year.data = selected_season_id if selected_season_id >= 1920 else 0
+        form.week.data = session.get('selected_week')
 
     if form.validate_on_submit():
-        new_game = _get_game_from_form(form)
         try:
+            new_game = _get_model_from_form(form)
             game_service = injector.get(GameService)
             game_service.add_game(new_game)
             flash(f"Game for season={form.season_year.data}, week={form.week.data}, with guest={form.guest_name.data} and host={form.host_name.data} has been successfully submitted.", 'success')
@@ -84,12 +96,13 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     game_repository = injector.get(GameRepository)
-    old_game = copy.deepcopy(game_repository.get_game(id))
+    game = game_repository.get_game(id)
+    old_game = copy.deepcopy(game)
     if old_game:
         form = EditGameForm()
         if form.validate_on_submit():
-            new_game = _get_game_from_form(form, id)
             try:
+                new_game = _get_model_from_form(form, id)
                 game_service = injector.get(GameService)
                 game_service.update_game(new_game, old_game)
                 flash(f"Game for season={form.season_year.data} with guest={form.guest_name.data} and host={form.host_name.data} has been successfully updated.", 'success')
@@ -101,7 +114,7 @@ def edit(id: int) -> Response | str:
             except IndexError:
                 abort(404)
         else:
-            _get_form_data_from_game(form, old_game)
+            _get_form_data_from_model(form, old_game)
 
             if form.errors:
                 flash(f"{form.errors}", 'danger')
@@ -111,41 +124,9 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-def _get_game_from_form(form: GameForm, id: int=None) -> Game:
-    kwargs = _get_kwargs_from_form(form, id)
-    game = game_factory.create_game(**kwargs)
-    return game
-
-
-def _get_kwargs_from_form(form: GameForm, id: int=None) -> dict[str, Any]:
-    kwargs = {
-        'season_year': int(form.season_year.data),
-        'week': int(form.week.data),
-        'guest_name': str(form.guest_name.data),
-        'guest_score': int(form.guest_score.data),
-        'host_name': str(form.host_name.data),
-        'host_score': int(form.host_score.data),
-        'is_playoff': form.is_playoff.data,
-        'notes': form.notes.data,
-    }
-    if id:
-        kwargs['id'] = id
-    return kwargs
-
-
-def _get_form_data_from_game(form: GameForm, game) -> None:
-    form.season_year.data = game.season_year
-    form.week.data = game.week
-    form.guest_name.data = game.guest_name
-    form.guest_score.data = game.guest_score
-    form.host_name.data = game.host_name
-    form.host_score.data = game.host_score
-    form.is_playoff.data = game.is_playoff
-    form.notes.data = game.notes
-
-
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int) -> Response | str:
+    form = DeleteGameForm()
     try:
         game_repository = injector.get(GameRepository)
         game = game_repository.get_game(id)
@@ -155,28 +136,28 @@ def delete(id: int) -> Response | str:
         if request.method == 'POST':
             game_service = injector.get(GameService)
             game_service.delete_game(id)
-            flash(f"Game for season={game.season_year} with guest={game.guest_name} and host={game.host_name} has been successfully deleted.", 'success')
+            flash(f"Game for season={game.season_id} with guest={game.guest_name} and host={game.host_name} has been successfully deleted.", 'success')
             return redirect(url_for('game.index'))
         else:
-            return render_template('games/delete.html', game=game)
+            return render_template('games/delete.html', game=game, form=form)
     except IndexError:
         abort(404)
 
 
 @blueprint.route('/select_season', methods=['POST'])
 def select_season() -> str:
-    selected_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
-    session['selected_year'] = selected_year
+    selected_season_id = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    session['selected_season_id'] = selected_season_id
 
     season_repository = injector.get(SeasonRepository)
-    selected_season = season_repository.get_season_by_year(selected_year)
+    selected_season = season_repository.get_season(selected_season_id)
     session['selected_season'] = selected_season.to_dict()
 
     selected_week = 0
     session['selected_week'] = selected_week
 
     game_repository = injector.get(GameRepository)
-    games = game_repository.get_games_by_season_year(season_year=selected_year)
+    games = game_repository.get_games_by_season(season_id=selected_season_id)
 
     return render_template(
         'games/index.html',
@@ -192,12 +173,45 @@ def select_week() -> str:
     selected_season = session.get('selected_season')
 
     game_repository = injector.get(GameRepository)
-    games = game_repository.get_games_by_season_year_and_week(season_year=selected_season['year'], week=selected_week)
+    games = game_repository.get_games_by_season_and_week(season_id=selected_season['id'], week=selected_week)
 
     return render_template(
         'games/index.html',
         seasons=session.get('seasons'), selected_season=selected_season, selected_week=selected_week, games=games
     )
+
+
+def _get_form_data_from_model(form: GameForm, game) -> None:
+    form.season_year.data = game.season_id
+    form.week.data = game.week
+    form.guest_name.data = game.guest_name
+    form.guest_score.data = game.guest_score
+    form.host_name.data = game.host_name
+    form.host_score.data = game.host_score
+    form.is_playoff.data = game.is_playoff
+    form.notes.data = game.notes
+
+
+def _get_kwargs_from_form(form: GameForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'season_id': int(form.season_year.data),
+        'week': int(form.week.data),
+        'guest_name': str(form.guest_name.data),
+        'guest_score': int(form.guest_score.data),
+        'host_name': str(form.host_name.data),
+        'host_score': int(form.host_score.data),
+        'is_playoff': form.is_playoff.data,
+        'notes': form.notes.data,
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_model_from_form(form: GameForm, id: int=None) -> Game:
+    kwargs = _get_kwargs_from_form(form, id)
+    game = game_factory.create_game(**kwargs)
+    return game
 
 
 def _handle_error(err: Any, template_name: str, form: GameForm, game: Game=None) -> str:

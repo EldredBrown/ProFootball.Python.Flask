@@ -2,7 +2,7 @@ from typing import List, Any
 
 from app.data import sqla
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
-from app.data.models.team_season_schedule_profile import TeamSeasonScheduleProfileRecord
+from app.data.models.team_season_schedule_profile import TeamSeasonOpponentProfile
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
 
 
@@ -11,29 +11,21 @@ class TeamSeasonScheduleRepository:
     Provides CRUD access to a data store.
     """
 
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the TeamSeasonScheduleRepository class.
-
-        :param db_context: In-memory representation of the database.
-        """
-        pass
-
-    def get_team_season_schedule_profile(self, team_name: str, season_year: int) -> List[TeamSeasonScheduleProfileRecord]:
+    def get_team_season_schedule_profile(self, team_id: int, season_id: int) -> List[TeamSeasonOpponentProfile]:
         """
         Gets the TeamSeasonScheduleTotals in the data store with the specified team_name and season_year.
 
-        :param team_name: The name of the team for which this TeamSeasonScheduleTotals will be fetched.
-        :param season_year: The id of the seasons for which this TeamSeasonScheduleTotals will be fetched.
+        :param team_id: The id of the team for which this TeamSeasonScheduleTotals will be fetched.
+        :param season_id: The id of the seasons for which this TeamSeasonScheduleTotals will be fetched.
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_id};")
         profile = result.all()
 
         opponent_records = []
         for row in profile:
-            opp = TeamSeasonScheduleProfileRecord(
+            opp = TeamSeasonOpponentProfile(
                 opponent=row[0],
                 game_points_for=row[1],
                 game_points_against=row[2],
@@ -48,16 +40,16 @@ class TeamSeasonScheduleRepository:
             opponent_records.append(opp)
         return opponent_records
 
-    def get_team_season_schedule_totals(self, team_name: str, season_year: int) -> TeamSeasonScheduleTotals:
+    def get_team_season_schedule_totals(self, team_id: int, season_id: int) -> TeamSeasonScheduleTotals:
         """
         Gets the TeamSeasonScheduleTotals in the data store with the specified team_name and season_year.
 
-        :param team_name: The name of the team for which this TeamSeasonScheduleTotals will be fetched.
-        :param season_year: The id of the seasons for which this TeamSeasonScheduleTotals will be fetched.
+        :param team_id: The id of the team for which this TeamSeasonScheduleTotals will be fetched.
+        :param season_id: The id of the seasons for which this TeamSeasonScheduleTotals will be fetched.
 
         :return: The fetched TeamSeasonScheduleTotals.
         """
-        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_id};")
         totals = result.first()
 
         if totals is None:
@@ -76,24 +68,24 @@ class TeamSeasonScheduleRepository:
             schedule_points_against=totals[9]
         )
 
-    def get_team_season_schedule_averages(self, team_name: str, season_year: int) -> TeamSeasonScheduleAverages:
+    def get_team_season_schedule_averages(self, team_id: int, season_id: int) -> TeamSeasonScheduleAverages:
         """
         Gets the TeamSeasonScheduleAverages in the data store with the specified team_name and season_year.
 
-        :param team_name: The id of the team for which this TeamSeasonScheduleAverages will be fetched.
-        :param season_year: The id of the seasons for which this TeamSeasonScheduleAverages will be fetched.
+        :param team_id: The id of the team for which this TeamSeasonScheduleAverages will be fetched.
+        :param season_id: The id of the seasons for which this TeamSeasonScheduleAverages will be fetched.
 
         :return: The fetched TeamSeasonScheduleAverages.
         """
-        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_name}', {season_year};")
+        result = sqla.callproc(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_id};")
         averages = result.first()
 
         if averages is None:
             return TeamSeasonScheduleAverages()
 
         return TeamSeasonScheduleAverages(
-            points_for=averages[0],
-            points_against=averages[1],
-            schedule_points_for=averages[2],
-            schedule_points_against=averages[3]
+            avg_points_for=averages[0],
+            avg_points_against=averages[1],
+            avg_schedule_points_for=averages[2],
+            avg_schedule_points_against=averages[3]
         )

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from injector import inject
 
 from app.data.errors import EntityNotFoundError
@@ -7,8 +5,7 @@ from app.data.models.game import Game
 from app.data.repositories.game_repository import GameRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.constants import Direction
-from app.services.game_service.process_game_strategy.process_game_strategy_factory \
-    import ProcessGameStrategyFactory
+from app.services.game_service.process_game_strategy.process_game_strategy_factory import ProcessGameStrategyFactory
 from app.services.utilities import guard
 
 
@@ -84,10 +81,10 @@ class GameService:
         self._edit_team_seasons(Direction.DOWN, old_game)
         self._edit_team_seasons(Direction.UP, new_game)
 
-    def _validate_existence_of_teams_in_new_game(self, new_game: Game | None):
-        for name in (new_game.guest_name, new_game.host_name):
-            if not self.team_season_repository.get_team_season_by_team_name_and_season_year(name, new_game.season_year):
-                raise EntityNotFoundError(f"No team season found for '{name}' in year {new_game.season_year}")
+    # def _validate_existence_of_teams_in_new_game(self, new_game: Game):
+    #     for name in (new_game.guest_name, new_game.host_name):
+    #         if not self.team_season_repository.get_team_season_by_team_and_season(name, new_game.season_year):
+    #             raise EntityNotFoundError(f"No team season found for '{name}' in year {new_game.season_year}")
 
     def delete_game(self, id: int) -> None:
         """

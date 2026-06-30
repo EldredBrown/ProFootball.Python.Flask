@@ -1,4 +1,4 @@
-from unittest.mock import patch, call
+from unittest.mock import patch, call, MagicMock
 
 import pytest
 
@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.data.models.division import Division
 from app.data.repositories.division_repository import DivisionRepository
+from test_app import create_app
 
 
 @pytest.fixture
@@ -13,30 +14,36 @@ def test_repo():
     return DivisionRepository()
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
-def test_get_divisions_should_get_divisions(fake_division, test_repo):
+def test_get_divisions_should_get_divisions(
+        fake_division, fake_joinedload, test_repo
+):
     # Arrange
-    divisions_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions_in
+    )
+    fake_query.return_value.all.return_value = divisions_in
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     divisions_out = test_repo.get_divisions()
@@ -45,11 +52,17 @@ def test_get_divisions_should_get_divisions(fake_division, test_repo):
     assert divisions_out == divisions_in
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_when_divisions_is_empty_should_return_none(fake_division, test_repo):
+def test_get_division_when_divisions_is_empty_should_return_none(
+        fake_division, fake_joinedload, test_repo
+):
     # Arrange
-    divisions_in = []
-    fake_division.query.all.return_value = divisions_in
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = ()
+    fake_query.return_value.all.return_value = divisions_in
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     division_out = test_repo.get_division(1)
@@ -58,71 +71,79 @@ def test_get_division_when_divisions_is_empty_should_return_none(fake_division, 
     assert division_out is None
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_when_divisions_is_not_empty_and_division_is_not_found_should_return_none(
-        fake_division, test_repo
+        fake_division, fake_joinedload, test_repo
 ):
     # Arrange
-    divisions_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions_in
-    fake_division.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = divisions_in
+    fake_query.return_value.get.return_value = None
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
+
+    id = len(divisions_in) + 1
 
     # Act
-    id = len(divisions_in) + 1
     division_out = test_repo.get_division(id)
 
     # Assert
     assert division_out is None
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_when_divisions_is_not_empty_and_division_is_found_should_return_division(
-        fake_division, test_repo
+        fake_division, fake_joinedload, test_repo
 ):
     # Arrange
-    divisions_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions_in
-
+    )
+    fake_query.return_value.all.return_value = divisions_in
     id = len(divisions_in) - 1
-    fake_division.query.get.return_value = divisions_in[id]
+    fake_query.return_value.get.return_value = divisions_in[id]
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     division_out = test_repo.get_division(id)
@@ -131,84 +152,98 @@ def test_get_division_when_divisions_is_not_empty_and_division_is_found_should_r
     assert division_out is divisions_in[id]
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
-def test_get_division_by_name_when_divisions_is_empty_should_return_none(fake_division, test_repo):
+def test_get_division_by_name_when_divisions_is_empty_should_return_none(
+        fake_division, fake_joinedload, test_repo
+):
     # Arrange
-    divisions_in = []
-    fake_division.query.all.return_value = divisions_in
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = ()
+    fake_query.return_value.all.return_value = divisions_in
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    division_out = test_repo.get_division_by_name("NFC")
+    division_out = test_repo.get_division_by_name("Division")
 
     # Assert
     assert division_out is None
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_short_name_is_not_found_should_return_none(
-        fake_division, test_repo
+        fake_division, fake_joinedload, test_repo
 ):
     # Arrange
-    divisions_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions_in
-    fake_division.query.filter_by.return_value.first.return_value = None
+    )
+    fake_query.return_value.all.return_value = divisions_in
+    fake_query.return_value.filter_by.return_value.first.return_value = None
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    division_out = test_repo.get_division_by_name("C4")
+    division_out = test_repo.get_division_by_name("Division 4")
 
     # Assert
     assert division_out is None
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_get_division_by_name_when_divisions_is_not_empty_and_division_with_name_is_found_should_return_division(
-        fake_division, test_repo
+        fake_division, fake_joinedload, test_repo
 ):
     # Arrange
-    divisions_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions_in
-    fake_division.query.filter_by.return_value.first.return_value = divisions_in[-1]
+    )
+    fake_query.return_value.all.return_value = divisions_in
+    fake_query.return_value.filter_by.return_value.first.return_value = divisions_in[-1]
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    division_out = test_repo.get_division_by_name("AAFC")
+    division_out = test_repo.get_division_by_name("Division 3")
 
     # Assert
     assert division_out is divisions_in[-1]
@@ -221,10 +256,10 @@ def test_add_division_when_no_integrity_error_caught_should_add_division(
 ):
     # Arrange
     division_in = Division(
-        name="Division",
-        league_name="L",
-        conference_name="C",
-        first_season_year=1
+        name="Division 1",
+        league_id=1,
+        conference_id=1,
+        first_season_id=1920
     )
 
     # Act
@@ -243,10 +278,10 @@ def test_add_division_when_integrity_error_caught_should_rollback_transaction_an
 ):
     # Arrange
     division_in = Division(
-        name="Division",
-        league_name="L",
-        conference_name="C",
-        first_season_year=1
+        name="Division 1",
+        league_id=1,
+        conference_id=1,
+        first_season_id=1920
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -285,21 +320,21 @@ def test_add_divisions_when_divisions_arg_is_not_empty_and_no_integrity_error_ca
     divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
     )
 
@@ -325,21 +360,21 @@ def test_add_divisions_when_divisions_arg_is_not_empty_and_integrity_error_caugh
     divisions_in = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -357,31 +392,36 @@ def test_add_divisions_when_divisions_arg_is_not_empty_and_integrity_error_caugh
     fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
-def test_division_exists_when_division_does_not_exist_should_return_false(fake_division, test_repo):
+def test_division_exists_when_division_does_not_exist_should_return_false(
+        fake_division, fake_joinedload, test_repo):
     # Arrange
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-    fake_division.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = divisions
+    fake_query.return_value.get.return_value = None
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     division_exists = test_repo.division_exists(id=1)
@@ -390,31 +430,37 @@ def test_division_exists_when_division_does_not_exist_should_return_false(fake_d
     assert not division_exists
 
 
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
-def test_division_exists_when_division_exists_should_return_true(fake_division, test_repo):
+def test_division_exists_when_division_exists_should_return_true(
+        fake_division, fake_joinedload, test_repo
+):
     # Arrange
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
             name="Division 1",
-            league_name="L1",
-            conference_name="C1",
-            first_season_year=1
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 2",
-            league_name="L1",
-            conference_name="C2",
-            first_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
         Division(
             name="Division 3",
-            league_name="L1",
-            conference_name="C3",
-            first_season_year=3
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-    fake_division.query.get.return_value = divisions[1]
+    )
+    fake_query.return_value.all.return_value = divisions
+    fake_query.return_value.get.return_value = divisions[1]
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     division_exists = test_repo.division_exists(id=1)
@@ -435,11 +481,11 @@ def test_update_division_when_no_division_exists_with_id_should_return_division_
     # Act
     division = Division(
         id=1,
-        name="Division",
-        league_name="L",
-        conference_name="C",
-        first_season_year=1,
-        last_season_year=2
+        name="Division 1",
+        league_id=1,
+        conference_id=1,
+        first_season_id=1920,
+        last_season_id=1921
     )
 
     try:
@@ -453,61 +499,65 @@ def test_update_division_when_no_division_exists_with_id_should_return_division_
     assert isinstance(division_updated, Division)
     assert isinstance(division_updated, Division)
     assert division_updated.id == division.id
-    assert division_updated.conference_name == division.conference_name
     assert division_updated.name == division.name
-    assert division_updated.league_name == division.league_name
-    assert division_updated.first_season_year == division.first_season_year
-    assert division_updated.last_season_year == division.last_season_year
+    assert division_updated.league_id == division.league_id
+    assert division_updated.conference_id == division.conference_id
+    assert division_updated.first_season_id == division.first_season_id
+    assert division_updated.last_season_id == division.last_season_id
 
 
 @patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 @patch('app.data.repositories.division_repository.DivisionRepository.division_exists')
 def test_update_division_when_division_exists_with_id_and_no_integrity_error_caught_should_return_division_and_update_database(
-        fake_division_exists, fake_division, fake_sqla, fake_try_commit, test_repo
+        fake_division_exists, fake_division, fake_joinedload, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
     fake_division_exists.return_value = True
 
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
             id=1,
             name="Division 1",
-            league_name="L",
-            conference_name="C",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Division(
             id=2,
             name="Division 2",
-            league_name="L",
-            conference_name="C",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            conference_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Division(
             id=3,
             name="Division 3",
-            league_name="L",
-            conference_name="C",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            conference_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-
+    )
+    fake_query.return_value.all.return_value = divisions
     old_division = divisions[1]
-    fake_division.query.get.return_value = old_division
+    fake_query.return_value.get.return_value = old_division
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     new_division = Division(
         id=2,
         name="Division 4",
-        league_name="L",
-        conference_name="C",
-        first_season_year=7,
-        last_season_year=8
+        league_id=1,
+        conference_id=1,
+        first_season_id=1926,
+        last_season_id=1927
     )
 
     # Act
@@ -522,62 +572,66 @@ def test_update_division_when_division_exists_with_id_and_no_integrity_error_cau
     assert isinstance(division_updated, Division)
     assert isinstance(division_updated, Division)
     assert division_updated.id == new_division.id
-    assert division_updated.conference_name == new_division.conference_name
     assert division_updated.name == new_division.name
-    assert division_updated.league_name == new_division.league_name
-    assert division_updated.first_season_year == new_division.first_season_year
-    assert division_updated.last_season_year == new_division.last_season_year
+    assert division_updated.league_id == new_division.league_id
+    assert division_updated.conference_id == new_division.conference_id
+    assert division_updated.first_season_id == new_division.first_season_id
+    assert division_updated.last_season_id == new_division.last_season_id
     assert division_updated is new_division
 
 
 @patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 @patch('app.data.repositories.division_repository.DivisionRepository.division_exists')
-def test_update_division_when_and_division_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_division_exists, fake_division, fake_sqla, fake_try_commit, test_repo
+def test_update_division_when_division_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_division_exists, fake_division, fake_joinedload, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
     fake_division_exists.return_value = True
 
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
             id=1,
             name="Division 1",
-            league_name="L",
-            conference_name="C",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Division(
             id=2,
             name="Division 2",
-            league_name="L",
-            conference_name="C",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            conference_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Division(
             id=3,
             name="Division 3",
-            league_name="L",
-            conference_name="C",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            conference_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-
+    )
+    fake_query.return_value.all.return_value = divisions
     old_division = divisions[1]
-    fake_division.query.get.return_value = old_division
+    fake_query.return_value.get.return_value = old_division
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     new_division = Division(
         id=2,
         name="Division 4",
-        league_name="L",
-        conference_name="C",
-        first_season_year=7,
-        last_season_year=8
+        league_id=1,
+        conference_id=1,
+        first_season_id=1926,
+        last_season_id=1927
     )
 
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -593,36 +647,44 @@ def test_update_division_when_and_division_exists_with_id_and_integrity_error_ca
 
 @patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_does_not_exist_should_return_none_and_not_delete_division_from_database(
-        fake_division, fake_sqla, fake_try_commit, test_repo
+        fake_division, fake_joinedload, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
+            id=1,
             name="Division 1",
-            league_name="L",
-            conference_name="C",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Division(
+            id=2,
             name="Division 2",
-            league_name="L",
-            conference_name="C",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            conference_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Division(
+            id=3,
             name="Division 3",
-            league_name="L",
-            conference_name="C",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            conference_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-    fake_division.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = divisions
+    fake_query.return_value.get.return_value = None
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     id = 1
 
@@ -637,38 +699,45 @@ def test_delete_division_when_division_does_not_exist_should_return_none_and_not
 
 @patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_exists_and_integrity_error_not_caught_should_return_division_and_delete_division_from_database(
-        fake_division, fake_sqla, fake_try_commit, test_repo
+        fake_division, fake_joinedload, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
+            id=1,
             name="Division 1",
-            league_name="L",
-            conference_name="C",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Division(
+            id=2,
             name="Division 2",
-            league_name="L",
-            conference_name="C",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            conference_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Division(
+            id=3,
             name="Division 3",
-            league_name="L",
-            conference_name="C",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            conference_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-
+    )
+    fake_query.return_value.all.return_value = divisions
     id = 1
-    fake_division.query.get.return_value = divisions[id]
+    fake_query.return_value.get.return_value = divisions[id]
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     try:
@@ -684,38 +753,45 @@ def test_delete_division_when_division_exists_and_integrity_error_not_caught_sho
 
 @patch('app.data.repositories.division_repository.try_commit')
 @patch('app.data.repositories.division_repository.sqla')
+@patch('app.data.repositories.division_repository.joinedload')
 @patch('app.data.repositories.division_repository.Division')
 def test_delete_division_when_division_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_division, fake_sqla, fake_try_commit, test_repo
+        fake_division, fake_joinedload, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    divisions = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    divisions = (
         Division(
+            id=1,
             name="Division 1",
-            league_name="L",
-            conference_name="C",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            conference_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Division(
+            id=2,
             name="Division 2",
-            league_name="L",
-            conference_name="C",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            conference_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Division(
+            id=3,
             name="Division 3",
-            league_name="L",
-            conference_name="C",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            conference_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_division.query.all.return_value = divisions
-
+    )
+    fake_query.return_value.all.return_value = divisions
     id = 1
-    fake_division.query.get.return_value = divisions[id]
+    fake_query.return_value.get.return_value = divisions[id]
+    fake_division.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -724,5 +800,5 @@ def test_delete_division_when_division_exists_and_integrity_error_caught_should_
         division_deleted = test_repo.delete_division(id)
 
     # Assert
-    fake_sqla.session.delete.assert_called_once_with(fake_division.query.get.return_value)
+    fake_sqla.session.delete.assert_called_once_with(divisions[id])
     fake_try_commit.assert_called_once()

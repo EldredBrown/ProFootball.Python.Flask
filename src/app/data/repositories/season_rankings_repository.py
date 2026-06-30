@@ -12,21 +12,15 @@ class SeasonRankingsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the SeasonRankingsRepository class.
-        """
-        pass
-
-    def get_offensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
-        if season_year is None:
+    def get_offensive_rankings_by_season(self, season_id: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
+        if season_id is None:
             return []
 
-        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive {season_year};")
+        results = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive @season_id = {season_id};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
-        for row in result:
+        for row in results:
             rts = OffensiveRankingsTeamSeason(
                 team_name=row[0],
                 wins=row[1],
@@ -39,11 +33,11 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_defensive_rankings_by_season_year(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
-        if season_year is None:
+    def get_defensive_rankings_by_season(self, season_id: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
+        if season_id is None:
             return []
 
-        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive {season_year};")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive @season_id = {season_id};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -60,10 +54,10 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_total_rankings_by_season_year(self, season_year: Optional[int]) -> List[TotalRankingsTeamSeason]:
-        if season_year is None:
+    def get_total_rankings_by_season(self, season_id: Optional[int]) -> List[TotalRankingsTeamSeason]:
+        if season_id is None:
             return []
-        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsTotal {season_year};")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsTotal @season_id = {season_id};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -98,7 +92,7 @@ class SeasonRankingsRepository:
             cursor = conn.cursor()
             cursor.execute(
                 "EXEC dbo.sp_GetDataForRankingsUpdate ?, ?, ?",
-                (team_season.team_name, team_season.league_name, team_season.season_year)
+                (team_season.team_id, team_season.league_id, team_season.season_year)
             )
 
             try:

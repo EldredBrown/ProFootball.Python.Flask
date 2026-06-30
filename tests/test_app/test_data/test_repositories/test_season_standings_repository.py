@@ -13,9 +13,8 @@ def test_repo():
 
 
 @patch('app.data.repositories.season_standings_repository.sqla')
-@patch('app.data.repositories.season_standings_repository.SQLQuery')
 def test_get_season_standings_by_season_year_should_get_season_standings_for_specified_season_year(
-        fake_SQLQuery, fake_sqla, test_repo
+        fake_sqla, test_repo
 ):
     # Arrange
     team_seasons_in = [
@@ -41,15 +40,16 @@ def test_get_season_standings_by_season_year_should_get_season_standings_for_spe
             Decimal('1.50'), Decimal('1.50')
         ),
     ]
-    fake_sqla.session.execute.return_value = team_seasons_in
+    fake_sqla.callproc.return_value = team_seasons_in
+
+    season_id = 1920
 
     # Act
-    team_seasons_out = test_repo.get_season_standings_by_season_year(season_year=1)
+    team_seasons_out = test_repo.get_season_standings_by_season(season_id=season_id)
 
     # Assert
-    querystring = f"EXEC sp_GetSeasonStandings 1, False"
-    fake_SQLQuery.assert_called_once_with(querystring)
-    fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
+    querystring = f"EXEC sp_GetSeasonStandings @season_id = {season_id}, @group_by_division = False"
+    fake_sqla.callproc.assert_called_once_with(querystring)
     for i in range(len(team_seasons_in)):
         assert isinstance(team_seasons_out[i], StandingsTeamSeason)
         assert team_seasons_out[i].team_name == team_seasons_in[i][0]

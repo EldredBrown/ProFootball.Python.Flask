@@ -1,31 +1,32 @@
-from app.data.models.season import Season
+from app import injector
 from app.data.models.team import Team
-from app.data.models.game import Game
-from app.data.models.league_season import LeagueSeason
-from app.data.models.team_season import TeamSeason
+from app.data.repositories.team_repository import TeamRepository
 
 
-def create_team(old_team: Team=None, **kwargs) -> Team:
-    key = 'name'
-    _validate_key_is_in_kwargs(key, **kwargs)
+def create_team(**kwargs) -> Team:
+    view_model_map = {
+        'id':   'id',
+        'name': 'name',
+    }
 
-    error_message = f"Team already exists with {key}={kwargs[key]}."
-    if old_team:
-        if _value_has_changed(key, old_team, **kwargs):
-            _validate_is_unique(key, kwargs[key], error_message=error_message)
-    else:
-        _validate_is_unique(key, kwargs[key], error_message=error_message)
+    model_kwargs = dict()
+    for key in kwargs.keys():
+        if key not in view_model_map:
+            raise KeyError(f"{key} is invalid.")
 
-    return Team(**kwargs)
+        value = kwargs.get(key)
+        if key == 'name':
+            error_message = f"Team already exists with {key}={value}."
+            if 'id' in kwargs:
+                if _value_has_changed(key, **kwargs):
+                    _validate_is_unique(key, value, error_message=error_message)
+            else:
+                _validate_is_unique(key, value, error_message=error_message)
+            model_kwargs[key] = value
+        else:    # key == 'id':
+            model_kwargs[view_model_map[key]] = value
 
-
-def _validate_key_is_in_kwargs(key, **kwargs):
-    if key not in kwargs:
-        raise ValueError(f"{key} is required.")
-
-
-def _value_has_changed(key: str, team: Team, **kwargs) -> bool:
-    return kwargs[key] != team.__dict__[key]
+    return Team(**model_kwargs)
 
 
 def _validate_is_unique(key, value, error_message=None):
@@ -33,3 +34,10 @@ def _validate_is_unique(key, value, error_message=None):
         if not error_message:
             error_message = f"{key} must be unique."
         raise ValueError(error_message)
+
+
+def _value_has_changed(key: str, **kwargs) -> bool:
+    id = kwargs.get('id')
+    team_repository = injector.get(TeamRepository)
+    old_team = team_repository.get_team(id)
+    return kwargs.get(key) != old_team.__dict__[key]

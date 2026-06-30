@@ -1,4 +1,4 @@
-from unittest.mock import Mock, call, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
@@ -32,70 +32,72 @@ def test_service(
     return test_service
 
 
-def test_run_weekly_update_when_league_name_is_none_should_raise_value_error(test_service):
+def test_run_weekly_update_when_league_id_is_none_should_raise_value_error(test_service):
     # Arrange
-    league_name = None
+    league_id = None
 
     # Act
     with pytest.raises(ValueError) as e:
-        test_service.run_weekly_update(league_name, None)
+        test_service.run_weekly_update(league_id, None)
 
     # Assert
-    assert e.value.args[0] == "league_name"
+    assert e.value.args[0] == "league_id"
 
 
-def test_run_weekly_update_when_league_name_is_not_none_and_season_year_less_than_zero_should_raise_value_error(test_service):
+def test_run_weekly_update_when_league_id_is_not_none_and_season_id_less_than_zero_should_raise_value_error(test_service):
     # Arrange
-    league_name = "League"
-    season_year = -1
+    league_id = "League"
+    season_id = -1
 
     # Act
     with pytest.raises(ValueError) as e:
-        test_service.run_weekly_update(league_name, season_year)
+        test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    assert e.value.args[0] == f"season_year must be a positive integer; got {season_year}"
+    assert e.value.args[0] == f"season_id must be a positive integer; got {season_id}"
 
 
-def test_run_weekly_update_when_season_year_equal_to_zero_should_raise_value_error(test_service):
+def test_run_weekly_update_when_season_id_equals_zero_should_raise_value_error(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 0
+    league_id = "League"
+    season_id = 0
 
     # Act
     with pytest.raises(ValueError) as e:
-        test_service.run_weekly_update(league_name, season_year)
+        test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    assert e.value.args[0] == f"season_year must be a positive integer; got {season_year}"
+    assert e.value.args[0] == f"season_id must be a positive integer; got {season_id}"
 
 
-def test_run_weekly_update_when_season_year_greater_than_zero_and_league_season_totals_is_none_and_src_week_count_is_none_should_not_update_anything(
+def test_run_weekly_update_when_season_id_greater_than_zero_and_league_season_totals_is_none_and_src_week_count_is_none_should_not_update_anything(
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
+
+    test_service.game_repository.get_max_week_by_season.return_value = None
+
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = None
 
     test_service.league_season_totals_repository.get_league_season_totals.return_value = None
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_not_called()
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_not_called()
     fake_league_season.update_games_and_points.assert_not_called()
     test_service.league_season_repository.update_league_season.assert_not_called()
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -105,29 +107,29 @@ def test_run_weekly_update_when_league_season_totals_is_not_none_and_league_seas
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     test_service.league_season_totals_repository.get_league_season_totals.return_value \
         = LeagueSeasonTotals(total_games=None)
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = None
+    test_service.game_repository.get_max_week_by_season.return_value = None
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_not_called()
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_not_called()
     fake_league_season.update_games_and_points.assert_not_called()
     test_service.league_season_repository.update_league_season.assert_not_called()
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -137,29 +139,29 @@ def test_run_weekly_update_when_league_season_totals_total_games_is_not_none_and
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     test_service.league_season_totals_repository.get_league_season_totals.return_value \
         = LeagueSeasonTotals(total_games=0, total_points=None)
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = None
+    test_service.game_repository.get_max_week_by_season.return_value = None
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_not_called()
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_not_called()
     fake_league_season.update_games_and_points.assert_not_called()
     test_service.league_season_repository.update_league_season.assert_not_called()
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -167,29 +169,29 @@ def test_run_weekly_update_when_league_season_totals_total_games_is_not_none_and
 
 def test_run_weekly_update_when_league_season_totals_total_points_is_not_none_and_league_season_is_none_and_src_week_count_is_none_should_not_update_anything(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     test_service.league_season_totals_repository.get_league_season_totals.return_value \
         = LeagueSeasonTotals(total_games=0, total_points=0)
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = None
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = None
+    test_service.game_repository.get_max_week_by_season.return_value = None
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_not_called()
     test_service.league_season_repository.update_league_season.assert_not_called()
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -199,29 +201,29 @@ def test_run_weekly_update_when_league_season_is_not_none_and_src_week_count_is_
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = None
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -229,29 +231,29 @@ def test_run_weekly_update_when_league_season_is_not_none_and_src_week_count_is_
 
 def test_run_weekly_update_when_src_week_count_is_none_should_not_update_week_count(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = None
-    fake_team_season = Mock(TeamSeason)
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = None
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_not_called()
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_not_called()
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -259,32 +261,32 @@ def test_run_weekly_update_when_src_week_count_is_none_should_not_update_week_co
 
 def test_run_weekly_update_when_src_week_count_is_zero_and_dest_season_is_none_should_not_update_week_count(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 0
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 0
 
-    test_service.season_repository.get_season_by_year.return_value = None
+    test_service.season_repository.get_season.return_value = None
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_not_called()
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -292,33 +294,33 @@ def test_run_weekly_update_when_src_week_count_is_zero_and_dest_season_is_none_s
 
 def test_run_weekly_update_when_dest_season_is_not_none_should_update_week_count(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 0
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 0
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -326,33 +328,33 @@ def test_run_weekly_update_when_dest_season_is_not_none_should_update_week_count
 
 def test_run_weekly_update_when_week_count_is_less_than_three_should_not_update_rankings(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 2
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 2
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_not_called()
+    test_service.team_season_repository.get_team_seasons_by_season.assert_not_called()
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -360,35 +362,34 @@ def test_run_weekly_update_when_week_count_is_less_than_three_should_not_update_
 
 def test_run_weekly_update_when_week_count_is_three_and_team_seasons_for_specified_year_is_none_should_not_update_rankings_for_any_team_season(test_service):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
+
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
+
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 3
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 3
-
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
-
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = None
-
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = None
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -398,35 +399,35 @@ def test_run_weekly_update_when_week_count_is_greater_than_three_and_team_season
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = None
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = None
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -436,36 +437,36 @@ def test_run_weekly_update_when_team_seasons_for_specified_year_is_empty_should_
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
     team_seasons = []
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_not_called()
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -475,24 +476,24 @@ def test_run_weekly_update_when_team_seasons_for_specified_year_is_not_empty_and
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -500,17 +501,17 @@ def test_run_weekly_update_when_team_seasons_for_specified_year_is_not_empty_and
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -520,24 +521,24 @@ def test_run_weekly_update_when_team_season_schedule_totals_is_empty_should_not_
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -545,17 +546,17 @@ def test_run_weekly_update_when_team_season_schedule_totals_is_empty_should_not_
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -565,24 +566,24 @@ def test_run_weekly_update_when_team_season_schedule_totals_is_not_empty_and_tea
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -590,17 +591,17 @@ def test_run_weekly_update_when_team_season_schedule_totals_is_not_empty_and_tea
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -610,24 +611,24 @@ def test_run_weekly_update_when_team_season_schedule_totals_schedule_games_is_no
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -636,17 +637,17 @@ def test_run_weekly_update_when_team_season_schedule_totals_schedule_games_is_no
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -656,24 +657,24 @@ def test_run_weekly_update_when_team_season_schedule_averages_is_empty_should_no
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -682,17 +683,17 @@ def test_run_weekly_update_when_team_season_schedule_averages_is_empty_should_no
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -702,24 +703,24 @@ def test_run_weekly_update_when_team_season_schedule_averages_is_not_empty_and_t
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -728,17 +729,17 @@ def test_run_weekly_update_when_team_season_schedule_averages_is_not_empty_and_t
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -748,24 +749,24 @@ def test_run_weekly_update_when_team_season_schedule_averages_avg_points_for_is_
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -774,17 +775,17 @@ def test_run_weekly_update_when_team_season_schedule_averages_avg_points_for_is_
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -794,24 +795,24 @@ def test_run_weekly_update_when_team_season_schedule_averages_avg_points_against
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -821,17 +822,17 @@ def test_run_weekly_update_when_team_season_schedule_averages_avg_points_against
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -841,24 +842,24 @@ def test_run_weekly_update_when_league_season_is_empty_should_not_update_ranking
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -868,17 +869,17 @@ def test_run_weekly_update_when_league_season_is_empty_should_not_update_ranking
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -888,24 +889,24 @@ def test_run_weekly_update_when_league_season_is_not_empty_and_league_season_ave
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = \
         {
@@ -915,17 +916,17 @@ def test_run_weekly_update_when_league_season_is_not_empty_and_league_season_ave
         }
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_not_called()
     test_service.team_season_repository.update_team_season.assert_not_called()
@@ -935,24 +936,24 @@ def test_run_weekly_update_when_team_season_schedule_totals_and_averages_and_lea
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_season = Mock(TeamSeason)
+    fake_team_season = MagicMock(TeamSeason)
     team_seasons = [
         fake_team_season,
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     rankings_data =\
         {
@@ -963,17 +964,17 @@ def test_run_weekly_update_when_team_season_schedule_totals_and_averages_and_lea
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = rankings_data
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_called_once_with(fake_team_season)
     fake_team_season.update_rankings.assert_called_once_with(
         rankings_data['team_season_schedule_averages']['avg_points_for'],
@@ -987,26 +988,26 @@ def test_run_weekly_update_when_more_than_one_good_team_season_should_update_ran
         test_service
 ):
     # Arrange
-    league_name = "League"
-    season_year = 1
+    league_id = "League"
+    season_id = 1
 
     league_season_totals = LeagueSeasonTotals(total_games=0, total_points=0)
     test_service.league_season_totals_repository.get_league_season_totals.return_value = league_season_totals
 
-    fake_league_season = Mock(LeagueSeason)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.return_value = fake_league_season
-    test_service.game_repository.get_max_week_by_season_year.return_value = 4
+    fake_league_season = MagicMock(LeagueSeason)
+    test_service.league_season_repository.get_league_season_by_league_and_season.return_value = fake_league_season
+    test_service.game_repository.get_max_week_by_season.return_value = 4
 
-    dest_season = Mock(Season)
-    test_service.season_repository.get_season_by_year.return_value = dest_season
+    dest_season = MagicMock(Season)
+    test_service.season_repository.get_season.return_value = dest_season
 
-    fake_team_seasons = [Mock(TeamSeason), Mock(TeamSeason), Mock(TeamSeason)]
+    fake_team_seasons = [MagicMock(TeamSeason), MagicMock(TeamSeason), MagicMock(TeamSeason)]
     team_seasons = [
         fake_team_seasons[0],
         fake_team_seasons[1],
         fake_team_seasons[2],
     ]
-    test_service.team_season_repository.get_team_seasons_by_season_year.return_value = team_seasons
+    test_service.team_season_repository.get_team_seasons_by_season.return_value = team_seasons
 
     rankings_data =\
         {
@@ -1017,17 +1018,17 @@ def test_run_weekly_update_when_more_than_one_good_team_season_should_update_ran
     test_service.season_rankings_repository.get_data_for_rankings_update.return_value = rankings_data
 
     # Act
-    test_service.run_weekly_update(league_name, season_year)
+    test_service.run_weekly_update(league_id, season_id)
 
     # Assert
-    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_name, season_year)
-    test_service.league_season_repository.get_league_season_by_league_name_and_season_year.assert_called_once_with(league_name, season_year)
+    test_service.league_season_totals_repository.get_league_season_totals.assert_called_once_with(league_id, season_id)
+    test_service.league_season_repository.get_league_season_by_league_and_season.assert_called_once_with(league_id, season_id)
     fake_league_season.update_games_and_points.assert_called_once_with(league_season_totals.total_games, league_season_totals.total_points)
     test_service.league_season_repository.update_league_season.assert_called_once_with(fake_league_season)
-    test_service.game_repository.get_max_week_by_season_year.assert_called_once_with(season_year)
-    test_service.season_repository.get_season_by_year.assert_called_once_with(season_year)
+    test_service.game_repository.get_max_week_by_season.assert_called_once_with(season_id)
+    test_service.season_repository.get_season.assert_called_once_with(season_id)
     test_service.season_repository.update_season.assert_called_once_with(dest_season)
-    test_service.team_season_repository.get_team_seasons_by_season_year.assert_called_once_with(season_year)
+    test_service.team_season_repository.get_team_seasons_by_season.assert_called_once_with(season_id)
     test_service.season_rankings_repository.get_data_for_rankings_update.assert_has_calls([
         call(fake_team_seasons[0]),
         call(fake_team_seasons[1]),

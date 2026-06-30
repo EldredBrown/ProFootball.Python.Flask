@@ -12,7 +12,7 @@ class Team(sqla.Model):
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
     name = sqla.Column(sqla.String(50), unique=True, nullable=False)
 
-    team_seasons = sqla.relationship('Season', secondary='TeamSeason', lazy=True)
+    team_seasons = sqla.relationship('TeamSeason', back_populates='team')
 
     @validates('name')
     def validate_not_empty(self, key, value):

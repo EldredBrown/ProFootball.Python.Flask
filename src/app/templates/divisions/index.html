@@ -35,16 +35,16 @@
                 {{ division.name }}
             </td>
             <td class="text-left">
-                {{ division.league_name }}
+                {{ division.league.short_name }}
             </td>
             <td class="text-left">
-                {{ division.conference_name }}
+                {{ division.conference.short_name }}
             </td>
             <td class="text-right align-right-override">
-                {{ division.first_season_year }}
+                {{ division.first_season_id }}
             </td>
             <td class="text-right align-right-override">
-                {{ division.last_season_year }}
+                {{ division.last_season_id }}
             </td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{{ url_for('division.details', id=division.id) }}">Details</a>

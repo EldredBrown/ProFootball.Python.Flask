@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, InputRequired, NumberRange
 
 
 class SeasonForm(FlaskForm):
-    year = IntegerField(
+    id = IntegerField(
         "Year",
         validators=[
             InputRequired("Please enter a year."),

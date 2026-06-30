@@ -3,12 +3,12 @@ import pytest
 from app.data.models.game import Game
 
 
-def test_validate_season_year_when_season_year_is_none_should_raise_value_error():
+def test_validate_season_id_when_season_id_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=None,
+            season_id=None,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -19,15 +19,15 @@ def test_validate_season_year_when_season_year_is_none_should_raise_value_error(
 
     # Assert
     assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "season_year is required."
+    assert err.value.args[0] == "season_id is required."
 
 
-def test_validate_season_year_when_season_year_is_zero_should_raise_value_error():
+def test_validate_season_id_when_season_id_is_zero_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=0,
+            season_id=0,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -38,15 +38,15 @@ def test_validate_season_year_when_season_year_is_zero_should_raise_value_error(
 
     # Assert
     assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "season_year cannot be earlier than 1920."
+    assert err.value.args[0] == "season_id cannot be earlier than 1920."
 
 
-def test_validate_season_year_when_season_year_is_before_1920_should_raise_value_error():
+def test_validate_season_id_when_season_id_is_before_1920_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1919,
+            season_id=1919,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -57,17 +57,17 @@ def test_validate_season_year_when_season_year_is_before_1920_should_raise_value
 
     # Assert
     assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "season_year cannot be earlier than 1920."
+    assert err.value.args[0] == "season_id cannot be earlier than 1920."
 
 
-def test_validate_season_year_when_season_year_is_1920_should_not_raise_value_error():
+def test_validate_season_id_when_season_id_is_1920_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -82,14 +82,14 @@ def test_validate_season_year_when_season_year_is_1920_should_not_raise_value_er
     assert err is None
 
 
-def test_validate_season_year_when_season_year_is_after_1920_should_not_raise_value_error():
+def test_validate_season_id_when_season_id_is_after_1920_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
         test_game = Game(
-            season_year=1921,
+            season_id=1921,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -109,7 +109,7 @@ def test_validate_week_when_week_is_none_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=None,
             guest_name="Guest",
             guest_score=0,
@@ -128,7 +128,7 @@ def test_validate_not_empty_when_week_is_zero_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=0,
             guest_name="Guest",
             guest_score=0,
@@ -149,7 +149,7 @@ def test_validate_week_when_week_is_greater_than_zero_should_not_raise_value_err
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -169,7 +169,7 @@ def test_validate_name_when_guest_name_is_none_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name=None,
             guest_score=0,
@@ -188,7 +188,7 @@ def test_validate_name_when_guest_name_is_empty_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="",
             guest_score=0,
@@ -209,7 +209,7 @@ def test_validate_name_when_guest_name_is_not_empty_should_not_raise_value_error
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -229,7 +229,7 @@ def test_validate_name_when_host_name_is_none_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -248,7 +248,7 @@ def test_validate_name_when_host_name_is_empty_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -269,7 +269,7 @@ def test_validate_name_when_host_name_is_not_empty_should_not_raise_value_error(
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -289,7 +289,7 @@ def test_validate_score_when_guest_score_is_none_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=None,
@@ -308,7 +308,7 @@ def test_validate_score_when_guest_score_is_negative_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=-1,
@@ -329,7 +329,7 @@ def test_validate_score_when_guest_score_is_zero_should_not_raise_value_error():
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -351,7 +351,7 @@ def test_validate_score_when_guest_score_is_positive_should_not_raise_value_erro
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=1,
@@ -371,7 +371,7 @@ def test_validate_score_when_host_score_is_none_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -390,7 +390,7 @@ def test_validate_score_when_host_score_is_negative_should_raise_value_error():
     # Act
     with pytest.raises(ValueError) as err:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -411,7 +411,7 @@ def test_validate_score_when_host_score_is_zero_should_not_raise_value_error():
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -433,7 +433,7 @@ def test_validate_score_when_host_score_is_positive_should_not_raise_value_error
     # Act
     try:
         test_game = Game(
-            season_year=1920,
+            season_id=1920,
             week=1,
             guest_name="Guest",
             guest_score=0,
@@ -451,7 +451,7 @@ def test_validate_score_when_host_score_is_positive_should_not_raise_value_error
 def test_is_tie_when_guest_score_greater_than_host_score_should_return_false():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=3,
@@ -467,7 +467,7 @@ def test_is_tie_when_guest_score_greater_than_host_score_should_return_false():
 def test_is_tie_when_host_score_greater_than_guest_score_should_return_false():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=2,
@@ -483,7 +483,7 @@ def test_is_tie_when_host_score_greater_than_guest_score_should_return_false():
 def test_is_tie_when_guest_equals_host_score_should_return_true():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=3,
@@ -499,7 +499,7 @@ def test_is_tie_when_guest_equals_host_score_should_return_true():
 def test_winner_loser_properties_when_game_is_tie_should_all_return_none():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=3,
@@ -518,7 +518,7 @@ def test_winner_loser_properties_when_game_is_tie_should_all_return_none():
 def test_winner_loser_properties_when_guest_score_is_greater_than_host_score_should_all_return_correct_values():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=3,
@@ -537,7 +537,7 @@ def test_winner_loser_properties_when_guest_score_is_greater_than_host_score_sho
 def test_winner_loser_properties_when_host_score_is_greater_than_guest_score_should_all_return_correct_values():
     # Arrange
     test_game = Game(
-        season_year=1920,
+        season_id=1920,
         week=1,
         guest_name="Guest",
         guest_score=2,

@@ -31,7 +31,7 @@ def test_validate_not_empty_when_short_name_is_not_empty_should_not_raise_value_
 
     # Act
     try:
-        test_league = League(short_name="NFL")
+        test_league = League(short_name="L")
     except ValueError as err:
         pass
 
@@ -43,7 +43,7 @@ def test_validate_not_empty_when_long_name_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_league = League(short_name="NFL", long_name=None)
+        test_league = League(short_name="L", long_name=None)
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -54,7 +54,7 @@ def test_validate_not_empty_when_long_name_is_empty_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_league = League(short_name="NFL", long_name="")
+        test_league = League(short_name="L", long_name="")
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -67,7 +67,7 @@ def test_validate_not_empty_when_long_name_is_not_empty_should_not_raise_value_e
 
     # Act
     try:
-        test_league = League(short_name="NFL", long_name="National Football League")
+        test_league = League(short_name="L", long_name="League")
     except ValueError as err:
         pass
 
@@ -75,24 +75,24 @@ def test_validate_not_empty_when_long_name_is_not_empty_should_not_raise_value_e
     assert err is None
 
 
-def test_validate_not_empty_when_first_season_year_is_none_should_raise_value_error():
+def test_validate_not_empty_when_first_season_id_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_league = League(short_name="NFL", long_name="National Football League", first_season_year=None)
+        test_league = League(short_name="L", long_name="League", first_season_id=None)
 
     # Assert
     assert isinstance(err.value, ValueError)
-    assert err.value.args[0] == "first_season_year is required."
+    assert err.value.args[0] == "first_season_id is required."
 
 
-def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_first_season_id_is_zero_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
-        test_league = League(short_name="NFL", long_name="National Football League", first_season_year=0)
+        test_league = League(short_name="L", long_name="League", first_season_id=0)
     except ValueError as err:
         pass
 
@@ -100,13 +100,13 @@ def test_validate_not_empty_when_first_season_year_is_zero_should_not_raise_valu
     assert err is None
 
 
-def test_validate_not_empty_when_first_season_year_is_greater_than_zero_should_not_raise_value_error():
+def test_validate_not_empty_when_first_season_id_is_greater_than_zero_should_not_raise_value_error():
     # Arrange
     err = None
 
     # Act
     try:
-        test_league = League(short_name="NFL", long_name="National Football League", first_season_year=1)
+        test_league = League(short_name="L", long_name="League", first_season_id=1)
     except ValueError as err:
         pass
 

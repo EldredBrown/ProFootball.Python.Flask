@@ -163,11 +163,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """
@@ -252,11 +252,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """
@@ -347,11 +347,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """
@@ -363,11 +363,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year - 1},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """
@@ -455,11 +455,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """
@@ -547,11 +547,11 @@ class TestWeeklyUpdateService(unittest.TestCase):
                     team_name, season_year, league_name, conference_name, division_name, games, points_for
                 )
                 VALUES(
-                    '{tsa.team_name}',
+                    '{tsa.team_id}',
                     {tsa.season_year},
-                    '{tsa.league_name}',
-                    '{tsa.conference_name}',
-                    '{tsa.division_name}',
+                    '{tsa.league_id}',
+                    '{tsa.conference_id}',
+                    '{tsa.division_id}',
                     1, 2
                 )
             """

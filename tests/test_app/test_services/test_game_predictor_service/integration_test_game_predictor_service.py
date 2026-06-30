@@ -108,11 +108,11 @@ class IntegrationTestGamePredictorService(unittest.TestCase):
                         defensive_factor
                     )
                     VALUES(
-                        '{team_season.team_name}',
+                        '{team_season.team_id}',
                         {team_season.season_year},
-                        '{team_season.league_name}',
-                        '{team_season.conference_name}',
-                        '{team_season.division_name}',
+                        '{team_season.league_id}',
+                        '{team_season.conference_id}',
+                        '{team_season.division_id}',
                         {team_season.offensive_average},
                         {team_season.offensive_factor},
                         {team_season.defensive_average},

@@ -8,8 +8,8 @@
 <form method="POST" action="{{ url_for('season.create') }}">
     {{ form.hidden_tag() }}
     <div class="form-group">
-        {{ form.year.label }}
-        {{ form.year(class='form-control') }}
+        {{ form.id.label }}
+        {{ form.id(class='form-control') }}
     </div>
     <div class="form-group">
         {{ form.num_of_weeks_scheduled.label }}

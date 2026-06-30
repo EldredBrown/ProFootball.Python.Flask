@@ -4,7 +4,7 @@ from typing import Optional
 
 
 @dataclass
-class TeamSeasonScheduleProfileRecord:
+class TeamSeasonOpponentProfile:
     """
     Represents a team's season schedule totals.
     """

@@ -35,10 +35,10 @@
                 {{ league.long_name }}
             </td>
             <td class="text-right align-right-override">
-                {{ league.first_season_year }}
+                {{ league.first_season_id }}
             </td>
             <td class="text-right align-right-override">
-                {{ league.last_season_year }}
+                {{ league.last_season_id }}
             </td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{{ url_for('league.details', id=league.id) }}">Details</a>

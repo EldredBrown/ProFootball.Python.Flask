@@ -17,17 +17,17 @@ class TeamSeason(sqla.Model):
     __tablename__ = 'TeamSeason'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    team_name = sqla.Column(sqla.String(50), sqla.ForeignKey('Team.name'), nullable=False)
-    season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
-    league_name = sqla.Column(sqla.String(5), sqla.ForeignKey('League.short_name'), nullable=False)
-    conference_name = sqla.Column(sqla.String(5), sqla.ForeignKey('Conference.short_name'))
-    division_name = sqla.Column(sqla.String(50), sqla.ForeignKey('Division.name'))
-    games = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    wins = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    losses = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    ties = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    points_for = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
-    points_against = sqla.Column(sqla.SmallInteger, nullable=False, default=0)
+    team_id = sqla.Column(sqla.String(50), sqla.ForeignKey('Team.id'), nullable=False)
+    season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=False)
+    league_id = sqla.Column(sqla.String(5), sqla.ForeignKey('League.id'), nullable=False)
+    conference_id = sqla.Column(sqla.String(5), sqla.ForeignKey('Conference.id'))
+    division_id = sqla.Column(sqla.String(50), sqla.ForeignKey('Division.id'))
+    games = sqla.Column(sqla.Integer, nullable=False, default=0)
+    wins = sqla.Column(sqla.Integer, nullable=False, default=0)
+    losses = sqla.Column(sqla.Integer, nullable=False, default=0)
+    ties = sqla.Column(sqla.Integer, nullable=False, default=0)
+    points_for = sqla.Column(sqla.Integer, nullable=False, default=0)
+    points_against = sqla.Column(sqla.Integer, nullable=False, default=0)
     expected_wins = sqla.Column(sqla.Numeric(**_EXP_NUMERIC), nullable=False, default=0)
     expected_losses = sqla.Column(sqla.Numeric(**_EXP_NUMERIC), nullable=False, default=0)
     offensive_average = sqla.Column(sqla.Numeric(**_AVG_NUMERIC))
@@ -39,12 +39,18 @@ class TeamSeason(sqla.Model):
     final_expected_winning_percentage = sqla.Column(sqla.Numeric(**_PCT_NUMERIC))
 
     __table_args__ = (
-        sqla.UniqueConstraint('team_name', 'season_year', name='uq_team_season'),
+        sqla.UniqueConstraint('team_id', 'season_id', name='uq_team_season'),
     )
 
+    team = sqla.relationship('Team', back_populates='team_seasons')
+    season = sqla.relationship('Season', back_populates='team_seasons')
+    league = sqla.relationship('League', back_populates='team_seasons')
+    conference = sqla.relationship('Conference', back_populates='team_seasons')
+    division = sqla.relationship('Division', back_populates='team_seasons')
+
     def __repr__(self) -> str:
-        return (f"<TeamSeason id={self.id!r} team={self.team_name!r} "
-                f"season={self.season_year} record={self.wins}-{self.losses}-{self.ties}>")
+        return (f"<TeamSeason id={self.id!r} team={self.team_id!r} "
+                f"season={self.season_id} record={self.wins}-{self.losses}-{self.ties}>")
 
     def to_dict(self) -> dict[str, object]:
         d = {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -66,6 +72,7 @@ class TeamSeason(sqla.Model):
         if self.games == 0:
             self.expected_wins = Decimal(0)
             self.expected_losses = Decimal(0)
+            return
 
         exp_pct = team_season_utils.calculate_expected_winning_percentage(self.points_for, self.points_against)
         if exp_pct is None:

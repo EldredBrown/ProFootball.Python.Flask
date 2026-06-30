@@ -8,8 +8,8 @@
     <label for="guest_season_dropdown">Choose a guest season:</label>
     <select id="guest_season_dropdown" name="guest_season_dropdown">
         {% for season in guest_seasons %}
-            <option value="{{ season.year }}" {% if season.year == selected_guest_year %}selected='selected'{% endif %}>
-                {{ season.year }}
+            <option value="{{ season.id }}" {% if season.id == selected_guest_season_year %}selected='selected'{% endif %}>
+                {{ season.id }}
             </option>
         {% endfor %}
     </select>
@@ -19,9 +19,9 @@
     <label for="guest_dropdown">Choose a guest:</label>
     <select id="guest_dropdown" name="guest_dropdown">
         {% for guest in guests %}
-            <option value="{{ guest.team_name }}"
-                    {% if guest.team_name == selected_guest_name %}selected='selected'{% endif %}>
-                {{ guest.team_name }}
+            <option value="{{ guest.team.name }}"
+                    {% if guest.team.name == selected_guest_name %}selected='selected'{% endif %}>
+                {{ guest.team.name }}
             </option>
         {% endfor %}
     </select>
@@ -31,8 +31,8 @@
     <label for="host_season_dropdown">Choose a host season:</label>
     <select id="host_season_dropdown" name="host_season_dropdown">
         {% for season in host_seasons %}
-            <option value="{{ season.year }}" {% if season.year == selected_host_year %}selected='selected'{% endif %}>
-                {{ season.year }}
+            <option value="{{ season.id }}" {% if season.id == selected_host_season_year %}selected='selected'{% endif %}>
+                {{ season.id }}
             </option>
         {% endfor %}
     </select>
@@ -42,9 +42,9 @@
     <label for="host_dropdown">Choose a host:</label>
     <select id="host_dropdown" name="host_dropdown">
         {% for host in hosts %}
-            <option value="{{ host.team_name }}"
-                    {% if host.team_name == selected_host_name %}selected='selected'{% endif %}>
-                {{ host.team_name }}
+            <option value="{{ host.team.name }}"
+                    {% if host.team.name == selected_host_name %}selected='selected'{% endif %}>
+                {{ host.team.name }}
             </option>
         {% endfor %}
     </select>

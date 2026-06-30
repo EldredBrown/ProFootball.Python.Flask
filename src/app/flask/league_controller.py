@@ -11,6 +11,7 @@ from app.data.models.league import League
 from app.data.repositories.league_repository import LeagueRepository
 from app.flask.forms.league_forms import NewLeagueForm, EditLeagueForm, DeleteLeagueForm, LeagueForm
 
+
 blueprint = Blueprint('league', __name__)
 
 
@@ -36,8 +37,8 @@ def details(id: int) -> str:
 def create() -> Response | str:
     form = NewLeagueForm()
     if form.validate_on_submit():
-        new_league = _get_league_from_form(form)
         try:
+            new_league = _get_model_from_form(form)
             league_repository = injector.get(LeagueRepository)
             league_repository.add_league(new_league)
             flash(f"Item {form.short_name.data} has been successfully submitted.", 'success')
@@ -56,12 +57,13 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     league_repository = injector.get(LeagueRepository)
-    old_league = copy.deepcopy(league_repository.get_league(id))
+    league = league_repository.get_league(id)
+    old_league = copy.deepcopy(league)
     if old_league:
         form = EditLeagueForm()
         if form.validate_on_submit():
-            new_league = _get_league_from_form(form, id)
             try:
+                new_league = _get_model_from_form(form, id)
                 league_repository.update_league(new_league)
                 flash(f"Item {form.short_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('league.details', id=id))
@@ -72,7 +74,7 @@ def edit(id: int) -> Response | str:
             except IndexError:
                 abort(404)
         else:
-            _get_form_data_from_league(form, old_league)
+            _get_form_data_from_model(form, old_league)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
@@ -81,10 +83,30 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-def _get_league_from_form(form: LeagueForm, id: int=None) -> League:
-    kwargs = _get_kwargs_from_form(form, id)
-    league = league_factory.create_league(**kwargs)
-    return league
+@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id: int) -> Response | str:
+    form = DeleteLeagueForm()
+    try:
+        league_repository = injector.get(LeagueRepository)
+        league = league_repository.get_league(id)
+        if not league:
+            abort(404)
+
+        if request.method == 'POST':
+            league_repository.delete_league(id)
+            flash(f"League {league.short_name} has been successfully deleted.", 'success')
+            return redirect(url_for('league.index'))
+        else:
+            return render_template('leagues/delete.html', league=league, form=form)
+    except IndexError:
+        abort(404)
+
+
+def _get_form_data_from_model(form: LeagueForm, league: League) -> None:
+    form.short_name.data = league.short_name
+    form.long_name.data = league.long_name
+    form.first_season_year.data = league.first_season_id
+    form.last_season_year.data = league.last_season_id
 
 
 def _get_kwargs_from_form(form: LeagueForm, id: int=None) -> dict[str, Any]:
@@ -99,29 +121,10 @@ def _get_kwargs_from_form(form: LeagueForm, id: int=None) -> dict[str, Any]:
     return kwargs
 
 
-def _get_form_data_from_league(form: LeagueForm, league: League) -> None:
-    form.short_name.data = league.short_name
-    form.long_name.data = league.long_name
-    form.first_season_year.data = league.first_season_year
-    form.last_season_year.data = league.last_season_year
-
-
-@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    try:
-        league_repository = injector.get(LeagueRepository)
-        league = league_repository.get_league(id)
-        if not league:
-            abort(404)
-
-        if request.method == 'POST':
-            league_repository.delete_league(id)
-            flash(f"League {league.short_name} has been successfully deleted.", 'success')
-            return redirect(url_for('league.index'))
-        else:
-            return render_template('leagues/delete.html', league=league)
-    except IndexError:
-        abort(404)
+def _get_model_from_form(form: LeagueForm, id: int=None) -> League:
+    kwargs = _get_kwargs_from_form(form, id)
+    league = league_factory.create_league(**kwargs)
+    return league
 
 
 def _handle_error(err: Any, template_name: str, form: LeagueForm, league: League=None) -> str:

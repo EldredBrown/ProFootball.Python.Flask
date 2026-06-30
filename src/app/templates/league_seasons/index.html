@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
+{% block title %}League Seasons{% endblock %}
+
+{% block content %}
+<h1>League Seasons</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('league_season.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Name
+            </th>
+            <th class="text-left">
+                Season
+            </th>
+            <th class="text-right align-right-override">
+                Total Games
+            </th>
+            <th class="text-right align-right-override">
+                Total Points
+            </th>
+            <th class="text-right align-right-override">
+                Average Points
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for league_season in league_seasons %}
+        <tr>
+            <td class="text-left">
+                {{ league_season.league.short_name }}
+            </td>
+            <td class="text-left">
+                {{ league_season.season.id }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ league_season.total_games }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ league_season.total_points }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ league_season.average_points }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league_season.details', id=league_season.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league_season.edit', id=league_season.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('league_season.delete', id=league_season.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

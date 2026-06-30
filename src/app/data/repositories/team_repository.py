@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
-
 from app.data.models.team import Team
 from app.data.sqla import sqla, try_commit
 
@@ -10,12 +8,6 @@ class TeamRepository:
     """
     Provides CRUD access to an external data store.
     """
-
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the TeamRepository class.
-        """
-        pass
 
     def get_teams(self) -> List[Team]:
         """
@@ -33,11 +25,11 @@ class TeamRepository:
 
         :return: The fetched team.
         """
-        if self._teams_empty():
+        if len(Team.query.all()) == 0:
             return None
         return Team.query.get(id)
 
-    def get_team_by_name(self, short_name: str) -> Optional[Team]:
+    def get_team_by_name(self, name: str) -> Optional[Team]:
         """
         Gets the team in the data store with the specified id.
 
@@ -45,13 +37,9 @@ class TeamRepository:
 
         :return: The fetched team.
         """
-        if self._teams_empty():
+        if len(Team.query.all()) == 0:
             return None
-        return Team.query.filter_by(short_name=short_name).first()
-
-    def _teams_empty(self) -> bool:
-        teams = self.get_teams()
-        return len(teams) == 0
+        return Team.query.filter_by(name=name).first()
 
     def add_team(self, team: Team) -> Team:
         """
@@ -93,11 +81,6 @@ class TeamRepository:
         try_commit()
         return team
 
-    def _set_values_of_team_in_db(self, team: Team) -> Team:
-        team_in_db = self.get_team(team.id)
-        team_in_db.name = team.name
-        return team_in_db
-
     def delete_team(self, id: int) -> Optional[Team]:
         """
         Deletes a team from the data store.
@@ -122,3 +105,8 @@ class TeamRepository:
         :return: True if the team with the specified id exists in the data store; otherwise false.
         """
         return self.get_team(id) is not None
+
+    def _set_values_of_team_in_db(self, team: Team) -> Team | None:
+        team_in_db = self.get_team(team.id)
+        team_in_db.name = team.name
+        return team_in_db

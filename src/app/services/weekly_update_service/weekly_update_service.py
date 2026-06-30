@@ -1,4 +1,4 @@
-from typing import TypedDict
+from dataclasses import dataclass
 
 from injector import inject
 
@@ -17,14 +17,17 @@ from app.services.utilities import guard
 
 MIN_WEEKS_FOR_RANKINGS = 3
 
-class RankingsData(TypedDict):
-    averages: dict
-    league_season: dict
 
-
-class LeagueSeasonData(TypedDict):
+@dataclass
+class LeagueSeasonData:
     league_season_totals: LeagueSeasonTotals
     league_season: LeagueSeason
+
+
+@dataclass
+class RankingsData:
+    averages: dict
+    league_season: dict
 
 
 class WeeklyUpdateService:
@@ -72,37 +75,37 @@ class WeeklyUpdateService:
                f"League Season Totals Repository: {self.league_season_totals_repository}, " \
                f"Season Rankings Repository: {self.season_rankings_repository}"
 
-    def run_weekly_update(self, league_name: str, season_year: int) -> None:
+    def run_weekly_update(self, league_id: int, season_id: int) -> None:
         """
         Runs a weekly update of the rankings in the data store.
 
-        :param league_name: The league_name of the league_season within which a weekly update will be run.
-        :param season_year: The season_year of the league_season within which a weekly update will be run.
+        :param league_id: The league_id of the league_season within which a weekly update will be run.
+        :param season_id: The season_id of the league_season within which a weekly update will be run.
 
         :return: None
         """
-        guard.raise_if_none(league_name, 'league_name')
-        if season_year <= 0:
-            raise ValueError(f"season_year must be a positive integer; got {season_year}")
+        guard.raise_if_none(league_id, 'league_id')
+        if season_id <= 0:
+            raise ValueError(f"season_id must be a positive integer; got {season_id}")
 
-        self._update_league_season(league_name, season_year)
-        src_week_count = self._update_week_count(season_year)
+        self._update_league_season(league_id, season_id)
+        src_week_count = self._update_week_count(season_id)
 
         if src_week_count >= MIN_WEEKS_FOR_RANKINGS:
-            self._update_rankings(season_year)
+            self._update_rankings(season_id)
 
-    def _update_league_season(self, league_name: str, season_year: int) -> None:
-        data = self._get_league_season_data(league_name, season_year)
+    def _update_league_season(self, league_id: int, season_id: int) -> None:
+        data = self._get_league_season_data(league_id, season_id)
         if not data:
             return
 
-        league_season_totals = data['league_season_totals']
-        league_season = data['league_season']
+        league_season_totals = data.league_season_totals
+        league_season = data.league_season
         league_season.update_games_and_points(league_season_totals.total_games, league_season_totals.total_points)
         self.league_season_repository.update_league_season(league_season)
 
-    def _get_league_season_data(self, league_name: str, season_year: int) -> LeagueSeasonData | None:
-        league_season_totals = self.league_season_totals_repository.get_league_season_totals(league_name, season_year)
+    def _get_league_season_data(self, league_id: int, season_id: int) -> LeagueSeasonData | None:
+        league_season_totals = self.league_season_totals_repository.get_league_season_totals(league_id, season_id)
         if (
                 league_season_totals is None
                 or league_season_totals.total_games is None
@@ -111,19 +114,19 @@ class WeeklyUpdateService:
             return None
 
         league_season = (
-            self.league_season_repository.get_league_season_by_league_name_and_season_year(league_name, season_year)
+            self.league_season_repository.get_league_season_by_league_and_season(league_id, season_id)
         )
         if league_season is None:
             return None
 
         return LeagueSeasonData(league_season_totals=league_season_totals, league_season=league_season)
 
-    def _update_week_count(self, season_year: int) -> int:
-        src_week_count = self.game_repository.get_max_week_by_season_year(season_year)
+    def _update_week_count(self, season_id: int) -> int:
+        src_week_count = self.game_repository.get_max_week_by_season(season_id)
         if src_week_count is None:
             return 0
 
-        dest_season = self.season_repository.get_season_by_year(season_year)
+        dest_season = self.season_repository.get_season(season_id)
         if dest_season is None:
             # TODO - 2026-04-21: Log a warning here — rankings will still run, but season won't be updated
             return src_week_count
@@ -132,8 +135,8 @@ class WeeklyUpdateService:
         self.season_repository.update_season(dest_season)
         return src_week_count
 
-    def _update_rankings(self, season_year: int) -> None:
-        team_seasons = self.team_season_repository.get_team_seasons_by_season_year(season_year)
+    def _update_rankings(self, season_id: int) -> None:
+        team_seasons = self.team_season_repository.get_team_seasons_by_season(season_id)
         if not team_seasons:
             return
 
@@ -145,9 +148,9 @@ class WeeklyUpdateService:
         if data is None:
             return
 
-        team_season.update_rankings(data['averages']['avg_points_for'],
-                                    data['averages']['avg_points_against'],
-                                    data['league_season']['average_points'])
+        team_season.update_rankings(data.averages['avg_points_for'],
+                                    data.averages['avg_points_against'],
+                                    data.league_season['average_points'])
         self.team_season_repository.update_team_season(team_season)
 
     def _get_rankings_data(self, team_season: TeamSeason) -> RankingsData | None:

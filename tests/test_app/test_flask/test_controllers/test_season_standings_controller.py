@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import patch, MagicMock
 
 import pytest
 from flask import session
@@ -24,12 +24,12 @@ def test_index_should_render_season_standings_index_template(fake_injector, fake
             method='GET'
     ):
         # Arrange
-        fake_season_repository = Mock(SeasonRepository)
-        seasons = [
-            Season(year=1920),
-            Season(year=1921),
-            Season(year=1922),
-        ]
+        fake_season_repository = MagicMock(SeasonRepository)
+        seasons = (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season_repository.get_seasons.return_value = seasons
         fake_injector.get.return_value = fake_season_repository
 
@@ -44,7 +44,7 @@ def test_index_should_render_season_standings_index_template(fake_injector, fake
         assert session.get('seasons') == [s.to_dict() for s in seasons]
         fake_render_template.assert_called_once_with(
             'season_standings/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_year=0, season_standings=[]
+            seasons=fake_season_repository.get_seasons.return_value, selected_season_id=-1, season_standings=[]
         )
         assert result is fake_render_template.return_value
 
@@ -60,7 +60,7 @@ def test_select_season_should_render_season_standings_index_template_for_selecte
             method='POST'
     ):
         # Arrange
-        fake_season_standings_repository = Mock(SeasonStandingsRepository)
+        fake_season_standings_repository = MagicMock(SeasonStandingsRepository)
         fake_injector.get.return_value = fake_season_standings_repository
 
         selected_year = 0

@@ -1,0 +1,23 @@
+{% extends 'league_seasons/details_base.html' %}
+{% set active_page = 'details' %}
+{% block title %}League Season{% endblock %}
+
+{% block header_content %}
+<h4>Details</h4>
+{% endblock %}
+
+{% block footer_content %}
+<div class="row">
+    <div class="col-lg-3 my-4">
+        <a class="btn btn-primary" href="{{ url_for('league_season.edit', id=league_season.id) }}">Edit</a>
+        <form class="delete-form" method="POST" action="{{ url_for('league_season.delete', id=league_season.id) }}">
+            {{ form.hidden_tag() }}
+            {{
+                form.submit(
+                    class='btn btn-danger', onclick='return confirm("Are you sure you want to delete this item?");'
+                )
+            }}
+        </form>
+    </div>
+</div>
+{% endblock %}

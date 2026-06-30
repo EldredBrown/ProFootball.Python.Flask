@@ -8,8 +8,20 @@
     <label for="dropdown">Choose a season:</label>
     <select id="dropdown" name="season_dropdown">
         {% for season in seasons %}
-            <option value="{{ season.year }}" {% if season.year == selected_year %}selected='selected'{% endif %}>
-                {{ season.year }}
+            <option value="{{ season.id }}" {% if season.id == selected_season_id %}selected='selected'{% endif %}>
+                {{ season.id }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+<form method="POST" action="/team_seasons/select_league">
+    <label for="league_dropdown">Choose a league:</label>
+    <select id="league_dropdown" name="league_dropdown">
+        {% for league in leagues %}
+            <option value="{{ league.short_name }}"
+                    {% if league.short_name == selected_league_name %}selected='selected'{% endif %}>
+                {{ league.short_name }}
             </option>
         {% endfor %}
     </select>
@@ -88,19 +100,19 @@
         {% for team_season in team_seasons %}
         <tr>
             <td class="text-left">
-                {{ team_season.team_name }}
+                {{ team_season.team.name }}
             </td>
             <td class="text-right align-right-override">
-                {{ team_season.season_year }}
+                {{ team_season.season_id }}
             </td>
             <td class="text-left">
-                {{ team_season.league_name }}
+                {{ team_season.league.short_name }}
             </td>
             <td class="text-left">
-                {{ team_season.conference_name }}
+                {{ team_season.conference.short_name }}
             </td>
             <td class="text-left">
-                {{ team_season.division_name }}
+                {{ team_season.division.name }}
             </td>
             <td class="text-right align-right-override">
                 {{ team_season.games }}
@@ -157,4 +169,7 @@
         {% endfor %}
     </tbody>
 </table>
+<form method="POST" action="/team_seasons/weekly_update">
+    <button type="submit">Run Weekly Update</button>
+</form>
 {% endblock %}

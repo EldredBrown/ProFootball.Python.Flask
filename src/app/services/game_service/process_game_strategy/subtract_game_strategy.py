@@ -15,11 +15,10 @@ class SubtractGameStrategy(ProcessGameStrategy):
         if host_season is not None:
             host_season.games -= 1
 
-    def _update_wins_losses_and_ties_for_team_seasons(self,
-                                                      guest_season: TeamSeason,
-                                                      host_season: TeamSeason,
-                                                      game: Game) -> None:
-        if game.is_tie():
+    def _update_wins_losses_and_ties_for_team_seasons(
+            self, guest_season: TeamSeason, host_season: TeamSeason, game: Game
+    ) -> None:
+        if game.is_tie:
             if guest_season is not None:
                 guest_season.ties -= 1
 

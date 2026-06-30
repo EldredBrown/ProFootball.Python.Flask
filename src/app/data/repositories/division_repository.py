@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 from app.data.models.division import Division
 from app.data.sqla import sqla, try_commit
@@ -11,19 +11,14 @@ class DivisionRepository:
     Provides CRUD access to an external data store.
     """
 
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the DivisionRepository class.
-        """
-        pass
-
     def get_divisions(self) -> List[Division]:
         """
         Gets all the divisions in the data store.
 
         :return: A list of all fetched divisions.
         """
-        return Division.query.all()
+        divisions = self._get_divisions_with_navigation_properties()
+        return divisions.all()
 
     def get_division(self, id: int) -> Optional[Division]:
         """
@@ -33,12 +28,12 @@ class DivisionRepository:
 
         :return: The fetched division.
         """
-        divisions = self.get_divisions()
-        if len(divisions) == 0:
+        divisions = self._get_divisions_with_navigation_properties()
+        if len(divisions.all()) == 0:
             return None
-        return Division.query.get(id)
+        return divisions.get(id)
 
-    def get_division_by_name(self, short_name: str) -> Optional[Division]:
+    def get_division_by_name(self, name: str) -> Optional[Division]:
         """
         Gets the division in the data store with the specified id.
 
@@ -46,13 +41,10 @@ class DivisionRepository:
 
         :return: The fetched division.
         """
-        if self._divisions_empty():
+        divisions = self._get_divisions_with_navigation_properties()
+        if len(divisions.all()) == 0:
             return None
-        return Division.query.filter_by(short_name=short_name).first()
-
-    def _divisions_empty(self) -> bool:
-        divisions = self.get_divisions()
-        return len(divisions) == 0
+        return divisions.filter_by(name=name).first()
 
     def add_division(self, division: Division) -> Division:
         """
@@ -94,15 +86,6 @@ class DivisionRepository:
         try_commit()
         return division
 
-    def _set_values_of_division_in_db(self, division: Division) -> Division:
-        division_in_db = self.get_division(division.id)
-        division_in_db.name = division.name
-        division_in_db.league_name = division.league_name
-        division_in_db.conference_name = division.conference_name
-        division_in_db.first_season_year = division.first_season_year
-        division_in_db.last_season_year = division.last_season_year
-        return division_in_db
-
     def delete_division(self, id: int) -> Optional[Division]:
         """
         Deletes a division from the data store.
@@ -127,3 +110,15 @@ class DivisionRepository:
         :return: True if the division with the specified id exists in the data store; otherwise false.
         """
         return self.get_division(id) is not None
+
+    def _get_divisions_with_navigation_properties(self):
+        return Division.query.options(joinedload(Division.league), joinedload(Division.conference))
+
+    def _set_values_of_division_in_db(self, division: Division) -> Division | None:
+        division_in_db = self.get_division(division.id)
+        division_in_db.name = division.name
+        division_in_db.league_id = division.league_id
+        division_in_db.conference_id = division.conference_id
+        division_in_db.first_season_id = division.first_season_id
+        division_in_db.last_season_id = division.last_season_id
+        return division_in_db

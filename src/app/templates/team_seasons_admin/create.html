@@ -1,0 +1,33 @@
+{% extends 'team_seasons_admin/edit_base.html' %}
+{% set active_page = 'create' %}
+{% block title %}Create Team Season{% endblock %}
+
+{% block h4 %}Create{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('team_season_admin.create') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.team_name.label }}
+        {{ form.team_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.season_year.label }}
+        {{ form.season_year(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.league_name.label }}
+        {{ form.league_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.conference_name.label }}
+        {{ form.conference_name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.division_name.label }}
+        {{ form.division_name(class='form-control') }}
+    </div>
+    <hr>
+    {{ form.submit(class='btn btn-primary form-control') }}
+</form>
+{% endblock %}

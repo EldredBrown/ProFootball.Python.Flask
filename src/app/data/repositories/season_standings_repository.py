@@ -1,7 +1,4 @@
-from typing import List, Any
-
-from sqlalchemy import Result
-from sqlalchemy.sql import text as SQLQuery
+from typing import List
 
 from app.data.models.standings_team_season import StandingsTeamSeason
 from app.data.sqla import sqla
@@ -12,16 +9,10 @@ class SeasonStandingsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def __init__(self) -> None:
-        """
-        Initializes a new instance of the SeasonStandingsRepository class.
-        """
-        pass
-
-    def get_season_standings_by_season_year(self, season_year: int, group_by_division: bool=False)\
+    def get_season_standings_by_season(self, season_id: int, group_by_division: bool=False)\
             -> List[StandingsTeamSeason]:
-        querystring = f"EXEC sp_GetSeasonStandings {season_year}, {group_by_division}"
-        result = self._call_procedure(querystring)
+        querystring = f"EXEC sp_GetSeasonStandings @season_id = {season_id}, @group_by_division = {group_by_division}"
+        result = sqla.callproc(querystring)
 
         # Process results if the stored procedure returns data
         standings_team_seasons = []
@@ -41,8 +32,3 @@ class SeasonStandingsRepository:
             )
             standings_team_seasons.append(sts)
         return standings_team_seasons
-
-    def _call_procedure(self, querystring: str) -> Result[Any]:
-        sql = SQLQuery(querystring)
-        result = sqla.session.execute(sql)
-        return result

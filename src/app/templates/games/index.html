@@ -8,8 +8,8 @@
     <label for="season_dropdown">Choose a season:</label>
     <select id="season_dropdown" name="season_dropdown">
         {% for season in seasons %}
-            <option value="{{ season.year }}" {% if season.year == selected_season.year %}selected='selected'{% endif %}>
-                {{ season.year }}
+            <option value="{{ season.id }}" {% if season.id == selected_season.id %}selected='selected'{% endif %}>
+                {{ season.id }}
             </option>
         {% endfor %}
     </select>
@@ -63,7 +63,7 @@
         {% for game in games %}
         <tr>
             <td class="text-right align-right-override">
-                {{ game.season_year }}
+                {{ game.season_id }}
             </td>
             <td class="text-right align-right-override">
                 {{ game.week }}

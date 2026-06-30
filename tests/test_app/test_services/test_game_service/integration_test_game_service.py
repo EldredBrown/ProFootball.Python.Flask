@@ -786,11 +786,11 @@ def add_team_season(team_season: TeamSeason) -> None:
         if team_season.winning_percentage is None:
             statement += f"""
                 VALUES(
-                    '{team_season.team_name}',
+                    '{team_season.team_id}',
                     {team_season.season_year},
-                    '{team_season.league_name}',
-                    '{team_season.conference_name}',
-                    '{team_season.division_name}',
+                    '{team_season.league_id}',
+                    '{team_season.conference_id}',
+                    '{team_season.division_id}',
                     {team_season.games},
                     {team_season.wins},
                     {team_season.losses},
@@ -803,11 +803,11 @@ def add_team_season(team_season: TeamSeason) -> None:
         else:
             statement += f"""
                 VALUES(
-                    '{team_season.team_name}',
+                    '{team_season.team_id}',
                     {team_season.season_year},
-                    '{team_season.league_name}',
-                    '{team_season.conference_name}',
-                    '{team_season.division_name}',
+                    '{team_season.league_id}',
+                    '{team_season.conference_id}',
+                    '{team_season.division_id}',
                     {team_season.games},
                     {team_season.wins},
                     {team_season.losses},
@@ -899,19 +899,19 @@ def verify_team_season_record(team_name: str, season_year: int, tsa: TeamSeason)
     assert tsa_record is not None
 
     tsa_name = tsa_record[1]
-    assert tsa_name == tsa.team_name
+    assert tsa_name == tsa.team_id
 
     tsa_season_year = tsa_record[2]
     assert tsa_season_year == tsa.season_year
 
     tsa_league_name = tsa_record[3]
-    assert tsa_league_name == tsa.league_name
+    assert tsa_league_name == tsa.league_id
 
     tsa_conference_name = tsa_record[4]
-    assert tsa_conference_name == tsa.conference_name
+    assert tsa_conference_name == tsa.conference_id
 
     tsa_division_name = tsa_record[5]
-    assert tsa_division_name == tsa.division_name
+    assert tsa_division_name == tsa.division_id
 
     tsa_games = tsa_record[6]
     assert tsa_games == tsa.games

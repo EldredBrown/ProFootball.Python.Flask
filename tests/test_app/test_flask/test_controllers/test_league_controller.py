@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -21,7 +21,7 @@ def test_app():
 @patch('app.flask.league_controller.injector')
 def test_index_should_render_league_index_template(fake_injector, fake_render_template):
     # Arrange
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_injector.get.return_value = fake_league_repository
 
     # Act
@@ -40,34 +40,34 @@ def test_index_should_render_league_index_template(fake_injector, fake_render_te
 @patch('app.flask.league_controller.injector')
 @patch('app.flask.league_controller.DeleteLeagueForm')
 def test_details_when_league_found_should_render_league_details_template(
-        fake_delete_league_form, fake_injector, fake_render_template
+        fake_form, fake_injector, fake_render_template
 ):
     # Arrange
-    id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_injector.get.return_value = fake_league_repository
+
+    id = 1
 
     # Act
     result = mod.details(id)
 
     # Assert
-    fake_delete_league_form.assert_called_once()
+    fake_form.assert_called_once()
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_render_template.assert_called_once_with(
         'leagues/details.html',
         league=fake_league_repository.get_league.return_value,
-        form=fake_delete_league_form.return_value
+        form=fake_form.return_value
     )
     assert result == fake_render_template.return_value
 
 
 @patch('app.flask.league_controller.injector')
 @patch('app.flask.league_controller.DeleteLeagueForm')
-def test_details_when_league_not_found_should_abort_with_404_error(fake_delete_league_form, fake_injector):
+def test_details_when_league_not_found_should_abort_with_404_error(fake_form, fake_injector):
     # Arrange
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_league_repository.get_league.side_effect = IndexError()
     fake_injector.get.return_value = fake_league_repository
 
@@ -81,23 +81,26 @@ def test_details_when_league_not_found_should_abort_with_404_error(fake_delete_l
 @patch('app.flask.league_controller.injector')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_new_league_form, fake_injector, fake_flash, fake_render_template
+        fake_form, fake_injector, fake_flash,
+        fake_render_template
 ):
     # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = False
-    fake_new_league_form.return_value.errors = None
+    fake_form.return_value.validate_on_submit.return_value = False
+    fake_form.return_value.errors = None
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_injector.get.return_value = fake_league_repository
 
     # Act
     result = mod.create()
 
     # Assert
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
     fake_injector.get.assert_not_called()
     fake_league_repository.add_league.assert_not_called()
     fake_flash.assert_not_called()
-    fake_render_template('leagues/create.html', form=fake_new_league_form.return_value)
+    fake_render_template('leagues/create.html', form=fake_form.return_value)
     assert result is fake_render_template.return_value
 
 
@@ -106,25 +109,28 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 @patch('app.flask.league_controller.injector')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_new_league_form, fake_injector, fake_flash, fake_render_template
+        fake_form, fake_injector, fake_flash,
+        fake_render_template
 ):
     # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = False
+    fake_form.return_value.validate_on_submit.return_value = False
 
     errors = 'errors'
-    fake_new_league_form.return_value.errors = errors
+    fake_form.return_value.errors = errors
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_injector.get.return_value = fake_league_repository
 
     # Act
     result = mod.create()
 
     # Assert
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
     fake_injector.get.assert_not_called()
     fake_league_repository.add_league.assert_not_called()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
-    fake_render_template('leagues/create.html', form=fake_new_league_form.return_value)
+    fake_render_template('leagues/create.html', form=fake_form.return_value)
     assert result is fake_render_template.return_value
 
 
@@ -135,32 +141,42 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_index(
-        fake_new_league_form, fake_league_factory, fake_injector, fake_flash, fake_url_for, fake_redirect
+        fake_form, fake_league_factory, fake_injector,
+        fake_flash, fake_url_for, fake_redirect
 ):
     # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = True
-    fake_new_league_form.return_value.short_name.data = "L"
-    fake_new_league_form.return_value.long_name.data = "League"
-    fake_new_league_form.return_value.first_season_year.data = 1
-    fake_new_league_form.return_value.last_season_year.data = 2
-
-    kwargs = {
+    model_kwargs = {
         'short_name': "L",
         'long_name': "League",
-        'first_season_year': 1,
-        'last_season_year': 2,
+        'first_season_id': 1920,
+        'last_season_id': 1921,
     }
-    league = League(**kwargs)
+    league = League(**model_kwargs)
+
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = league.short_name
+    fake_form.return_value.long_name.data = league.long_name
+    fake_form.return_value.first_season_year.data = league.first_season_id
+    fake_form.return_value.last_season_year.data = league.last_season_id
+
     fake_league_factory.create_league.return_value = league
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_injector.get.return_value = fake_league_repository
 
     # Act
     result = mod.create()
 
     # Assert
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'short_name': league.short_name,
+        'long_name': league.long_name,
+        'first_season_year': league.first_season_id,
+        'last_season_year': league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.add_league.assert_called_once_with(league)
     fake_flash(f"Item {league.short_name} has been successfully submitted.", 'success')
@@ -175,25 +191,27 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_value_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_league_form, fake_league_factory, fake_injector, fake_flash, fake_render_template
+        fake_form, fake_league_factory, fake_injector,
+        fake_flash, fake_render_template
 ):
     # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = True
-    fake_new_league_form.return_value.short_name.data = "L"
-    fake_new_league_form.return_value.long_name.data = "League"
-    fake_new_league_form.return_value.first_season_year.data = 1
-    fake_new_league_form.return_value.last_season_year.data = 2
-
-    kwargs = {
+    model_kwargs = {
         'short_name': "L",
         'long_name': "League",
-        'first_season_year': 1,
-        'last_season_year': 2,
+        'first_season_id': 1920,
+        'last_season_id': 1921,
     }
-    league = League(**kwargs)
+    league = League(**model_kwargs)
+
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = league.short_name
+    fake_form.return_value.long_name.data = league.long_name
+    fake_form.return_value.first_season_year.data = league.first_season_id
+    fake_form.return_value.last_season_year.data = league.last_season_id
+
     fake_league_factory.create_league.return_value = league
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     err = ValueError()
     fake_league_repository.add_league.side_effect = err
     fake_injector.get.return_value = fake_league_repository
@@ -202,12 +220,20 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     result = mod.create()
 
     # Assert
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'short_name': league.short_name,
+        'long_name': league.long_name,
+        'first_season_year': league.first_season_id,
+        'last_season_year': league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.add_league.assert_called_once_with(league)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'leagues/create.html', league=None, form=fake_new_league_form.return_value
+        'leagues/create.html', league=None, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -218,25 +244,27 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 @patch('app.flask.league_controller.league_factory')
 @patch('app.flask.league_controller.NewLeagueForm')
 def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
-        fake_new_league_form, fake_league_factory, fake_injector, fake_flash, fake_render_template
+        fake_form, fake_league_factory, fake_injector,
+        fake_flash, fake_render_template
 ):
     # Arrange
-    fake_new_league_form.return_value.validate_on_submit.return_value = True
-    fake_new_league_form.return_value.short_name.data = "L"
-    fake_new_league_form.return_value.long_name.data = "League"
-    fake_new_league_form.return_value.first_season_year.data = 1
-    fake_new_league_form.return_value.last_season_year.data = 2
-
     kwargs = {
         'short_name': "L",
         'long_name': "League",
-        'first_season_year': 1,
-        'last_season_year': 2,
+        'first_season_id': 1920,
+        'last_season_id': 1921,
     }
     league = League(**kwargs)
+
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = league.short_name
+    fake_form.return_value.long_name.data = league.long_name
+    fake_form.return_value.first_season_year.data = league.first_season_id
+    fake_form.return_value.last_season_year.data = league.last_season_id
+
     fake_league_factory.create_league.return_value = league
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     err = IntegrityError('statement', 'params', Exception())
     fake_league_repository.add_league.side_effect = err
     fake_injector.get.return_value = fake_league_repository
@@ -245,12 +273,20 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     result = mod.create()
 
     # Assert
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'short_name': league.short_name,
+        'long_name': league.long_name,
+        'first_season_year': league.first_season_id,
+        'last_season_year': league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.add_league.assert_called_once_with(league)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'leagues/create.html', league=None, form=fake_new_league_form.return_value
+        'leagues/create.html', league=None, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -259,15 +295,15 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_not_found_should_abort_with_404_error(fake_injector, fake_copy):
     # Arrange
-    id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
     fake_league_repository.get_league.return_value = old_league
     fake_injector.get.return_value = fake_league_repository
 
     old_league_copy = None
     fake_copy.deepcopy.return_value = old_league_copy
+
+    id = 1
 
     # Act
     with pytest.raises(NotFound):
@@ -285,25 +321,26 @@ def test_edit_when_league_not_found_should_abort_with_404_error(fake_injector, f
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should_render_edit_template(
-        fake_injector, fake_copy, fake_edit_league_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_form, fake_flash,
+        fake_render_template
 ):
     # Arrange
-    id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
     fake_league_repository.get_league.return_value = old_league
     fake_injector.get.return_value = fake_league_repository
 
-    old_league_copy = Mock(League)
+    old_league_copy = MagicMock(League)
     old_league_copy.short_name = "L"
     old_league_copy.long_name = "League"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
+    old_league_copy.first_season_id = 1
+    old_league_copy.last_season_id = 2
     fake_copy.deepcopy.return_value = old_league_copy
 
-    fake_edit_league_form.return_value.validate_on_submit.return_value = False
-    fake_edit_league_form.return_value.errors = None
+    fake_form.return_value.validate_on_submit.return_value = False
+    fake_form.return_value.errors = None
+
+    id = 1
 
     # Act
     result = mod.edit(id)
@@ -312,13 +349,15 @@ def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    assert fake_edit_league_form.return_value.short_name.data == old_league_copy.short_name
-    assert fake_edit_league_form.return_value.long_name.data == old_league_copy.long_name
-    assert fake_edit_league_form.return_value.first_season_year.data == old_league_copy.first_season_year
-    assert fake_edit_league_form.return_value.last_season_year.data == old_league_copy.last_season_year
+    fake_form.assert_called_once()
+    assert fake_form.return_value.short_name.data == old_league_copy.short_name
+    assert fake_form.return_value.long_name.data == old_league_copy.long_name
+    assert fake_form.return_value.first_season_year.data == old_league_copy.first_season_id
+    assert fake_form.return_value.last_season_year.data == old_league_copy.last_season_id
+    fake_form.return_value.validate_on_submit.assert_called_once()
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
-        'leagues/edit.html', league=old_league_copy, form=fake_edit_league_form.return_value
+        'leagues/edit.html', league=old_league_copy, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -329,28 +368,29 @@ def test_edit_when_league_found_and_form_not_submitted_and_no_form_errors_should
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_flash_errors_and_render_edit_template(
-        fake_injector, fake_copy, fake_edit_league_form, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_form, fake_flash,
+        fake_render_template
 ):
     # Arrange
-    id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
     fake_league_repository.get_league.return_value = old_league
     fake_injector.get.return_value = fake_league_repository
 
-    fake_edit_league_form.return_value.validate_on_submit.return_value = False
-    fake_edit_league_form.return_value.errors = None
+    fake_form.return_value.validate_on_submit.return_value = False
+    fake_form.return_value.errors = None
 
-    old_league_copy = Mock(League)
+    old_league_copy = MagicMock(League)
     old_league_copy.short_name = "L"
     old_league_copy.long_name = "League"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
+    old_league_copy.first_season_id = 1920
+    old_league_copy.last_season_id = 1921
     fake_copy.deepcopy.return_value = old_league_copy
 
     errors = 'errors'
-    fake_edit_league_form.return_value.errors = errors
+    fake_form.return_value.errors = errors
+
+    id = 1
 
     # Act
     result = mod.edit(id)
@@ -359,13 +399,15 @@ def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_fl
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    assert fake_edit_league_form.return_value.short_name.data == old_league_copy.short_name
-    assert fake_edit_league_form.return_value.long_name.data == old_league_copy.long_name
-    assert fake_edit_league_form.return_value.first_season_year.data == old_league_copy.first_season_year
-    assert fake_edit_league_form.return_value.last_season_year.data == old_league_copy.last_season_year
+    fake_form.assert_called_once()
+    assert fake_form.return_value.short_name.data == old_league_copy.short_name
+    assert fake_form.return_value.long_name.data == old_league_copy.long_name
+    assert fake_form.return_value.first_season_year.data == old_league_copy.first_season_id
+    assert fake_form.return_value.last_season_year.data == old_league_copy.last_season_id
+    fake_form.return_value.validate_on_submit.assert_called_once()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template.assert_called_once_with(
-        'leagues/edit.html', league=old_league_copy, form=fake_edit_league_form.return_value
+        'leagues/edit.html', league=old_league_copy, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -378,37 +420,39 @@ def test_edit_when_league_found_and_form_not_submitted_and_form_errors_should_fl
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_league_details(
-        fake_injector, fake_copy, fake_edit_league_form, fake_league_factory, fake_flash, fake_url_for, fake_redirect
+        fake_injector, fake_copy, fake_form,
+        fake_league_factory, fake_flash, fake_url_for,
+        fake_redirect
 ):
     # Arrange
     id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
-    fake_league_repository.get_league.return_value = old_league
-    fake_injector.get.return_value = fake_league_repository
-
-    old_league_copy = Mock(League)
-    old_league_copy.short_name = "L1"
-    old_league_copy.long_name = "League 1"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
-    fake_copy.deepcopy.return_value = old_league_copy
-
-    fake_edit_league_form.return_value.validate_on_submit.return_value = True
-    fake_edit_league_form.return_value.short_name.data = "L2"
-    fake_edit_league_form.return_value.long_name.data = "League 2"
-    fake_edit_league_form.return_value.first_season_year.data = 3
-    fake_edit_league_form.return_value.last_season_year.data = 4
-
     kwargs = {
         'id': id,
         'short_name': "L2",
         'long_name': "League 2",
-        'first_season_year': 3,
-        'last_season_year': 4,
+        'first_season_id': 1922,
+        'last_season_id': 1923,
     }
     new_league = League(**kwargs)
+
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
+    fake_league_repository.get_league.return_value = old_league
+    fake_injector.get.return_value = fake_league_repository
+
+    old_league_copy = MagicMock(League)
+    old_league_copy.short_name = "L1"
+    old_league_copy.long_name = "League 1"
+    old_league_copy.first_season_id = 1920
+    old_league_copy.last_season_id = 1921
+    fake_copy.deepcopy.return_value = old_league_copy
+
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = new_league.short_name
+    fake_form.return_value.long_name.data = new_league.long_name
+    fake_form.return_value.first_season_year.data = new_league.first_season_id
+    fake_form.return_value.last_season_year.data = new_league.last_season_id
+
     fake_league_factory.create_league.return_value = new_league
 
     # Act
@@ -418,10 +462,19 @@ def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_f
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'id': id,
+        'short_name': new_league.short_name,
+        'long_name': new_league.long_name,
+        'first_season_year': new_league.first_season_id,
+        'last_season_year': new_league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_league_repository.update_league.assert_called_once_with(new_league)
     fake_flash.assert_called_once_with(
-        f"Item {fake_edit_league_form.return_value.short_name.data} has been successfully updated.", 'success'
+        f"Item {fake_form.return_value.short_name.data} has been successfully updated.", 'success'
     )
     fake_url_for.assert_called_once_with('league.details', id=id)
     fake_redirect.assert_called_once_with(fake_url_for.return_value)
@@ -435,39 +488,41 @@ def test_edit_when_league_found_and_form_submitted_and_no_errors_caught_should_f
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_copy, fake_edit_league_form, fake_league_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_form,
+        fake_league_factory, fake_flash,
+        fake_render_template
 ):
     # Arrange
     id = 1
+    kwargs = {
+        'id': id,
+        'short_name': "L2",
+        'long_name': "League 2",
+        'first_season_id': 1922,
+        'last_season_id': 1923,
+    }
+    new_league = League(**kwargs)
 
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
     fake_league_repository.get_league.return_value = old_league
     err = ValueError()
     fake_league_repository.update_league.side_effect = err
     fake_injector.get.return_value = fake_league_repository
 
-    old_league_copy = Mock(League)
+    old_league_copy = MagicMock(League)
     old_league_copy.short_name = "L1"
     old_league_copy.long_name = "League 1"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
+    old_league_copy.first_season_id = 1920
+    old_league_copy.last_season_id = 1921
     fake_copy.deepcopy.return_value = old_league_copy
 
-    fake_edit_league_form.return_value.validate_on_submit.return_value = True
-    fake_edit_league_form.return_value.short_name.data = "L2"
-    fake_edit_league_form.return_value.long_name.data = "League 2"
-    fake_edit_league_form.return_value.first_season_year.data = 3
-    fake_edit_league_form.return_value.last_season_year.data = 4
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = new_league.short_name
+    fake_form.return_value.long_name.data = new_league.long_name
+    fake_form.return_value.first_season_year.data = new_league.first_season_id
+    fake_form.return_value.last_season_year.data = new_league.last_season_id
 
-    kwargs = {
-        'id': id,
-        'short_name': "L2",
-        'long_name': "League 2",
-        'first_season_year': 3,
-        'last_season_year': 4,
-    }
-    new_league = League(**kwargs)
     fake_league_factory.create_league.return_value = new_league
 
     # Act
@@ -477,10 +532,19 @@ def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'id': id,
+        'short_name': new_league.short_name,
+        'long_name': new_league.long_name,
+        'first_season_year': new_league.first_season_id,
+        'last_season_year': new_league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'leagues/edit.html', league=old_league_copy, form=fake_edit_league_form.return_value
+        'leagues/edit.html', league=old_league_copy, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -492,39 +556,41 @@ def test_edit_when_league_found_and_form_submitted_and_value_error_caught_should
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
-        fake_injector, fake_copy, fake_edit_league_form, fake_league_factory, fake_flash, fake_render_template
+        fake_injector, fake_copy, fake_form,
+        fake_league_factory, fake_flash,
+        fake_render_template
 ):
     # Arrange
     id = 1
+    kwargs = {
+        'id': id,
+        'short_name': "L2",
+        'long_name': "League 2",
+        'first_season_id': 1922,
+        'last_season_id': 1923,
+    }
+    new_league = League(**kwargs)
 
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
     fake_league_repository.get_league.return_value = old_league
     err = IntegrityError('statement', 'params', Exception())
     fake_league_repository.update_league.side_effect = err
     fake_injector.get.return_value = fake_league_repository
 
-    old_league_copy = Mock(League)
+    old_league_copy = MagicMock(League)
     old_league_copy.short_name = "L1"
     old_league_copy.long_name = "League 1"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
+    old_league_copy.first_season_id = 1920
+    old_league_copy.last_season_id = 1921
     fake_copy.deepcopy.return_value = old_league_copy
 
-    fake_edit_league_form.return_value.validate_on_submit.return_value = True
-    fake_edit_league_form.return_value.short_name.data = "L2"
-    fake_edit_league_form.return_value.long_name.data = "League 2"
-    fake_edit_league_form.return_value.first_season_year.data = 3
-    fake_edit_league_form.return_value.last_season_year.data = 4
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = new_league.short_name
+    fake_form.return_value.long_name.data = new_league.long_name
+    fake_form.return_value.first_season_year.data = new_league.first_season_id
+    fake_form.return_value.last_season_year.data = new_league.last_season_id
 
-    kwargs = {
-        'id': id,
-        'short_name': "L2",
-        'long_name': "League 2",
-        'first_season_year': 3,
-        'last_season_year': 4,
-    }
-    new_league = League(**kwargs)
     fake_league_factory.create_league.return_value = new_league
 
     # Act
@@ -534,10 +600,19 @@ def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_sh
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'id': id,
+        'short_name': new_league.short_name,
+        'long_name': new_league.long_name,
+        'first_season_year': new_league.first_season_id,
+        'last_season_year': new_league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
-        'leagues/edit.html', league=old_league_copy, form=fake_edit_league_form.return_value
+        'leagues/edit.html', league=old_league_copy, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
@@ -550,36 +625,37 @@ def test_edit_when_league_found_and_form_submitted_and_integrity_error_caught_sh
 @patch('app.flask.league_controller.copy')
 @patch('app.flask.league_controller.injector')
 def test_edit_when_league_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_injector, fake_copy, fake_redirect, fake_url_for, fake_edit_league_form, fake_league_factory, fake_flash
+        fake_injector, fake_copy, fake_redirect, fake_url_for,
+        fake_form, fake_league_factory, fake_flash
 ):
     # Arrange
     id = 1
-
-    fake_league_repository = Mock(LeagueRepository)
-    old_league = Mock(League)
-    fake_league_repository.get_league.return_value = old_league
-    fake_injector.get.return_value = fake_league_repository
-
-    old_league_copy = Mock(League)
-    old_league_copy.short_name = "L1"
-    old_league_copy.long_name = "League 1"
-    old_league_copy.first_season_year = 1
-    old_league_copy.last_season_year = 2
-    fake_copy.deepcopy.return_value = old_league_copy
-
-    fake_edit_league_form.return_value.validate_on_submit.return_value = True
-    fake_edit_league_form.return_value.short_name.data = "L2"
-    fake_edit_league_form.return_value.long_name.data = "League 2"
-    fake_edit_league_form.return_value.first_season_year.data = 3
-    fake_edit_league_form.return_value.last_season_year.data = 4
-
     kwargs = {
         'id': id,
         'short_name': "L2",
         'long_name': "League 2",
-        'first_season_year': 3,
-        'last_season_year': 4,
+        'first_season_id': 1922,
+        'last_season_id': 1923,
     }
+    new_league = League(**kwargs)
+
+    fake_league_repository = MagicMock(LeagueRepository)
+    old_league = MagicMock(League)
+    fake_league_repository.get_league.return_value = old_league
+    fake_injector.get.return_value = fake_league_repository
+
+    old_league_copy = MagicMock(League)
+    old_league_copy.short_name = "L1"
+    old_league_copy.long_name = "League 1"
+    old_league_copy.first_season_id = 1
+    old_league_copy.last_season_id = 2
+    fake_copy.deepcopy.return_value = old_league_copy
+
+    fake_form.return_value.validate_on_submit.return_value = True
+    fake_form.return_value.short_name.data = new_league.short_name
+    fake_form.return_value.long_name.data = new_league.long_name
+    fake_form.return_value.first_season_year.data = new_league.first_season_id
+    fake_form.return_value.last_season_year.data = new_league.last_season_id
 
     err = IndexError()
     fake_url_for.side_effect = err
@@ -592,9 +668,16 @@ def test_edit_when_league_found_and_form_submitted_and_index_error_caught_should
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
     fake_copy.deepcopy.assert_called_once_with(old_league)
-    fake_edit_league_form.assert_called_once()
-    fake_edit_league_form.return_value.validate_on_submit.assert_called_once()
-    fake_league_factory.create_league.assert_called_once_with(**kwargs)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    view_kwargs = {
+        'id': id,
+        'short_name': new_league.short_name,
+        'long_name': new_league.long_name,
+        'first_season_year': new_league.first_season_id,
+        'last_season_year': new_league.last_season_id,
+    }
+    fake_league_factory.create_league.assert_called_once_with(**view_kwargs)
 
 
 @patch('app.flask.league_controller.injector')
@@ -602,7 +685,7 @@ def test_delete_when_league_not_found_should_abort_with_404_error(fake_injector,
     # Arrange
     id = 1
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     fake_league_repository.get_league.return_value = None
     fake_injector.get.return_value = fake_league_repository
 
@@ -620,12 +703,15 @@ def test_delete_when_league_not_found_should_abort_with_404_error(fake_injector,
 
 
 @patch('app.flask.league_controller.render_template')
+@patch('app.flask.league_controller.DeleteLeagueForm')
 @patch('app.flask.league_controller.injector')
-def test_delete_when_request_method_is_get_should_render_delete_template(fake_injector, fake_render_template, test_app):
+def test_delete_when_request_method_is_get_should_render_delete_template(
+        fake_injector, fake_form, fake_render_template, test_app
+):
     # Arrange
     id = 1
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     league = League()
     fake_league_repository.get_league.return_value = league
     fake_injector.get.return_value = fake_league_repository
@@ -638,9 +724,10 @@ def test_delete_when_request_method_is_get_should_render_delete_template(fake_in
         result = mod.delete(id)
 
     # Assert
+    fake_form.assert_called_once()
     fake_injector.get.assert_called_once_with(LeagueRepository)
     fake_league_repository.get_league.assert_called_once_with(id)
-    fake_render_template.assert_called_once_with('leagues/delete.html', league=league)
+    fake_render_template.assert_called_once_with('leagues/delete.html', league=league, form=fake_form.return_value)
     assert result is fake_render_template.return_value
 
 
@@ -649,12 +736,13 @@ def test_delete_when_request_method_is_get_should_render_delete_template(fake_in
 @patch('app.flask.league_controller.flash')
 @patch('app.flask.league_controller.injector')
 def test_delete_when_request_method_is_post_and_league_found_should_flash_success_message_and_redirect_to_leagues_index(
-        fake_injector, fake_flash, fake_url_for, fake_redirect, test_app
+        fake_injector, fake_flash, fake_url_for,
+        fake_redirect, test_app
 ):
     # Arrange
     id = 1
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     league = League()
     fake_league_repository.get_league.return_value = league
     fake_injector.get.return_value = fake_league_repository
@@ -683,7 +771,7 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
     # Arrange
     id = 1
 
-    fake_league_repository = Mock(LeagueRepository)
+    fake_league_repository = MagicMock(LeagueRepository)
     league = League()
     fake_league_repository.get_league.return_value = league
     fake_league_repository.delete_league.side_effect = IndexError()

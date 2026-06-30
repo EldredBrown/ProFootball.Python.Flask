@@ -5,21 +5,35 @@ from app.data.sqla import sqla
 
 class Division(sqla.Model):
     """
-    Class to represent a pro football division.
+    Model to represent a pro football division.
     """
     __tablename__ = 'Division'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
     name = sqla.Column(sqla.String(50), unique=True, nullable=False)
-    league_name = sqla.Column(sqla.String(5), sqla.ForeignKey('League.short_name'), nullable=False)
-    conference_name = sqla.Column(sqla.String(5), sqla.ForeignKey('Conference.short_name'), nullable=True)
-    first_season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=False)
-    last_season_year = sqla.Column(sqla.SmallInteger, sqla.ForeignKey('Season.year'), nullable=True)
+    league_id = sqla.Column(sqla.Integer, sqla.ForeignKey('League.id'), nullable=False)
+    conference_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Conference.id'), nullable=False)
+    first_season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=False)
+    last_season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=True)
+
+    league = sqla.relationship('League', back_populates='divisions')
+    conference = sqla.relationship('Conference', back_populates='divisions')
 
     team_seasons = sqla.relationship('TeamSeason', cascade='save-update, delete, delete-orphan, merge')
 
-    @validates('name', 'league_name', 'first_season_year')
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'short_name': self.short_name,
+            'long_name': self.long_name,
+            'league_id': self.league_id,
+            'first_season_id': self.first_season_id,
+            'last_season_id': self.last_season_id,
+        }
+
+    @validates('name', 'league_id', 'first_season_id')
     def validate_not_empty(self, key, value):
         if not value and value != 0:
             raise ValueError(f"{key} is required.")
+
         return value

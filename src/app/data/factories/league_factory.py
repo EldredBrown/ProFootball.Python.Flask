@@ -1,31 +1,35 @@
-from app.data.models.season import Season
+from app import injector
 from app.data.models.league import League
-from app.data.models.game import Game
-from app.data.models.league_season import LeagueSeason
-from app.data.models.team_season import TeamSeason
+from app.data.repositories.league_repository import LeagueRepository
 
 
-def create_league(old_league: League=None, **kwargs) -> League:
-    for key in ['short_name', 'long_name']:
-        _validate_key_is_in_kwargs(key, **kwargs)
+def create_league(**kwargs) -> League:
+    view_model_map = {
+        'id':                   'id',
+        'short_name':           'short_name',
+        'long_name':            'long_name',
+        'first_season_year':    'first_season_id',
+        'last_season_year':     'last_season_id',
+    }
 
-        error_message = f"League already exists with {key}={kwargs[key]}."
-        if old_league:
-            if _value_has_changed(key, old_league, **kwargs):
-                _validate_is_unique(key, kwargs[key], error_message=error_message)
-        else:
-            _validate_is_unique(key, kwargs[key], error_message=error_message)
+    model_kwargs = dict()
+    for key in kwargs.keys():
+        if key not in view_model_map:
+            raise KeyError(f"{key} is invalid.")
 
-    return League(**kwargs)
+        value = kwargs.get(key)
+        if key in ['short_name', 'long_name']:
+            error_message = f"League already exists with {key}={value}."
+            if 'id' in kwargs:
+                if _value_has_changed(key, **kwargs):
+                    _validate_is_unique(key, value, error_message=error_message)
+            else:
+                _validate_is_unique(key, value, error_message=error_message)
+            model_kwargs[key] = value
+        else:    # key in ['id', 'first_season_year', 'last_season_year']:
+            model_kwargs[view_model_map[key]] = value
 
-
-def _validate_key_is_in_kwargs(key, **kwargs):
-    if key not in kwargs:
-        raise ValueError(f"{key} is required.")
-
-
-def _value_has_changed(key: str, league: League, **kwargs) -> bool:
-    return league.__dict__[key] != kwargs[key]
+    return League(**model_kwargs)
 
 
 def _validate_is_unique(key, value, error_message=None):
@@ -33,3 +37,10 @@ def _validate_is_unique(key, value, error_message=None):
         if not error_message:
             error_message = f"{key} must be unique."
         raise ValueError(error_message)
+
+
+def _value_has_changed(key: str, **kwargs) -> bool:
+    id = kwargs.get('id')
+    league_repository = injector.get(LeagueRepository)
+    old_league = league_repository.get_league(id)
+    return kwargs[key] != old_league.__dict__[key]

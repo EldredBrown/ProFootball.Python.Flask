@@ -1,14 +1,6 @@
-import sqlite3
-
 import pytest
 
-from app.data.models.season import Season
 from app.data.models.team import Team
-from app.data.models.game import Game
-from app.data.models.league_season import LeagueSeason
-from app.data.models.team_season import TeamSeason
-from instance.test_db.db_init import init_db
-from test_app import create_app
 
 
 def test_validate_not_empty_when_name_is_none_should_raise_value_error():
@@ -39,7 +31,7 @@ def test_validate_not_empty_when_name_is_not_empty_should_not_raise_value_error(
 
     # Act
     try:
-        test_team = Team(name="Chicago Cardinals")
+        test_team = Team(name="Team")
     except ValueError as err:
         pass
 

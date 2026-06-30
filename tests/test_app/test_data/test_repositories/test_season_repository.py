@@ -27,10 +27,10 @@ def test_get_seasons_should_get_seasons(test_app, test_repo):
         # Arrange
         db_init.init_db()
 
-        seasons_in = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
+        seasons_in= [
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
         ]
         for season in seasons_in:
             sqla.session.add(season)
@@ -47,7 +47,7 @@ def test_get_seasons_should_get_seasons(test_app, test_repo):
 def test_get_season_when_seasons_is_empty_should_return_none(fake_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        seasons_in = []
+        seasons_in = ()
         fake_season.query.all.return_value = seasons_in
 
         # Act
@@ -63,11 +63,11 @@ def test_get_season_when_seasons_is_not_empty_and_season_is_not_found_should_ret
 ):
     with test_app.app_context():
         # Arrange
-        seasons_in = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons_in= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons_in
         fake_season.query.get.return_value = None
 
@@ -85,11 +85,11 @@ def test_get_season_when_seasons_is_not_empty_and_season_is_found_should_return_
 ):
     with test_app.app_context():
         # Arrange
-        seasons_in = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons_in= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons_in
 
         id = len(seasons_in) - 1
@@ -97,64 +97,6 @@ def test_get_season_when_seasons_is_not_empty_and_season_is_found_should_return_
 
         # Act
         season_out = test_repo.get_season(id)
-
-    # Assert
-    assert season_out is seasons_in[id]
-
-
-@patch('app.data.repositories.season_repository.Season')
-def test_get_season_by_year_when_seasons_is_empty_should_return_none(fake_season, test_app, test_repo):
-    with test_app.app_context():
-        # Arrange
-        seasons_in = []
-        fake_season.query.all.return_value = seasons_in
-
-        # Act
-        season_out = test_repo.get_season_by_year(1)
-
-    # Assert
-    assert season_out is None
-
-
-@patch('app.data.repositories.season_repository.Season')
-def test_get_season_by_year_when_seasons_is_not_empty_and_season_is_not_found_should_return_none(
-        fake_season, test_app, test_repo
-):
-    with test_app.app_context():
-        # Arrange
-        seasons_in = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
-        fake_season.query.all.return_value = seasons_in
-        fake_season.query.filter_by.return_value.first.return_value = None
-
-        # Act
-        season_out = test_repo.get_season_by_year(year=2)
-
-    # Assert
-    assert season_out is None
-
-
-@patch('app.data.repositories.season_repository.Season')
-def test_get_season_by_year_when_seasons_is_not_empty_and_season_is_found_should_return_season(
-        fake_season, test_app, test_repo
-):
-    with test_app.app_context():
-        # Arrange
-        seasons_in = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
-        fake_season.query.all.return_value = seasons_in
-
-        id = len(seasons_in) - 1
-        fake_season.query.filter_by.return_value.first.return_value = seasons_in[id]
-
-        # Act
-        season_out = test_repo.get_season_by_year(year=2)
 
     # Assert
     assert season_out is seasons_in[id]
@@ -168,7 +110,7 @@ def test_add_season_when_no_integrity_error_caught_should_add_season(
     with test_app.app_context():
         # Arrange
         season_in = Season(
-            year=1,
+            id=1,
             num_of_weeks_scheduled=0,
             num_of_weeks_completed=0
         )
@@ -193,7 +135,7 @@ def test_add_season_when_integrity_error_caught_should_rollback_transaction_and_
     with test_app.app_context():
         # Arrange
         season_in = Season(
-            year=1,
+            id=1,
             num_of_weeks_scheduled=0,
             num_of_weeks_completed=0
         )
@@ -210,7 +152,9 @@ def test_add_season_when_integrity_error_caught_should_rollback_transaction_and_
 
 @patch('app.data.repositories.season_repository.try_commit')
 @patch('app.data.repositories.season_repository.sqla')
-def test_add_seasons_when_seasons_arg_is_empty_should_add_no_seasons(fake_sqla, fake_try_commit, test_app, test_repo):
+def test_add_seasons_when_seasons_arg_is_empty_should_add_no_seasons(
+        fake_sqla, fake_try_commit, test_app, test_repo
+):
     with test_app.app_context():
         # Arrange
         seasons_in = ()
@@ -232,9 +176,9 @@ def test_add_seasons_when_seasons_arg_is_not_empty_and_no_integrity_error_caught
     with test_app.app_context():
         # Arrange
         seasons_in = (
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
         )
 
         # Act
@@ -258,9 +202,9 @@ def test_add_seasons_when_seasons_arg_is_not_empty_and_integrity_error_caught_sh
     with test_app.app_context():
         # Arrange
         seasons_in = (
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
         )
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -278,14 +222,16 @@ def test_add_seasons_when_seasons_arg_is_not_empty_and_integrity_error_caught_sh
 
 
 @patch('app.data.repositories.season_repository.Season')
-def test_season_exists_when_season_does_not_exist_should_return_false(fake_season, test_app, test_repo):
+def test_season_exists_when_season_does_not_exist_should_return_false(
+        fake_season, test_app, test_repo
+):
     with test_app.app_context():
         # Arrange
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
         fake_season.query.get.return_value = None
 
@@ -300,11 +246,11 @@ def test_season_exists_when_season_does_not_exist_should_return_false(fake_seaso
 def test_season_exists_when_season_exists_should_return_true(fake_season, test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
         fake_season.query.get.return_value = seasons[1]
 
@@ -319,7 +265,8 @@ def test_season_exists_when_season_exists_should_return_true(fake_season, test_a
 @patch('app.data.repositories.season_repository.sqla')
 @patch('app.data.repositories.season_repository.SeasonRepository.season_exists')
 def test_update_season_when_no_season_exists_with_id_should_return_season_and_not_update_database(
-        fake_season_exists, fake_sqla, fake_try_commit, test_app, test_repo
+        fake_season_exists, fake_sqla, fake_try_commit, test_app,
+        test_repo
 ):
     with test_app.app_context():
         # Arrange
@@ -327,8 +274,7 @@ def test_update_season_when_no_season_exists_with_id_should_return_season_and_no
 
         # Act
         season = Season(
-            id=1,
-            year=1,
+            id=1920,
             num_of_weeks_scheduled=0,
             num_of_weeks_completed=0
         )
@@ -341,7 +287,7 @@ def test_update_season_when_no_season_exists_with_id_should_return_season_and_no
     fake_sqla.session.add.assert_not_called()
     fake_try_commit.assert_not_called()
     assert isinstance(season_updated, Season)
-    assert season_updated.year == season.year
+    assert season_updated.id == season.id
     assert season_updated.num_of_weeks_scheduled == season.num_of_weeks_scheduled
     assert season_updated.num_of_weeks_completed == season.num_of_weeks_completed
 
@@ -351,25 +297,25 @@ def test_update_season_when_no_season_exists_with_id_should_return_season_and_no
 @patch('app.data.repositories.season_repository.Season')
 @patch('app.data.repositories.season_repository.SeasonRepository.season_exists')
 def test_update_season_when_season_exists_with_id_and_no_integrity_error_caught_should_return_season_and_update_database(
-        fake_season_exists, fake_season, fake_sqla, fake_try_commit, test_app, test_repo
+        fake_season_exists, fake_season, fake_sqla, fake_try_commit,
+        test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         fake_season_exists.return_value = True
 
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
 
         old_season = seasons[1]
         fake_season.query.get.return_value = old_season
 
         new_season = Season(
-            id=2,
-            year=4,
+            id=1921,
             num_of_weeks_scheduled=0,
             num_of_weeks_completed=0
         )
@@ -384,7 +330,7 @@ def test_update_season_when_season_exists_with_id_and_no_integrity_error_caught_
     fake_sqla.session.add.assert_called_once_with(old_season)
     fake_try_commit.assert_called_once()
     assert isinstance(season_updated, Season)
-    assert season_updated.year == new_season.year
+    assert season_updated.id == new_season.id
     assert season_updated.num_of_weeks_scheduled == new_season.num_of_weeks_scheduled
     assert season_updated.num_of_weeks_completed == new_season.num_of_weeks_completed
 
@@ -393,26 +339,26 @@ def test_update_season_when_season_exists_with_id_and_no_integrity_error_caught_
 @patch('app.data.repositories.season_repository.sqla')
 @patch('app.data.repositories.season_repository.Season')
 @patch('app.data.repositories.season_repository.SeasonRepository.season_exists')
-def test_update_season_when_and_season_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_season_exists, fake_season, fake_sqla, fake_try_commit, test_app, test_repo
+def test_update_season_when_season_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_season_exists, fake_season, fake_sqla,
+        fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         fake_season_exists.return_value = True
 
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
 
         old_season = seasons[1]
         fake_season.query.get.return_value = old_season
 
         new_season = Season(
-            id=2,
-            year=4,
+            id=1921,
             num_of_weeks_scheduled=0,
             num_of_weeks_completed=0
         )
@@ -436,11 +382,11 @@ def test_delete_season_when_season_does_not_exist_should_return_none_and_not_del
 ):
     with test_app.app_context():
         # Arrange
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
         fake_season.query.get.return_value = None
 
@@ -463,11 +409,11 @@ def test_delete_season_when_season_exists_and_integrity_error_not_caught_should_
 ):
     with test_app.app_context():
         # Arrange
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
 
         id = 1
@@ -489,15 +435,16 @@ def test_delete_season_when_season_exists_and_integrity_error_not_caught_should_
 @patch('app.data.repositories.season_repository.sqla')
 @patch('app.data.repositories.season_repository.Season')
 def test_delete_season_when_season_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_season, fake_sqla, fake_try_commit, test_app, test_repo
+        fake_season, fake_sqla, fake_try_commit, test_app,
+        test_repo
 ):
     with test_app.app_context():
         # Arrange
-        seasons = [
-            Season(year=1),
-            Season(year=2),
-            Season(year=3),
-        ]
+        seasons= (
+            Season(id=1920),
+            Season(id=1921),
+            Season(id=1922),
+        )
         fake_season.query.all.return_value = seasons
 
         id = 1

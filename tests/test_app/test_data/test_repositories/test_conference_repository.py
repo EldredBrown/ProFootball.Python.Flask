@@ -1,4 +1,4 @@
-from unittest.mock import patch, call
+from unittest.mock import patch, call, MagicMock
 
 import pytest
 
@@ -13,30 +13,36 @@ def test_repo():
     return ConferenceRepository()
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conferences_should_get_conferences(fake_conference, test_repo):
+def test_get_conferences_should_get_conferences(
+        fake_conference, fake_joinedload, test_repo
+):
     # Arrange
-    conferences_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences_in
+    )
+    fake_query.return_value.all.return_value = conferences_in
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     conferences_out = test_repo.get_conferences()
@@ -45,11 +51,17 @@ def test_get_conferences_should_get_conferences(fake_conference, test_repo):
     assert conferences_out == conferences_in
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conference_when_conferences_is_empty_should_return_none(fake_conference, test_repo):
+def test_get_conference_when_conferences_is_empty_should_return_none(
+        fake_conference, fake_joinedload, test_repo
+):
     # Arrange
-    conferences_in = []
-    fake_conference.query.all.return_value = conferences_in
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = ()
+    fake_query.return_value.all.return_value = conferences_in
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     conference_out = test_repo.get_conference(1)
@@ -58,71 +70,79 @@ def test_get_conference_when_conferences_is_empty_should_return_none(fake_confer
     assert conference_out is None
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 def test_get_conference_when_conferences_is_not_empty_and_conference_is_not_found_should_return_none(
-        fake_conference, test_repo
+        fake_conference, fake_joinedload, test_repo
 ):
     # Arrange
-    conferences_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences_in
-    fake_conference.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = conferences_in
+    fake_query.return_value.get.return_value = None
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
+
+    id = len(conferences_in) + 1
 
     # Act
-    id = len(conferences_in) + 1
     conference_out = test_repo.get_conference(id)
 
     # Assert
     assert conference_out is None
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 def test_get_conference_when_conferences_is_not_empty_and_conference_is_found_should_return_conference(
-        fake_conference, test_repo
+        fake_conference, fake_joinedload, test_repo
 ):
     # Arrange
-    conferences_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences_in
-
+    )
+    fake_query.return_value.all.return_value = conferences_in
     id = len(conferences_in) - 1
-    fake_conference.query.get.return_value = conferences_in[id]
+    fake_query.return_value.get.return_value = conferences_in[id]
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     conference_out = test_repo.get_conference(id)
@@ -131,84 +151,98 @@ def test_get_conference_when_conferences_is_not_empty_and_conference_is_found_sh
     assert conference_out is conferences_in[id]
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conference_by_name_when_conferences_is_empty_should_return_none(fake_conference, test_repo):
+def test_get_conference_by_short_name_when_conferences_is_empty_should_return_none(
+        fake_conference, fake_joinedload, test_repo
+):
     # Arrange
-    conferences_in = []
-    fake_conference.query.all.return_value = conferences_in
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = ()
+    fake_query.return_value.all.return_value = conferences_in
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    conference_out = test_repo.get_conference_by_name("NFC")
+    conference_out = test_repo.get_conference_by_short_name("NFC")
 
     # Assert
     assert conference_out is None
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conference_by_name_when_conferences_is_not_empty_and_conference_with_short_name_is_not_found_should_return_none(
-        fake_conference, test_repo
+def test_get_conference_by_short_name_when_conferences_is_not_empty_and_conference_with_short_name_is_not_found_should_return_none(
+        fake_conference, fake_joinedload, test_repo
 ):
     # Arrange
-    conferences_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences_in
-    fake_conference.query.filter_by.return_value.first.return_value = None
+    )
+    fake_query.return_value.all.return_value = conferences_in
+    fake_query.return_value.filter_by.return_value.first.return_value = None
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    conference_out = test_repo.get_conference_by_name("C4")
+    conference_out = test_repo.get_conference_by_short_name("C4")
 
     # Assert
     assert conference_out is None
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_get_conference_by_name_when_conferences_is_not_empty_and_conference_with_name_is_found_should_return_conference(
-        fake_conference, test_repo
+def test_get_conference_by_short_name_when_conferences_is_not_empty_and_conference_with_name_is_found_should_return_conference(
+        fake_conference, fake_joinedload, test_repo
 ):
     # Arrange
-    conferences_in = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences_in = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences_in
-    fake_conference.query.filter_by.return_value.first.return_value = conferences_in[-1]
+    )
+    fake_query.return_value.all.return_value = conferences_in
+    fake_query.return_value.filter_by.return_value.first.return_value = conferences_in[-1]
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
-    conference_out = test_repo.get_conference_by_name("AAFC")
+    conference_out = test_repo.get_conference_by_short_name("AAFC")
 
     # Assert
     assert conference_out is conferences_in[-1]
@@ -223,8 +257,8 @@ def test_add_conference_when_no_integrity_error_caught_should_add_conference(
     conference_in = Conference(
         short_name="C",
         long_name="Conference",
-        league_name="L",
-        first_season_year=1
+        league_id=1,
+        first_season_id=1920
     )
 
     # Act
@@ -245,8 +279,8 @@ def test_add_conference_when_integrity_error_caught_should_rollback_transaction_
     conference_in = Conference(
         short_name="C",
         long_name="Conference",
-        league_name="L",
-        first_season_year=1
+        league_id=1,
+        first_season_id=1920
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -286,20 +320,20 @@ def test_add_conferences_when_conferences_arg_is_not_empty_and_no_integrity_erro
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
     )
 
@@ -326,20 +360,20 @@ def test_add_conferences_when_conferences_arg_is_not_empty_and_integrity_error_c
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -357,31 +391,37 @@ def test_add_conferences_when_conferences_arg_is_not_empty_and_integrity_error_c
     fake_try_commit.assert_called_once()
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_conference_exists_when_conference_does_not_exist_should_return_false(fake_conference, test_repo):
+def test_conference_exists_when_conference_does_not_exist_should_return_false(
+        fake_conference, fake_joinedload, test_repo
+):
     # Arrange
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-    fake_conference.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = conferences
+    fake_query.return_value.get.return_value = None
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     conference_exists = test_repo.conference_exists(id=1)
@@ -390,31 +430,37 @@ def test_conference_exists_when_conference_does_not_exist_should_return_false(fa
     assert not conference_exists
 
 
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
-def test_conference_exists_when_conference_exists_should_return_true(fake_conference, test_repo):
+def test_conference_exists_when_conference_exists_should_return_true(
+        fake_conference, fake_joinedload, test_repo
+):
     # Arrange
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1
+            league_id=1,
+            first_season_id=1920
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=2
+            league_id=1,
+            first_season_id=1921
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=3
+            league_id=1,
+            first_season_id=1922
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-    fake_conference.query.get.return_value = conferences[1]
+    )
+    fake_query.return_value.all.return_value = conferences
+    fake_query.return_value.get.return_value = conferences[1]
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     conference_exists = test_repo.conference_exists(id=1)
@@ -427,7 +473,8 @@ def test_conference_exists_when_conference_exists_should_return_true(fake_confer
 @patch('app.data.repositories.conference_repository.sqla')
 @patch('app.data.repositories.conference_repository.ConferenceRepository.conference_exists')
 def test_update_conference_when_no_conference_exists_with_id_should_return_conference_and_not_update_database(
-        fake_conference_exists, fake_sqla, fake_try_commit, test_repo
+        fake_conference_exists, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
     fake_conference_exists.return_value = False
@@ -437,9 +484,9 @@ def test_update_conference_when_no_conference_exists_with_id_should_return_confe
         id=1,
         short_name="C",
         long_name="Conference",
-        league_name="L",
-        first_season_year=1,
-        last_season_year=2
+        league_id=1,
+        first_season_id=1920,
+        last_season_id=1921
     )
 
     try:
@@ -454,60 +501,64 @@ def test_update_conference_when_no_conference_exists_with_id_should_return_confe
     assert isinstance(conference_updated, Conference)
     assert conference_updated.id == conference.id
     assert conference_updated.short_name == conference.short_name
+    assert conference_updated.league_id == conference.league_id
     assert conference_updated.long_name == conference.long_name
-    assert conference_updated.league_name == conference.league_name
-    assert conference_updated.first_season_year == conference.first_season_year
-    assert conference_updated.last_season_year == conference.last_season_year
+    assert conference_updated.first_season_id == conference.first_season_id
+    assert conference_updated.last_season_id == conference.last_season_id
 
 
 @patch('app.data.repositories.conference_repository.try_commit')
 @patch('app.data.repositories.conference_repository.sqla')
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 @patch('app.data.repositories.conference_repository.ConferenceRepository.conference_exists')
 def test_update_conference_when_conference_exists_with_id_and_no_integrity_error_caught_should_return_conference_and_update_database(
-        fake_conference_exists, fake_conference, fake_sqla, fake_try_commit, test_repo
+        fake_conference_exists, fake_conference, fake_joinedload, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
     fake_conference_exists.return_value = True
 
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             id=1,
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Conference(
             id=2,
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Conference(
             id=3,
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-
+    )
+    fake_query.return_value.all.return_value = conferences
     old_conference = conferences[1]
-    fake_conference.query.get.return_value = old_conference
+    fake_query.return_value.get.return_value = old_conference
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     new_conference = Conference(
         id=2,
         short_name="C4",
         long_name="Conference 4",
-        league_name="L1",
-        first_season_year=7,
-        last_season_year=8
+        league_id=1,
+        first_season_id=1926,
+        last_season_id=1927
     )
 
     # Act
@@ -524,60 +575,64 @@ def test_update_conference_when_conference_exists_with_id_and_no_integrity_error
     assert conference_updated.id == new_conference.id
     assert conference_updated.short_name == new_conference.short_name
     assert conference_updated.long_name == new_conference.long_name
-    assert conference_updated.league_name == new_conference.league_name
-    assert conference_updated.first_season_year == new_conference.first_season_year
-    assert conference_updated.last_season_year == new_conference.last_season_year
+    assert conference_updated.league_id == new_conference.league_id
+    assert conference_updated.first_season_id == new_conference.first_season_id
+    assert conference_updated.last_season_id == new_conference.last_season_id
     assert conference_updated is new_conference
 
 
 @patch('app.data.repositories.conference_repository.try_commit')
 @patch('app.data.repositories.conference_repository.sqla')
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 @patch('app.data.repositories.conference_repository.ConferenceRepository.conference_exists')
-def test_update_conference_when_and_conference_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
-        fake_conference_exists, fake_conference, fake_sqla, fake_try_commit, test_repo
+def test_update_conference_when_conference_exists_with_id_and_integrity_error_caught_should_rollback_transaction_and_reraise_error(
+        fake_conference_exists, fake_conference, fake_joinedload, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
     fake_conference_exists.return_value = True
 
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             id=1,
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Conference(
             id=2,
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Conference(
             id=3,
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-
+    )
+    fake_query.return_value.all.return_value = conferences
     old_conference = conferences[1]
-    fake_conference.query.get.return_value = old_conference
+    fake_query.return_value.get.return_value = old_conference
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     new_conference = Conference(
         id=2,
         short_name="C4",
         long_name="Conference 4",
-        league_name="L1",
-        first_season_year=7,
-        last_season_year=8
+        league_id=1,
+        first_season_id=1926,
+        last_season_id=1927
     )
 
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -593,36 +648,41 @@ def test_update_conference_when_and_conference_exists_with_id_and_integrity_erro
 
 @patch('app.data.repositories.conference_repository.try_commit')
 @patch('app.data.repositories.conference_repository.sqla')
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 def test_delete_conference_when_conference_does_not_exist_should_return_none_and_not_delete_conference_from_database(
-        fake_conference, fake_sqla, fake_try_commit, test_repo
+        fake_conference, fake_joinedload, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-    fake_conference.query.get.return_value = None
+    )
+    fake_query.return_value.all.return_value = conferences
+    fake_query.return_value.get.return_value = None
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     id = 1
 
@@ -637,38 +697,42 @@ def test_delete_conference_when_conference_does_not_exist_should_return_none_and
 
 @patch('app.data.repositories.conference_repository.try_commit')
 @patch('app.data.repositories.conference_repository.sqla')
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 def test_delete_conference_when_conference_exists_and_integrity_error_not_caught_should_return_conference_and_delete_conference_from_database(
-        fake_conference, fake_sqla, fake_try_commit, test_repo
+        fake_conference, fake_joinedload, fake_sqla, fake_try_commit,
+        test_repo
 ):
     # Arrange
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-
+    )
+    fake_query.return_value.all.return_value = conferences
     id = 1
-    fake_conference.query.get.return_value = conferences[id]
+    fake_query.return_value.get.return_value = conferences[id]
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     # Act
     try:
@@ -684,38 +748,42 @@ def test_delete_conference_when_conference_exists_and_integrity_error_not_caught
 
 @patch('app.data.repositories.conference_repository.try_commit')
 @patch('app.data.repositories.conference_repository.sqla')
+@patch('app.data.repositories.conference_repository.joinedload')
 @patch('app.data.repositories.conference_repository.Conference')
 def test_delete_conference_when_conference_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_conference, fake_sqla, fake_try_commit, test_repo
+        fake_conference, fake_joinedload, fake_sqla,
+        fake_try_commit, test_repo
 ):
     # Arrange
-    conferences = [
+    fake_query = MagicMock('flask_sqlalchemy.query.Query')
+    conferences = (
         Conference(
             short_name="C1",
             long_name="Conference 1",
-            league_name="L1",
-            first_season_year=1,
-            last_season_year=2
+            league_id=1,
+            first_season_id=1920,
+            last_season_id=1921
         ),
         Conference(
             short_name="C2",
             long_name="Conference 2",
-            league_name="L1",
-            first_season_year=3,
-            last_season_year=4
+            league_id=1,
+            first_season_id=1922,
+            last_season_id=1923
         ),
         Conference(
             short_name="C3",
             long_name="Conference 3",
-            league_name="L1",
-            first_season_year=5,
-            last_season_year=6
+            league_id=1,
+            first_season_id=1924,
+            last_season_id=1925
         ),
-    ]
-    fake_conference.query.all.return_value = conferences
-
+    )
+    fake_query.return_value.all.return_value = conferences
     id = 1
-    fake_conference.query.get.return_value = conferences[id]
+    fake_query.return_value.get.return_value = conferences[id]
+    fake_conference.query.options = fake_query
+    fake_joinedload.return_value = MagicMock()
 
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -724,5 +792,5 @@ def test_delete_conference_when_conference_exists_and_integrity_error_caught_sho
         conference_deleted = test_repo.delete_conference(id)
 
     # Assert
-    fake_sqla.session.delete.assert_called_once_with(fake_conference.query.get.return_value)
+    fake_sqla.session.delete.assert_called_once_with(conferences[id])
     fake_try_commit.assert_called_once()

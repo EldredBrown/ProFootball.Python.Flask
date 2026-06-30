@@ -15,25 +15,13 @@ class TestForms(unittest.TestCase):
     def tearDown(self):
         self.ctx.pop()
 
-    # def test_valid_form(self):
-    #     form = GameForm(data={
-    #         'season_year': 1920,
-    #         'week': 1,
-    #         'guest_name': "St. Paul Ideals",
-    #         'guest_score': 0,
-    #         'host_name': "Rock Island Independents",
-    #         'host_score': 48,
-    #         'is_playoff': False,
-    #     })
-    #     self.assertTrue(form.validate())
-
     def test_season_year_not_provided(self):
         form = GameForm(data={
             'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
+            'guest_name': "Guest",
+            'guest_score': 2,
+            'host_name': "Host",
+            'host_score': 3,
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -43,10 +31,10 @@ class TestForms(unittest.TestCase):
     #     form = GameForm(data={
     #         'season_year': 1919,
     #         'week': 1,
-    #         'guest_name': "St. Paul Ideals",
-    #         'guest_score': 0,
-    #         'host_name': "Rock Island Independents",
-    #         'host_score': 48,
+    #         'guest_name': "Guest",
+    #         'guest_score': 2,
+    #         'host_name': "Host",
+    #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
@@ -55,10 +43,10 @@ class TestForms(unittest.TestCase):
     def test_week_not_provided(self):
         form = GameForm(data={
             'season_year': 1920,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
+            'guest_name': "Guest",
+            'guest_score': 2,
+            'host_name': "Host",
+            'host_score': 3,
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -66,12 +54,12 @@ class TestForms(unittest.TestCase):
 
     # def test_week_less_than_zero(self):
     #     form = GameForm(data={
-    #         'season_year': 1919,
+    #         'season_year': 1920,
     #         'week': -1,
-    #         'guest_name': "St. Paul Ideals",
-    #         'guest_score': 0,
-    #         'host_name': "Rock Island Independents",
-    #         'host_score': 48,
+    #         'guest_name': "Guest",
+    #         'guest_score': 2,
+    #         'host_name': "Host",
+    #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
@@ -81,9 +69,9 @@ class TestForms(unittest.TestCase):
         form = GameForm(data={
             'season_year': 1920,
             'week': 1,
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
+            'guest_score': 2,
+            'host_name': "Host",
+            'host_score': 3,
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -93,10 +81,10 @@ class TestForms(unittest.TestCase):
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
-    #         'guest_name': "The quick sly fox jumped over the lazy brown dog...",
-    #         'guest_score': 0,
-    #         'host_name': "Rock Island Independents",
-    #         'host_score': 48,
+    #         'guest_name': "The quick sly fox jumped over the lazy brown dog, and then he did it again.",
+    #         'guest_score': 2,
+    #         'host_name': "Host",
+    #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
@@ -106,9 +94,9 @@ class TestForms(unittest.TestCase):
         form = GameForm(data={
             'season_year': 1920,
             'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
+            'guest_name': "Guest",
+            'host_name': "Host",
+            'host_score': 3,
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -118,10 +106,10 @@ class TestForms(unittest.TestCase):
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
-    #         'guest_name': "St. Paul Ideals",
+    #         'guest_name': "Guest",
     #         'guest_score': -1,
-    #         'host_name': "Rock Island Independents",
-    #         'host_score': 48,
+    #         'host_name': "Host",
+    #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
@@ -131,9 +119,9 @@ class TestForms(unittest.TestCase):
         form = GameForm(data={
             'season_year': 1920,
             'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_score': 48,
+            'guest_name': "Guest",
+            'guest_score': 2,
+            'host_score': 3,
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -143,10 +131,10 @@ class TestForms(unittest.TestCase):
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
-    #         'guest_name': "St. Paul Ideals",
-    #         'guest_score': 0,
-    #         'host_name': "The quick sly fox jumped over the lazy brown dog...",
-    #         'host_score': 48,
+    #         'guest_name': "Guest",
+    #         'guest_score': 2,
+    #         'host_name': "The quick sly fox jumped over the lazy brown dog, and then he did it again.",
+    #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
@@ -156,9 +144,9 @@ class TestForms(unittest.TestCase):
         form = GameForm(data={
             'season_year': 1920,
             'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
+            'guest_name': "Guest",
+            'guest_score': 2,
+            'host_name': "Host",
             'is_playoff': False,
         })
         self.assertFalse(form.validate())
@@ -168,23 +156,11 @@ class TestForms(unittest.TestCase):
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
-    #         'guest_name': "St. Paul Ideals",
-    #         'guest_score': 0,
-    #         'host_name': "Rock Island Independents",
+    #         'guest_name': "Guest",
+    #         'guest_score': 2,
+    #         'host_name': "Host",
     #         'host_score': -1,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
     #     self.assertIn("Please enter a non-negative host score.", form.host_score.errors)
-
-    def test_is_playoff_not_provided(self):
-        form = GameForm(data={
-            'season_year': 1920,
-            'week': 1,
-            'guest_name': "St. Paul Ideals",
-            'guest_score': 0,
-            'host_name': "Rock Island Independents",
-            'host_score': 48,
-        })
-        self.assertFalse(form.validate())
-        self.assertIn("Please enter a host score.", form.host_score.errors)

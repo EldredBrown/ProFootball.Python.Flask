@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import NamedTuple
 
 from injector import inject
@@ -43,13 +44,13 @@ class GamePredictorService:
         :return: A NamedTuple containing the predicted guest score and host score respectively.
         """
         guest_season = (
-            self.team_season_repository.get_team_season_by_team_name_and_season_year(guest_name, guest_season_year)
+            self.team_season_repository.get_team_season_by_team_and_season(guest_name, guest_season_year)
         )
         if guest_season is None:
             raise ValueError(f"No season data found for '{guest_name}' in year {guest_season_year}")
 
         host_season = (
-            self.team_season_repository.get_team_season_by_team_name_and_season_year(host_name, host_season_year)
+            self.team_season_repository.get_team_season_by_team_and_season(host_name, host_season_year)
         )
         if host_season is None:
             raise ValueError(f"No season data found for '{host_name}' in year {host_season_year}")
@@ -59,7 +60,7 @@ class GamePredictorService:
         return GamePrediction(guest_score, host_score)
 
 
-def _predict_score(offensive_team, defensive_team) -> float:
+def _predict_score(offensive_team, defensive_team) -> Decimal:
     return round(
         ((offensive_team.offensive_factor * defensive_team.defensive_average
             + defensive_team.defensive_factor * offensive_team.offensive_average) / 2),
