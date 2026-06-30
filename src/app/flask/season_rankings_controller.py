@@ -1,6 +1,6 @@
 from typing import List
 
-from flask import Blueprint, render_template, request, url_for, redirect, flash, Response, session
+from flask import Blueprint, render_template, request, url_for, redirect, Response, session
 
 from app import injector
 from app.data.models.league import League

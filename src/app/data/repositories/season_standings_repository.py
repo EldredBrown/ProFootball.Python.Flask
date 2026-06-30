@@ -1,7 +1,7 @@
 from typing import List
 
 from app.data.models.standings_team_season import StandingsTeamSeason
-from app.data.sqla import sqla
+from app.data import sqla
 
 
 class SeasonStandingsRepository:
