@@ -11,7 +11,7 @@
 {% block footer_content %}
 <form method="POST">
     <p>
-        <form class="delete-form" method="POST" action="{{ url_for('season.delete', id=season.id) }}">
+        <form class="delete-form" method="POST" action="{{ url_for('season.delete', year=season.year) }}">
             {{ form.hidden_tag() }}
             {{
                 form.submit(

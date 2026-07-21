@@ -18,10 +18,10 @@ class TeamSeason(sqla.Model):
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
     team_id = sqla.Column(sqla.String(50), sqla.ForeignKey('Team.id'), nullable=False)
-    season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=False)
-    league_id = sqla.Column(sqla.String(5), sqla.ForeignKey('League.id'), nullable=False)
-    conference_id = sqla.Column(sqla.String(5), sqla.ForeignKey('Conference.id'))
-    division_id = sqla.Column(sqla.String(50), sqla.ForeignKey('Division.id'))
+    season_year = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.year'), nullable=False)
+    league_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Association.id'), nullable=False)
+    conference_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Association.id'))
+    division_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Association.id'))
     games = sqla.Column(sqla.Integer, nullable=False, default=0)
     wins = sqla.Column(sqla.Integer, nullable=False, default=0)
     losses = sqla.Column(sqla.Integer, nullable=False, default=0)
@@ -39,18 +39,18 @@ class TeamSeason(sqla.Model):
     final_expected_winning_percentage = sqla.Column(sqla.Numeric(**_PCT_NUMERIC))
 
     __table_args__ = (
-        sqla.UniqueConstraint('team_id', 'season_id', name='uq_team_season'),
+        sqla.UniqueConstraint('team_id', 'season_year', name='uq_team_season'),
     )
 
     team = sqla.relationship('Team', back_populates='team_seasons')
     season = sqla.relationship('Season', back_populates='team_seasons')
-    league = sqla.relationship('League', back_populates='team_seasons')
-    conference = sqla.relationship('Conference', back_populates='team_seasons')
-    division = sqla.relationship('Division', back_populates='team_seasons')
+    league = sqla.relationship('Association', foreign_keys=[league_id], back_populates='team_seasons_league_of')
+    conference = sqla.relationship('Association', foreign_keys=[conference_id], back_populates='team_seasons_conference_of')
+    division = sqla.relationship('Association', foreign_keys=[division_id], back_populates='team_seasons_division_of')
 
     def __repr__(self) -> str:
         return (f"<TeamSeason id={self.id!r} team={self.team_id!r} "
-                f"season={self.season_id} record={self.wins}-{self.losses}-{self.ties}>")
+                f"season={self.season_year} record={self.wins}-{self.losses}-{self.ties}>")
 
     def to_dict(self) -> dict[str, object]:
         d = {c.name: getattr(self, c.name) for c in self.__table__.columns}

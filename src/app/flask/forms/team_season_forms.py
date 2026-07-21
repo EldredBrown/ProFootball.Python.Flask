@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, InputRequired, NumberRange, Validat
 
 
 def long_name_length_check(form, field):
-    length_check(field, 50)
+    length_check(field, 100)
 
 
 def short_name_length_check(form, field):

@@ -42,13 +42,13 @@ def test_get_season_standings_by_season_year_should_get_season_standings_for_spe
     ]
     fake_sqla.callproc.return_value = team_seasons_in
 
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    team_seasons_out = test_repo.get_season_standings_by_season(season_id=season_id)
+    team_seasons_out = test_repo.get_season_standings_by_season(season_year=season_year)
 
     # Assert
-    querystring = f"EXEC sp_GetSeasonStandings @season_id = {season_id}, @group_by_division = False"
+    querystring = f"EXEC sp_GetSeasonStandings @season_year = {season_year}, @group_by_division = False"
     fake_sqla.callproc.assert_called_once_with(querystring)
     for i in range(len(team_seasons_in)):
         assert isinstance(team_seasons_out[i], StandingsTeamSeason)

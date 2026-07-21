@@ -1,8 +1,6 @@
 from flask import Blueprint, render_template, flash, request, session, jsonify
 
 from app import injector
-from app.data.factories import team_season_factory
-from app.data.models.team_season import TeamSeason
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.game_predictor_service.game_predictor_service import GamePredictorService
@@ -48,10 +46,10 @@ def select_guest_season() -> str:
 
     team_season_repository = injector.get(TeamSeasonRepository)
 
-    guests = team_season_repository.get_team_seasons_by_season(season_id=selected_guest_season_year)
+    guests = team_season_repository.get_team_seasons_by_season(season_year=selected_guest_season_year)
 
     selected_host_season_year = session.get('selected_host_season_year')
-    hosts = team_season_repository.get_team_seasons_by_season(season_id=selected_host_season_year)
+    hosts = team_season_repository.get_team_seasons_by_season(season_year=selected_host_season_year)
 
     return render_template(
         'game_predictor/index.html',
@@ -70,10 +68,10 @@ def select_guest():
     team_season_repository = injector.get(TeamSeasonRepository)
 
     selected_guest_season_year = session.get('selected_guest_season_year')
-    guests = team_season_repository.get_team_seasons_by_season(season_id=selected_guest_season_year)
+    guests = team_season_repository.get_team_seasons_by_season(season_year=selected_guest_season_year)
 
     selected_host_season_year = session.get('selected_host_season_year')
-    hosts = team_season_repository.get_team_seasons_by_season(season_id=selected_host_season_year)
+    hosts = team_season_repository.get_team_seasons_by_season(season_year=selected_host_season_year)
 
     return render_template(
         'game_predictor/index.html',
@@ -92,9 +90,9 @@ def select_host_season() -> str:
     team_season_repository = injector.get(TeamSeasonRepository)
 
     selected_guest_season_year = session.get('selected_guest_season_year')
-    guests = team_season_repository.get_team_seasons_by_season(season_id=selected_guest_season_year)
+    guests = team_season_repository.get_team_seasons_by_season(season_year=selected_guest_season_year)
 
-    hosts = team_season_repository.get_team_seasons_by_season(season_id=selected_host_season_year)
+    hosts = team_season_repository.get_team_seasons_by_season(season_year=selected_host_season_year)
 
     return render_template(
         'game_predictor/index.html',
@@ -113,10 +111,10 @@ def select_host():
     team_season_repository = injector.get(TeamSeasonRepository)
 
     selected_guest_season_year = session.get('selected_guest_season_year')
-    guests = team_season_repository.get_team_seasons_by_season(season_id=selected_guest_season_year)
+    guests = team_season_repository.get_team_seasons_by_season(season_year=selected_guest_season_year)
 
     selected_host_season_year = session.get('selected_host_season_year')
-    hosts = team_season_repository.get_team_seasons_by_season(season_id=selected_host_season_year)
+    hosts = team_season_repository.get_team_seasons_by_season(season_year=selected_host_season_year)
 
     return render_template(
         'game_predictor/index.html',
@@ -133,12 +131,12 @@ def predict_game() -> str:
 
     guest_seasons = session.get('guest_seasons')
     selected_guest_season_year = session.get('selected_guest_season_year')
-    guests = team_season_repository.get_team_seasons_by_season(season_id=selected_guest_season_year)
+    guests = team_season_repository.get_team_seasons_by_season(season_year=selected_guest_season_year)
     selected_guest_name = session.get('selected_guest_name')
 
     host_seasons = session.get('host_seasons')
     selected_host_season_year = session.get('selected_host_season_year')
-    hosts = team_season_repository.get_team_seasons_by_season(season_id=selected_host_season_year)
+    hosts = team_season_repository.get_team_seasons_by_season(season_year=selected_host_season_year)
     selected_host_name = session.get('selected_host_name')
 
     if selected_guest_season_year is None:

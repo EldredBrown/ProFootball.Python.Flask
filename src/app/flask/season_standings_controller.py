@@ -14,21 +14,21 @@ def index() -> str:
     seasons = season_repository.get_seasons()
     session['seasons'] = [s.to_dict() for s in seasons]
 
-    selected_season_id = -1
+    selected_season_year = -1
     season_standings = []
     return render_template(
         'season_standings/index.html',
-        seasons=seasons, selected_season_id=selected_season_id, season_standings=season_standings
+        seasons=seasons, selected_season_year=selected_season_year, season_standings=season_standings
     )
 
 
 @blueprint.route('/select_season', methods=['POST'])
 def select_season() -> str:
-    selected_season_id = int(request.form.get('season_dropdown'))  # Fetch the selected season.
+    selected_season_year = int(request.form.get('season_dropdown'))  # Fetch the selected season.
 
     season_standings_repository = injector.get(SeasonStandingsRepository)
-    season_standings = season_standings_repository.get_season_standings_by_season(season_id=selected_season_id)
+    season_standings = season_standings_repository.get_season_standings_by_season(season_year=selected_season_year)
     return render_template(
         'season_standings/index.html',
-        seasons=session.get('seasons'), selected_season_id=selected_season_id, season_standings=season_standings
+        seasons=session.get('seasons'), selected_season_year=selected_season_year, season_standings=season_standings
     )

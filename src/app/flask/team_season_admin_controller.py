@@ -100,7 +100,7 @@ def delete(id: int) -> Response | str:
         if request.method == 'POST':
             team_season_repository.delete_team_season(id)
             flash(
-                f"TeamSeason {team_season.team.name}. {team_season.season.id} has been successfully deleted.",
+                f"TeamSeason {team_season.team.name}. {team_season.season.year} has been successfully deleted.",
                 'success'
             )
             return redirect(url_for('team_season_admin.index'))
@@ -112,10 +112,10 @@ def delete(id: int) -> Response | str:
 
 def _get_form_data_from_model(form: TeamSeasonForm, team_season: TeamSeason) -> None:
     form.team_name.data = team_season.team.name
-    form.season_year.data = team_season.season.id
+    form.season_year.data = team_season.season.year
     form.league_name.data = team_season.league.short_name
     form.conference_name.data = team_season.conference.short_name if team_season.conference else ''
-    form.division_name.data = team_season.division.name if team_season.division else ''
+    form.division_name.data = team_season.division.short_name if team_season.division else ''
 
 
 def _get_kwargs_from_form(form: TeamSeasonForm, id: int=None) -> dict[str, Any]:

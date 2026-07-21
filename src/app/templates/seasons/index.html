@@ -13,12 +13,6 @@
             <th class="text-right align-right-override">
                 Year
             </th>
-            <th class="text-right align-right-override">
-                Weeks Scheduled
-            </th>
-            <th class="text-right align-right-override">
-                Weeks Completed
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -26,18 +20,11 @@
         {% for season in seasons %}
         <tr>
             <td class="text-right align-right-override">
-                {{ season.id }}
-            </td>
-            <td class="text-right align-right-override">
-                {{ season.num_of_weeks_scheduled }}
-            </td>
-            <td class="text-right align-right-override">
-                {{ season.num_of_weeks_completed }}
+                {{ season.year }}
             </td>
             <td>
-                <a class="btn btn-primary btn-sm" href="{{ url_for('season.details', id=season.id) }}">Details</a>
-                <a class="btn btn-primary btn-sm" href="{{ url_for('season.edit', id=season.id) }}">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{{ url_for('season.delete', id=season.id) }}">Delete</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('season.details', year=season.year) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('season.delete', year=season.year) }}">Delete</a>
             </td>
         </tr>
         {% endfor %}

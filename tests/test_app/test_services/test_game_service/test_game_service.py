@@ -35,7 +35,7 @@ def test_add_game_when_new_game_arg_is_not_none_and_no_team_season_found_for_gue
         test_service
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+    game = Game(season_year=1920, guest_name="Guest", host_name="Host")
 
     test_service.team_season_repository.get_team_season_by_team_and_season.return_value = None
 
@@ -44,9 +44,9 @@ def test_add_game_when_new_game_arg_is_not_none_and_no_team_season_found_for_gue
         test_service.add_game(game)
 
     # Assert
-    assert err.value.args[0] == f"No team season found for '{game.guest_name}' in year {game.season_id}"
+    assert err.value.args[0] == f"No team season found for '{game.guest_name}' in year {game.season_year}"
     test_service.team_season_repository.get_team_season_by_team_and_season.assert_called_once_with(
-        game.guest_name, game.season_id
+        game.guest_name, game.season_year
     )
 
 
@@ -55,7 +55,7 @@ def test_add_game_when_team_season_found_for_guest_and_no_team_season_found_for_
         test_service
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+    game = Game(season_year=1920, guest_name="Guest", host_name="Host")
 
     test_service.team_season_repository.get_team_season_by_team_and_season.side_effect = [TeamSeason(), None]
 
@@ -64,10 +64,10 @@ def test_add_game_when_team_season_found_for_guest_and_no_team_season_found_for_
         test_service.add_game(game)
 
     # Assert
-    assert err.value.args[0] == f"No team season found for '{game.host_name}' in year {game.season_id}"
+    assert err.value.args[0] == f"No team season found for '{game.host_name}' in year {game.season_year}"
     test_service.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-        call(game.guest_name, game.season_id),
-        call(game.host_name, game.season_id),
+        call(game.guest_name, game.season_year),
+        call(game.host_name, game.season_year),
     ])
 
 
@@ -75,7 +75,7 @@ def test_add_game_when_team_seasons_found_for_both_teams_should_add_game_to_repo
         test_service
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+    game = Game(season_year=1920, guest_name="Guest", host_name="Host")
 
     test_service.team_season_repository.get_team_season_by_team_and_season.side_effect = [TeamSeason(), TeamSeason()]
 
@@ -134,9 +134,9 @@ def test_update_game_when_both_args_are_not_none_and_no_team_season_found_for_gu
         test_service.update_game(new_game, old_game)
 
     # Assert
-    assert err.value.args[0] == f"No team season found for '{new_game.guest_name}' in year {new_game.season_id}"
+    assert err.value.args[0] == f"No team season found for '{new_game.guest_name}' in year {new_game.season_year}"
     test_service.team_season_repository.get_team_season_by_team_and_season.assert_called_once_with(
-        new_game.guest_name, new_game.season_id
+        new_game.guest_name, new_game.season_year
     )
 
 
@@ -153,12 +153,12 @@ def test_update_game_when_team_season_found_for_guest_and_no_team_season_found_f
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_service.update_game(new_game, old_game)
-        assert err.value.args[0] == f"No team season found for '{new_game.host_name}' in year {new_game.season_id}"
+        assert err.value.args[0] == f"No team season found for '{new_game.host_name}' in year {new_game.season_year}"
 
     # Assert
     test_service.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-        call(new_game.guest_name, new_game.season_id),
-        call(new_game.host_name, new_game.season_id),
+        call(new_game.guest_name, new_game.season_year),
+        call(new_game.host_name, new_game.season_year),
     ])
 
 
@@ -185,8 +185,8 @@ def test_update_game_when_team_seasons_found_for_both_teams_and_selected_game_do
 
 def test_update_game_when_selected_game_exists_should_update_game_in_repository(test_service):
     # Arrange
-    new_game = Game(id=1, season_id=1920, guest_name="New Guest", host_name="New Host")
-    old_game = Game(id=1, season_id=1920, guest_name="Old Guest", host_name="Old Host")
+    new_game = Game(id=1, season_year=1920, guest_name="New Guest", host_name="New Host")
+    old_game = Game(id=1, season_year=1920, guest_name="Old Guest", host_name="Old Host")
 
     test_service.team_season_repository.get_team_season_by_team_and_season.side_effect = [TeamSeason(), TeamSeason()]
 
@@ -202,8 +202,8 @@ def test_update_game_when_selected_game_exists_should_update_game_in_repository(
 
     # Assert
     # test_service.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-    #     call(new_game.guest_name, new_game.season_id),
-    #     call(new_game.host_name, new_game.season_id),
+    #     call(new_game.guest_name, new_game.season_year),
+    #     call(new_game.host_name, new_game.season_year),
     # ])
     test_service.game_repository.get_game.assert_called_once_with(old_game.id)
     test_service.game_repository.update_game.assert_called_once_with(new_game)

@@ -30,17 +30,23 @@ def test_get_league_seasons_should_get_league_seasons(test_app, test_repo):
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         ]
         for league_season in league_seasons_in:
@@ -65,47 +71,65 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_none_should_return_e
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -130,47 +154,65 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_no_matc
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -195,47 +237,65 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_matchin
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -249,7 +309,7 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_matchin
         assert league_seasons_out == [ls for ls in league_seasons_in if ls.league_id == 2]
 
 
-def test_get_league_seasons_by_season_when_season_id_arg_is_none_should_return_empty_list(
+def test_get_league_seasons_by_season_when_season_year_arg_is_none_should_return_empty_list(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -260,47 +320,65 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_none_should_return_e
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -314,7 +392,7 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_none_should_return_e
         assert league_seasons_out == []
 
 
-def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_no_matching_league_seasons_found_should_return_empty_list(
+def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_no_matching_league_seasons_found_should_return_empty_list(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -325,47 +403,65 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_no_matc
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -379,7 +475,7 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_no_matc
         assert league_seasons_out == []
 
 
-def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_matching_league_seasons_found_should_return_list_of_league_seasons_with_matching_season_id(
+def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_matching_league_seasons_found_should_return_list_of_league_seasons_with_matching_season_year(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -390,47 +486,65 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_matchin
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=4,
                 league_id=2,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=5,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=6,
                 league_id=2,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=7,
                 league_id=3,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=8,
                 league_id=3,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=9,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -438,10 +552,10 @@ def test_get_league_seasons_by_season_when_season_id_arg_is_not_none_and_matchin
         sqla.session.commit()
 
         # Act
-        league_seasons_out = test_repo.get_league_seasons_by_season(season_id=1921)
+        league_seasons_out = test_repo.get_league_seasons_by_season(season_year=1921)
 
         # Assert
-        assert league_seasons_out == [ls for ls in league_seasons_in if ls.season_id == 1921]
+        assert league_seasons_out == [ls for ls in league_seasons_in if ls.season_year == 1921]
 
 
 def test_get_league_season_when_league_seasons_is_empty_should_return_none(
@@ -469,17 +583,23 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -504,17 +624,23 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=1,
-                season_id=1921,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=1,
-                season_id=1922,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -536,7 +662,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_empty_sho
         db_init.init_db()
 
         # Act
-        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=1, season_id=1920)
+        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=1, season_year=1920)
 
     # Assert
     assert league_season_out is None
@@ -553,17 +679,23 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -571,7 +703,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
         sqla.session.commit()
 
         # Act
-        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=-1, season_id=1919)
+        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=-1, season_year=1919)
 
     # Assert
     assert league_season_out is None
@@ -588,17 +720,23 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons_in:
@@ -606,7 +744,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
         sqla.session.commit()
 
         # Act
-        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=2, season_id=1921)
+        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=2, season_year=1921)
 
     # Assert
     assert league_season_out is league_seasons_in[1]
@@ -620,7 +758,9 @@ def test_add_league_season_when_no_integrity_error_caught_should_add_league_seas
     # Arrange
     league_season_in = LeagueSeason(
         league_id=1,
-        season_id=1920
+        season_year=1920,
+        num_of_weeks_scheduled=0,
+        num_of_weeks_completed=0
     )
 
     # Act
@@ -640,7 +780,9 @@ def test_add_league_season_when_integrity_error_caught_should_rollback_transacti
     # Arrange
     league_season_in = LeagueSeason(
         league_id=1,
-        season_id=1920
+        season_year=1920,
+        num_of_weeks_scheduled=0,
+        num_of_weeks_completed=0
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -680,17 +822,23 @@ def test_add_league_seasons_when_league_seasons_arg_is_not_empty_and_no_integrit
         LeagueSeason(
             id=1,
             league_id=1,
-            season_id=1920
+            season_year=1920,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
         LeagueSeason(
             id=2,
             league_id=2,
-            season_id=1921
+            season_year=1921,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
         LeagueSeason(
             id=3,
             league_id=3,
-            season_id=1922
+            season_year=1922,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
     )
 
@@ -716,15 +864,21 @@ def test_add_league_seasons_when_league_seasons_arg_is_not_empty_and_integrity_e
     league_seasons_in = (
         LeagueSeason(
             league_id=1,
-            season_id=1920
+            season_year=1920,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
         LeagueSeason(
             league_id=2,
-            season_id=1921
+            season_year=1921,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
         LeagueSeason(
             league_id=3,
-            season_id=1922
+            season_year=1922,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         ),
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -753,17 +907,23 @@ def test_league_season_exists_when_league_season_does_not_exist_should_return_fa
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -788,17 +948,23 @@ def test_league_season_exists_when_league_season_exists_should_return_true(
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -826,7 +992,9 @@ def test_update_league_season_when_no_league_season_exists_with_id_should_return
     league_season = LeagueSeason(
         id=1,
         league_id=1,
-        season_id=1920,
+        season_year=1920,
+        num_of_weeks_scheduled=0,
+        num_of_weeks_completed=0
     )
 
     try:
@@ -840,7 +1008,9 @@ def test_update_league_season_when_no_league_season_exists_with_id_should_return
     assert isinstance(league_season_updated, LeagueSeason)
     assert league_season_updated.id == league_season.id
     assert league_season_updated.league_id == league_season.league_id
-    assert league_season_updated.season_id == league_season.season_id
+    assert league_season_updated.season_year == league_season.season_year
+    assert league_season_updated.num_of_weeks_scheduled == league_season.num_of_weeks_scheduled
+    assert league_season_updated.num_of_weeks_completed == league_season.num_of_weeks_completed
 
 
 @patch('app.data.repositories.league_season_repository.try_commit')
@@ -860,17 +1030,23 @@ def test_update_league_season_when_league_season_exists_with_id_and_no_integrity
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -880,7 +1056,9 @@ def test_update_league_season_when_league_season_exists_with_id_and_no_integrity
         new_league_season = LeagueSeason(
             id=2,
             league_id="L2",
-            season_id=1923,
+            season_year=1923,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         )
 
         # Act
@@ -896,8 +1074,10 @@ def test_update_league_season_when_league_season_exists_with_id_and_no_integrity
     assert isinstance(league_season_updated, LeagueSeason)
     assert league_season_updated.id == new_league_season.id
     assert league_season_updated.league_id == new_league_season.league_id
-    assert league_season_updated.season_id == new_league_season.season_id
+    assert league_season_updated.season_year == new_league_season.season_year
     assert league_season_updated is new_league_season
+    assert league_season_updated.num_of_weeks_scheduled == new_league_season.num_of_weeks_scheduled
+    assert league_season_updated.num_of_weeks_completed == new_league_season.num_of_weeks_completed
 
 
 @patch('app.data.repositories.league_season_repository.try_commit')
@@ -917,17 +1097,23 @@ def test_update_league_season_when_league_season_exists_with_id_and_integrity_er
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -937,7 +1123,9 @@ def test_update_league_season_when_league_season_exists_with_id_and_integrity_er
         new_league_season = LeagueSeason(
             id=2,
             league_id="L2",
-            season_id=1923,
+            season_year=1923,
+            num_of_weeks_scheduled=0,
+            num_of_weeks_completed=0
         )
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -965,17 +1153,23 @@ def test_delete_league_season_when_league_season_does_not_exist_should_return_no
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -1004,17 +1198,23 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_not_
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:
@@ -1046,17 +1246,23 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_caug
             LeagueSeason(
                 id=1,
                 league_id=1,
-                season_id=1920
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=2,
                 league_id=2,
-                season_id=1921
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
                 league_id=3,
-                season_id=1922
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
             ),
         )
         for league_season in league_seasons:

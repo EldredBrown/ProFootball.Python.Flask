@@ -8,8 +8,8 @@
     <label for="guest_season_dropdown">Choose a guest season:</label>
     <select id="guest_season_dropdown" name="guest_season_dropdown">
         {% for season in guest_seasons %}
-            <option value="{{ season.id }}" {% if season.id == selected_guest_season_year %}selected='selected'{% endif %}>
-                {{ season.id }}
+            <option value="{{ season.year }}" {% if season.year == selected_guest_season_year %}selected='selected'{% endif %}>
+                {{ season.year }}
             </option>
         {% endfor %}
     </select>
@@ -31,8 +31,8 @@
     <label for="host_season_dropdown">Choose a host season:</label>
     <select id="host_season_dropdown" name="host_season_dropdown">
         {% for season in host_seasons %}
-            <option value="{{ season.id }}" {% if season.id == selected_host_season_year %}selected='selected'{% endif %}>
-                {{ season.id }}
+            <option value="{{ season.year }}" {% if season.year == selected_host_season_year %}selected='selected'{% endif %}>
+                {{ season.year }}
             </option>
         {% endfor %}
     </select>

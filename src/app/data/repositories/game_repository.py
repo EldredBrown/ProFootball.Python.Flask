@@ -20,31 +20,44 @@ class GameRepository:
         games = self._get_games_with_navigation_properties()
         return games.all()
 
-    def get_games_by_season(self, season_id: Optional[int]) -> List[Game]:
+    def get_games_by_season(self, season_year: Optional[int]) -> List[Game]:
         """
         Gets all the games in the data store filtered by season_year.
 
-        :param season_id: The season_year to filter.
+        :param season_year: The season_year to filter.
 
         :return: A list of all fetched games.
         """
         games = self._get_games_with_navigation_properties()
-        if season_id is None:
+        if season_year is None:
             return []
-        return games.filter_by(season_id=season_id).all()
+        return games.filter_by(season_year=season_year).all()
 
-    def get_games_by_season_and_week(self, season_id: Optional[int], week: Optional[int]) -> List[Game]:
+    def get_games_by_season_league_and_week(
+            self, season_year: Optional[int], league_id: Optional[int], week: Optional[int]
+    ) -> List[Game]:
         """
-        Gets all the games in the data store filtered by season_year.
+        Gets all the games in the data store filtered by season_year, league_id, and week.
 
-        :param season_id: The season_year to filter.
+        :param season_year: The season_year to filter.
+        :param league_id: The league_id to filter.
+        :param week: The week to filter.
 
         :return: A list of all fetched games.
         """
         games = self._get_games_with_navigation_properties()
-        if season_id is None or week is None:
-            return []
-        return games.filter_by(season_id=season_id, week=week).all()
+
+        games = games.filter_by(season_year=season_year)
+
+        if league_id is None:
+            return games.all()
+        games = games.filter_by(league_id=league_id)
+
+        if week is None:
+            return games.all()
+        games = games.filter_by(week=week)
+
+        return games.all()
 
     def get_game(self, id: int) -> Optional[Game]:
         """
@@ -59,7 +72,7 @@ class GameRepository:
             return None
         return games.get(id)
 
-    def get_game_by_season_week_guest_and_host(self, season_id: int, week: int, guest_name: str, host_name: str) -> Optional[Game]:
+    def get_game_by_season_week_guest_and_host(self, season_year: int, week: int, guest_name: str, host_name: str) -> Optional[Game]:
         """
         Gets the game in the data store with the specified id.
 
@@ -70,7 +83,7 @@ class GameRepository:
         games = self._get_games_with_navigation_properties()
         if len(games.all()) == 0:
             return None
-        return games.filter_by(season_id=season_id, week=week, guest_name=guest_name, host_name=host_name).first()
+        return games.filter_by(season_year=season_year, week=week, guest_name=guest_name, host_name=host_name).first()
 
     def add_game(self, game: Game) -> Game:
         """
@@ -137,17 +150,21 @@ class GameRepository:
         """
         return self.get_game(id) is not None
 
-    def get_max_week_by_season(self, season_id: int) -> int | None:
-        weeks = [game.week for game in self.get_games_by_season(season_id)]
+    def get_max_week_by_season(self, season_year: int) -> int | None:
+        weeks = [game.week for game in self.get_games_by_season(season_year)]
         if weeks:
             return max(weeks)
 
     def _get_games_with_navigation_properties(self):
-        return Game.query.options(joinedload(Game.season))
+        return Game.query.options(
+            joinedload(Game.season),
+            joinedload(Game.league),
+        )
 
     def _set_values_of_game_in_db(self, game: Game) -> Game | None:
         game_in_db = self.get_game(game.id)
-        game_in_db.season_id = game.season_id
+        game_in_db.season_year = game.season_year
+        game_in_db.league_id = game.league_id
         game_in_db.week = game.week
         game_in_db.guest_name = game.guest_name
         game_in_db.guest_score = game.guest_score

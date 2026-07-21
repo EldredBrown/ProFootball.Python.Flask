@@ -23,13 +23,13 @@ def test_get_team_season_schedule_profile_when_query_returns_empty_list_should_g
     fake_sqla.callproc.return_value.all.return_value = profile
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_profile(team_id, season_id)
+    result = test_repo.get_team_season_schedule_profile(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_year};")
     assert result == []
 
 
@@ -46,13 +46,13 @@ def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_shou
     fake_sqla.callproc.return_value.all.return_value = profile
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_profile(team_id, season_id)
+    result = test_repo.get_team_season_schedule_profile(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_year};")
     fake_sqla.callproc.return_value.all.assert_called_once()
 
     assert isinstance(result, list)
@@ -83,13 +83,13 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
     fake_sqla.callproc.return_value.first.return_value = totals
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_totals(team_id, season_id)
+    result = test_repo.get_team_season_schedule_totals(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_year};")
 
     assert isinstance(result, TeamSeasonScheduleTotals)
     assert result.games is None
@@ -125,13 +125,13 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
     )
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_totals(team_id, season_id)
+    result = test_repo.get_team_season_schedule_totals(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_year};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleTotals)
@@ -156,13 +156,13 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
     fake_sqla.callproc.return_value.first.return_value = averages
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_averages(team_id, season_id)
+    result = test_repo.get_team_season_schedule_averages(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_year};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleAverages)
@@ -186,13 +186,13 @@ def test_get_team_season_schedule_averages_when_query_does_not_return_none_shoul
     )
 
     team_id = 1
-    season_id = 1920
+    season_year = 1920
 
     # Act
-    result = test_repo.get_team_season_schedule_averages(team_id, season_id)
+    result = test_repo.get_team_season_schedule_averages(team_id, season_year)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_id};")
+    fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_year};")
     fake_sqla.callproc.return_value.first.assert_called_once()
 
     assert isinstance(result, TeamSeasonScheduleAverages)

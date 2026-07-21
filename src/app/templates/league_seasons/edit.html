@@ -15,6 +15,14 @@
         {{ form.season_year.label }}
         {{ form.season_year(class='form-control') }}
     </div>
+    <div class="form-group">
+        {{ form.num_of_weeks_scheduled.label }}
+        {{ form.num_of_weeks_scheduled(class='form-control') }}
+    </div>
+    <div class="form-group">
+        {{ form.num_of_weeks_completed.label }}
+        {{ form.num_of_weeks_completed(class='form-control') }}
+    </div>
     <hr>
     {{ form.submit(class='btn btn-primary form-control') }}
 </form>

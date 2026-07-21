@@ -3,9 +3,7 @@ from unittest.mock import patch, call
 import pytest
 
 from app.data.factories import team_factory
-from app.data.models.conference import Conference
 from app.data.models.team import Team
-from app.data.models.league import League
 
 
 def test_create_team_when_key_is_not_in_view_model_map_should_raise_value_error():
@@ -16,7 +14,7 @@ def test_create_team_when_key_is_not_in_view_model_map_should_raise_value_error(
 
     # Act
     with pytest.raises(KeyError) as err:
-        test_team = team_factory.create_team(**kwargs)
+        _ = team_factory.create_team(**kwargs)
 
     # Assert
     assert err.value.args[0] == f"invalid_key is invalid."
@@ -63,7 +61,7 @@ def test_create_team_when_name_is_in_kwargs_and_old_team_id_is_not_provided_and_
 
     # Act
     with pytest.raises(ValueError) as err:
-        test_team = team_factory.create_team(**kwargs)
+        _ = team_factory.create_team(**kwargs)
 
     # Assert
     fake_validate_is_unique.assert_called_once_with('name', kwargs.get('name'), error_message=error_message)
@@ -167,7 +165,7 @@ def test_create_team_when_name_is_in_kwargs_and_old_team_id_is_provided_and_name
 
     # Act
     with pytest.raises(ValueError) as err:
-        test_team = team_factory.create_team(**kwargs)
+        _ = team_factory.create_team(**kwargs)
 
     # Assert
     fake_injector.get.assert_called_once_with(fake_team_repository)
@@ -185,7 +183,7 @@ def test_validate_is_unique_when_value_is_not_unique_and_error_message_is_not_pr
 
     # Act
     with pytest.raises(ValueError) as err:
-        result = team_factory._validate_is_unique('name', "Team")
+        _ = team_factory._validate_is_unique('name', "Team")
 
     # Assert
     assert err.value.args[0] == "name must be unique."
@@ -200,7 +198,7 @@ def test_validate_is_unique_when_value_is_not_unique_and_error_message_is_provid
 
     # Act
     with pytest.raises(ValueError) as err:
-        result = team_factory._validate_is_unique('name', "Team", error_message=error_message)
+        _ = team_factory._validate_is_unique('name', "Team", error_message=error_message)
 
     # Assert
     assert err.value.args[0] == error_message

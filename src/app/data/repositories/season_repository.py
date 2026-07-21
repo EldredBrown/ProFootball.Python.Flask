@@ -19,17 +19,17 @@ class SeasonRepository:
         """
         return Season.query.all()
 
-    def get_season(self, id: int) -> Optional[Season]:
+    def get_season(self, year: int) -> Optional[Season]:
         """
-        Gets the season in the data store with the specified id.
+        Gets the season in the data store with the specified year.
 
-        :param id: The id of the season to fetch.
+        :param year: The year of the season to fetch.
 
         :return: The fetched season.
         """
         if self._seasons_empty():
             return None
-        return Season.query.get(id)
+        return Season.query.get(year)
 
     def add_season(self, season: Season) -> Season:
         """
@@ -41,10 +41,7 @@ class SeasonRepository:
         """
         # I only need to set IDENTITY_INSERT for the Season model because this is the only table in the database where
         # I want to set the primary key values explicitly, without an auto-incrementer.
-        sqla.session.execute(text("SET IDENTITY_INSERT [Season] ON"))
         sqla.session.add(season)
-        sqla.session.flush()
-        sqla.session.execute(text("SET IDENTITY_INSERT [Season] OFF"))
         try_commit()
         return season
 
@@ -76,46 +73,46 @@ class SeasonRepository:
 
         :return: The updated season.
         """
-        if not self.season_exists(season.id):
+        if not self.season_exists(season.year):
             return season
         season_in_db = self._set_values_of_season_in_db(season)
         sqla.session.add(season_in_db)
         try_commit()
         return season
 
-    def delete_season(self, id: int) -> Optional[Season]:
+    def delete_season(self, year: int) -> Optional[Season]:
         """
         Deletes a season from the data store.
 
-        :param id: The id of the season to delete.
+        :param year: The year of the season to delete.
 
         :return: The deleted season.
         """
-        if not self.season_exists(id):
+        if not self.season_exists(year):
             return None
 
-        season = self.get_season(id)
+        season = self.get_season(year)
         sqla.session.delete(season)
         try_commit()
         return season
 
-    def season_exists(self, id: int) -> bool:
+    def season_exists(self, year: int) -> bool:
         """
         Checks to verify whether a specific season exists in the data store.
 
-        :param id: The id of the season to verify.
+        :param year: The year of the season to verify.
 
-        :return: True if the season with the specified id exists in the data store; otherwise false.
+        :return: True if the season with the specified year exists in the data store; otherwise false.
         """
-        return self.get_season(id) is not None
+        return self.get_season(year) is not None
 
     def _seasons_empty(self) -> bool:
         seasons = self.get_seasons()
         return len(seasons) == 0
 
     def _set_values_of_season_in_db(self, season: Season) -> Season:
-        season_in_db = self.get_season(season.id)
-        season_in_db.id = season.id
-        season_in_db.num_of_weeks_scheduled = season.num_of_weeks_scheduled
-        season_in_db.num_of_weeks_completed = season.num_of_weeks_completed
+        season_in_db = self.get_season(season.year)
+        season_in_db.year = season.year
+        # season_in_db.num_of_weeks_scheduled = season.num_of_weeks_scheduled
+        # season_in_db.num_of_weeks_completed = season.num_of_weeks_completed
         return season_in_db

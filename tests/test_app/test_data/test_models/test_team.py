@@ -7,7 +7,7 @@ def test_validate_not_empty_when_name_is_none_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_team = Team(name=None)
+        _ = Team(name=None)
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -18,7 +18,7 @@ def test_validate_not_empty_when_name_is_empty_should_raise_value_error():
     # Arrange
     # Act
     with pytest.raises(ValueError) as err:
-        test_team = Team(name="")
+        _ = Team(name="")
 
     # Assert
     assert isinstance(err.value, ValueError)
@@ -31,7 +31,7 @@ def test_validate_not_empty_when_name_is_not_empty_should_not_raise_value_error(
 
     # Act
     try:
-        test_team = Team(name="Team")
+        _ = Team(name="Team")
     except ValueError as err:
         pass
 

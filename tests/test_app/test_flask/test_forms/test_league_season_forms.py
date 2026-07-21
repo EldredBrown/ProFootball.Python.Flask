@@ -18,6 +18,8 @@ class TestForms(unittest.TestCase):
     def test_league_name_not_provided(self):
         form = LeagueSeasonForm(data={
             'season_year': 1920,
+            'num_of_weeks_scheduled': 14,
+            'num_of_weeks_completed': 0,
         })
         self.assertFalse(form.validate())
         self.assertIn("Please enter a league's short name.", form.league_name.errors)
@@ -25,6 +27,8 @@ class TestForms(unittest.TestCase):
     def test_season_year_not_provided(self):
         form = LeagueSeasonForm(data={
             'league_name': "L",
+            'num_of_weeks_scheduled': 14,
+            'num_of_weeks_completed': 7,
         })
         self.assertFalse(form.validate())
         self.assertIn("Please enter a year.", form.season_year.errors)

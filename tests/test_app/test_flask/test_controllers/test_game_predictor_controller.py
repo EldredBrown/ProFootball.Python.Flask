@@ -29,9 +29,9 @@ def test_index_should_render_game_predictor_index_template(
         # Arrange
         fake_season_repository = MagicMock(SeasonRepository)
         seasons = (
-            Season(id=1920),
-            Season(id=1921),
-            Season(id=1922),
+            Season(year=1920),
+            Season(year=1921),
+            Season(year=1922),
         )
         fake_season_repository.get_seasons.return_value = seasons
         fake_injector.get.return_value = fake_season_repository
@@ -187,8 +187,8 @@ def test_predict_game_when_selected_guest_season_year_is_none_should_flash_error
         # Assert
         fake_injector.get.assert_called_once_with(TeamSeasonRepository)
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_flash.assert_called_once_with("Please select one guest season.", 'danger')
         fake_game_predictor_service.predict_game_score.assert_not_called()
@@ -245,8 +245,8 @@ def test_predict_game_when_selected_guest_name_is_none_should_flash_error_messag
         # Assert
         fake_injector.get.assert_called_once_with(TeamSeasonRepository)
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_flash.assert_called_once_with("Please select one guest name.", 'danger')
         fake_game_predictor_service.predict_game_score.assert_not_called()
@@ -303,8 +303,8 @@ def test_predict_game_when_selected_host_season_year_is_none_should_flash_error_
         # Assert
         fake_injector.get.assert_called_once_with(TeamSeasonRepository)
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_flash.assert_called_once_with("Please select one host season.", 'danger')
         fake_game_predictor_service.predict_game_score.assert_not_called()
@@ -361,8 +361,8 @@ def test_predict_game_when_selected_host_name_is_none_should_flash_error_message
         # Assert
         fake_injector.get.assert_called_once_with(TeamSeasonRepository)
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_flash.assert_called_once_with("Please select one host name.", 'danger')
         fake_game_predictor_service.predict_game_score.assert_not_called()
@@ -424,8 +424,8 @@ def test_predict_game_when_selected_guest_year_and_selected_guest_and_selected_h
             call(GamePredictorService),
         ])
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_game_predictor_service.predict_game_score.assert_called_once_with(
             selected_guest_name, selected_guest_season_year, selected_host_name, selected_host_season_year
@@ -491,8 +491,8 @@ def test_predict_game_when_type_error_is_not_caught_should_flash_success_message
             call(GamePredictorService),
         ])
         fake_team_season_repository.get_team_seasons_by_season.assert_has_calls([
-            call(season_id=selected_guest_season_year),
-            call(season_id=selected_host_season_year),
+            call(season_year=selected_guest_season_year),
+            call(season_year=selected_host_season_year),
         ])
         fake_game_predictor_service.predict_game_score.assert_called_once_with(
             selected_guest_name, selected_guest_season_year, selected_host_name, selected_host_season_year

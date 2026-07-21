@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% set active_page = 'index' %}
+{% block title %}Associations{% endblock %}
+
+{% block content %}
+<h1>Associations</h1>
+<p>
+    <a class="btn btn-primary" href="{{ url_for('association.create') }}">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-left">
+                Long Name
+            </th>
+            <th class="text-left">
+                Short Name
+            </th>
+            <th class="text-left">
+                Parent Name
+            </th>
+            <th class="text-right align-right-override">
+                First Season
+            </th>
+            <th class="text-right align-right-override">
+                Last Season
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for association in associations %}
+        <tr>
+            <td class="text-left">
+                {{ association.long_name }}
+            </td>
+            <td class="text-left">
+                {{ association.short_name }}
+            </td>
+            <td class="text-left">
+                {{ association.parent.short_name }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ association.first_season.year }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ association.last_season.year }}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('association.details', id=association.id) }}">Details</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('association.edit', id=association.id) }}">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('association.delete', id=association.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

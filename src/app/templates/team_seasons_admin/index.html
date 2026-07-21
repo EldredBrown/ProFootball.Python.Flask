@@ -35,7 +35,7 @@
                 {{ team_season.team.name }}
             </td>
             <td class="text-left">
-                {{ team_season.season.id }}
+                {{ team_season.season.year }}
             </td>
             <td class="text-left">
                 {{ team_season.league.short_name }}
@@ -44,7 +44,7 @@
                 {{ team_season.conference.short_name }}
             </td>
             <td class="text-left">
-                {{ team_season.division.name }}
+                {{ team_season.division.short_name }}
             </td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{{ url_for('team_season_admin.details', id=team_season.id) }}">Details</a>

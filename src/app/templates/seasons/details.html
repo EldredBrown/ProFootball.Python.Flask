@@ -9,8 +9,7 @@
 {% block footer_content %}
 <div class="row">
     <div class="col-lg-3 my-4">
-        <a class="btn btn-primary" href="{{ url_for('season.edit', id=season.id) }}">Edit</a>
-        <form class="delete-form" method="POST" action="{{ url_for('season.delete', id=season.id) }}">
+        <form class="delete-form" method="POST" action="{{ url_for('season.delete', year=season.year) }}">
             {{ form.hidden_tag() }}
             {{
                 form.submit(

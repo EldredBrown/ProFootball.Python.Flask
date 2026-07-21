@@ -17,6 +17,7 @@ class TestForms(unittest.TestCase):
 
     def test_season_year_not_provided(self):
         form = GameForm(data={
+            'league_name': "L",
             'week': 1,
             'guest_name': "Guest",
             'guest_score': 2,
@@ -30,6 +31,7 @@ class TestForms(unittest.TestCase):
     # def test_season_year_less_than_minimum(self):
     #     form = GameForm(data={
     #         'season_year': 1919,
+    #         'league_name': "L",
     #         'week': 1,
     #         'guest_name': "Guest",
     #         'guest_score': 2,
@@ -78,17 +80,21 @@ class TestForms(unittest.TestCase):
         self.assertIn("Please enter a guest name.", form.guest_name.errors)
 
     # def test_guest_name_longer_than_max_length(self):
+    #     guest_name = ''
+    #     for i in range(101):
+    #         guest_name += 'Z'
+    #
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
-    #         'guest_name': "The quick sly fox jumped over the lazy brown dog, and then he did it again.",
+    #         'guest_name': guest_name,
     #         'guest_score': 2,
     #         'host_name': "Host",
     #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
-    #     self.assertIn(f"guest_name must not be longer than 50 characters.", form.guest_name.errors)
+    #     self.assertIn(f"guest_name must not be longer than 100 characters.", form.guest_name.errors)
 
     def test_guest_score_not_provided(self):
         form = GameForm(data={
@@ -128,17 +134,21 @@ class TestForms(unittest.TestCase):
         self.assertIn("Please enter a host name.", form.host_name.errors)
 
     # def test_host_name_longer_than_max_length(self):
+    #     host_name = ''
+    #     for i in range(101):
+    #         host_name += 'Z'
+    #
     #     form = GameForm(data={
     #         'season_year': 1920,
     #         'week': 1,
     #         'guest_name': "Guest",
     #         'guest_score': 2,
-    #         'host_name': "The quick sly fox jumped over the lazy brown dog, and then he did it again.",
+    #         'host_name': host_name,
     #         'host_score': 3,
     #         'is_playoff': False,
     #     })
     #     self.assertFalse(form.validate())
-    #     self.assertIn(f"host_name must not be longer than 50 characters.", form.host_name.errors)
+    #     self.assertIn(f"host_name must not be longer than 100 characters.", form.host_name.errors)
 
     def test_host_score_not_provided(self):
         form = GameForm(data={

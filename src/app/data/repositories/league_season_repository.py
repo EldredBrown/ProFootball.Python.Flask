@@ -29,14 +29,14 @@ class LeagueSeasonRepository:
         league_seasons = self._get_league_seasons_with_navigation_properties()
         return league_seasons.filter_by(league_id=league_id).all()
 
-    def get_league_seasons_by_season(self, season_id: int) -> List[LeagueSeason]:
+    def get_league_seasons_by_season(self, season_year: int) -> List[LeagueSeason]:
         """
         Gets all the league_seasons in the data store.
 
         :return: A list of all fetched league_seasons.
         """
         league_seasons = self._get_league_seasons_with_navigation_properties()
-        return league_seasons.filter_by(season_id=season_id).all()
+        return league_seasons.filter_by(season_year=season_year).all()
 
     def get_league_season(self, id: int) -> Optional[LeagueSeason]:
         """
@@ -51,19 +51,19 @@ class LeagueSeasonRepository:
             return None
         return league_seasons.get(id)
 
-    def get_league_season_by_league_and_season(self, league_id: int, season_id: int) -> Optional[LeagueSeason]:
+    def get_league_season_by_league_and_season(self, league_id: int, season_year: int) -> Optional[LeagueSeason]:
         """
         Gets the league_season in the data store with the specified league_name and season_year.
 
         :param league_id: The league_name of the league_season to fetch.
-        :param season_id: The season_year of the league_season to fetch.
+        :param season_year: The season_year of the league_season to fetch.
 
         :return: The fetched league_season.
         """
         league_seasons = self._get_league_seasons_with_navigation_properties()
         if len(league_seasons.all()) == 0:
             return None
-        return league_seasons.filter_by(league_id=league_id, season_id=season_id).first()
+        return league_seasons.filter_by(league_id=league_id, season_year=season_year).first()
 
     def add_league_season(self, league_season: LeagueSeason) -> LeagueSeason:
         """
@@ -139,5 +139,5 @@ class LeagueSeasonRepository:
     def _set_values_of_league_season_in_db(self, league_season: LeagueSeason) -> LeagueSeason | None:
         league_season_in_db = self.get_league_season(league_season.id)
         league_season_in_db.league_id = league_season.league_id
-        league_season_in_db.season_id = league_season.season_id
+        league_season_in_db.season_year = league_season.season_year
         return league_season_in_db

@@ -17,6 +17,12 @@
                 Season
             </th>
             <th class="text-right align-right-override">
+                Weeks Scheduled
+            </th>
+            <th class="text-right align-right-override">
+                Weeks Completed
+            </th>
+            <th class="text-right align-right-override">
                 Total Games
             </th>
             <th class="text-right align-right-override">
@@ -35,7 +41,13 @@
                 {{ league_season.league.short_name }}
             </td>
             <td class="text-left">
-                {{ league_season.season.id }}
+                {{ league_season.season.year }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ league_season.num_of_weeks_scheduled }}
+            </td>
+            <td class="text-right align-right-override">
+                {{ league_season.num_of_weeks_completed }}
             </td>
             <td class="text-right align-right-override">
                 {{ league_season.total_games }}

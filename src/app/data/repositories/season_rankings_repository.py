@@ -12,11 +12,11 @@ class SeasonRankingsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def get_offensive_rankings_by_season(self, season_id: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
-        if season_id is None:
+    def get_offensive_rankings_by_season(self, season_year: Optional[int]) -> List[OffensiveRankingsTeamSeason]:
+        if season_year is None:
             return []
 
-        results = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive @season_id = {season_id};")
+        results = sqla.callproc(f"EXEC dbo.sp_GetRankingsOffensive @season_year = {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -33,11 +33,11 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_defensive_rankings_by_season(self, season_id: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
-        if season_id is None:
+    def get_defensive_rankings_by_season(self, season_year: Optional[int]) -> List[DefensiveRankingsTeamSeason]:
+        if season_year is None:
             return []
 
-        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive @season_id = {season_id};")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsDefensive @season_year = {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []
@@ -54,10 +54,10 @@ class SeasonRankingsRepository:
             rankings_team_seasons.append(rts)
         return rankings_team_seasons
 
-    def get_total_rankings_by_season(self, season_id: Optional[int]) -> List[TotalRankingsTeamSeason]:
-        if season_id is None:
+    def get_total_rankings_by_season(self, season_year: Optional[int]) -> List[TotalRankingsTeamSeason]:
+        if season_year is None:
             return []
-        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsTotal @season_id = {season_id};")
+        result = sqla.callproc(f"EXEC dbo.sp_GetRankingsTotal @season_year = {season_year};")
 
         # Process results if the stored procedure returns data
         rankings_team_seasons = []

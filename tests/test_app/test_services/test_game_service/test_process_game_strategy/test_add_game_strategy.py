@@ -35,7 +35,7 @@ def test_process_game_when_game_arg_is_not_none_and_guest_season_is_not_found_sh
         test_strategy
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+    game = Game(season_year=1920, guest_name="Guest", host_name="Host")
 
     guest = Team(id=1, name="Guest")
     host = Team(id=2, name="Host")
@@ -48,7 +48,7 @@ def test_process_game_when_game_arg_is_not_none_and_guest_season_is_not_found_sh
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_strategy.process_game(game)
-        assert err.value.args[0] == f"No team season found for guest '{game.guest_name}' in year {game.season_id}"
+        assert err.value.args[0] == f"No team season found for guest '{game.guest_name}' in year {game.season_year}"
 
     # Assert
     test_strategy.team_repository.get_team_by_name.assert_has_calls([
@@ -56,8 +56,8 @@ def test_process_game_when_game_arg_is_not_none_and_guest_season_is_not_found_sh
         call(game.host_name),
     ])
     test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-        call(guest.id, game.season_id),
-        call(host.id, game.season_id),
+        call(guest.id, game.season_year),
+        call(host.id, game.season_year),
     ])
 
 
@@ -66,20 +66,20 @@ def test_process_game_when_guest_season_is_found_and_host_season_is_not_found_sh
         test_strategy
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", host_name="Host")
+    game = Game(season_year=1920, guest_name="Guest", host_name="Host")
 
     guest = Team(id=1, name="Guest")
     host = Team(id=2, name="Host")
     test_strategy.team_repository.get_team_by_name.side_effect = [guest, host]
 
-    guest_season = TeamSeason(team_id=1, season_id=1920)
+    guest_season = TeamSeason(team_id=1, season_year=1920)
     host_season = None
     test_strategy.team_season_repository.get_team_season_by_team_and_season.side_effect = [guest_season, host_season]
 
     # Act
     with pytest.raises(EntityNotFoundError) as err:
         test_strategy.process_game(game)
-        assert err.value.args[0] == f"No team season found for host '{game.host_name}' in year {game.season_id}"
+        assert err.value.args[0] == f"No team season found for host '{game.host_name}' in year {game.season_year}"
 
     # Assert
     test_strategy.team_repository.get_team_by_name.assert_has_calls([
@@ -87,8 +87,8 @@ def test_process_game_when_guest_season_is_found_and_host_season_is_not_found_sh
         call(game.host_name),
     ])
     test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-        call(guest.id, game.season_id),
-        call(host.id, game.season_id),
+        call(guest.id, game.season_year),
+        call(host.id, game.season_year),
     ])
 
 
@@ -106,7 +106,7 @@ def test_process_game_when_guest_and_host_seasons_found_should_update_team_seaso
         expected_host_wins, expected_host_losses, expected_ties
 ):
     # Arrange
-    game = Game(season_id=1920, guest_name="Guest", guest_score=guest_score, host_name="Host", host_score=host_score)
+    game = Game(season_year=1920, guest_name="Guest", guest_score=guest_score, host_name="Host", host_score=host_score)
 
     guest = Team(id=1, name="Guest")
     host = Team(id=2, name="Host")
@@ -140,8 +140,8 @@ def test_process_game_when_guest_and_host_seasons_found_should_update_team_seaso
         call(game.host_name),
     ])
     test_strategy.team_season_repository.get_team_season_by_team_and_season.assert_has_calls([
-        call(guest.id, game.season_id),
-        call(host.id, game.season_id),
+        call(guest.id, game.season_year),
+        call(host.id, game.season_year),
     ])
 
     assert fake_guest_season.games == 1

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Association</h1>
+
+    {% block header_content %}{% endblock %}
+    <hr>
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">
+                Long Name
+            </dt>
+            <dd class="col-sm-10">
+                {{ association.long_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Short Name
+            </dt>
+            <dd class="col-sm-10">
+                {{ association.short_name }}
+            </dd>
+            <dt class="col-sm-2">
+                Parent Name
+            </dt>
+            <dd class="col-sm-10">
+                {{ association.parent.short_name }}
+            </dd>
+            <dt class="col-sm-2">
+                First Season
+            </dt>
+            <dd class="col-sm-10">
+                {{ association.first_season.year }}
+            </dd>
+            <dt class="col-sm-2">
+                Last Season
+            </dt>
+            <dd class="col-sm-10">
+                {{ association.last_season.year }}
+            </dd>
+        </dl>
+    </div>
+
+    <div>
+        {% block footer_content %}{% endblock %}
+        <p>
+            <a href="{{ url_for('association.index') }}">Back to List</a>
+        </p>
+    </div>
+{% endblock %}

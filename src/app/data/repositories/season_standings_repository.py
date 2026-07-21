@@ -9,9 +9,9 @@ class SeasonStandingsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def get_season_standings_by_season(self, season_id: int, group_by_division: bool=False)\
+    def get_season_standings_by_season(self, season_year: int, group_by_division: bool=False)\
             -> List[StandingsTeamSeason]:
-        querystring = f"EXEC sp_GetSeasonStandings @season_id = {season_id}, @group_by_division = {group_by_division}"
+        querystring = f"EXEC sp_GetSeasonStandings @season_year = {season_year}, @group_by_division = {group_by_division}"
         result = sqla.callproc(querystring)
 
         # Process results if the stored procedure returns data

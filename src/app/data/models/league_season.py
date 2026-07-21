@@ -12,20 +12,22 @@ class LeagueSeason(sqla.Model):
     __tablename__ = 'LeagueSeason'
 
     id = sqla.Column(sqla.Integer, primary_key=True, autoincrement=True, nullable=False)
-    league_id = sqla.Column(sqla.Integer, sqla.ForeignKey('League.id'), nullable=False)
-    season_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.id'), nullable=False)
+    league_id = sqla.Column(sqla.Integer, sqla.ForeignKey('Association.id'), nullable=False)
+    season_year = sqla.Column(sqla.Integer, sqla.ForeignKey('Season.year'), nullable=False)
+    num_of_weeks_scheduled = sqla.Column(sqla.Integer, nullable=False, default=0)
+    num_of_weeks_completed = sqla.Column(sqla.Integer, nullable=False, default=0)
     total_games = sqla.Column(sqla.Integer, nullable=False, default=0)
     total_points = sqla.Column(sqla.Integer, nullable=False, default=0)
     average_points = sqla.Column(sqla.Numeric(precision=18, scale=16), nullable=True)
 
     __table_args__ = (
-        sqla.UniqueConstraint('league_id', 'season_id', name='uq_league_season'),
+        sqla.UniqueConstraint('league_id', 'season_year', name='uq_league_season'),
     )
 
-    league = sqla.relationship('League', back_populates='league_seasons')
+    league = sqla.relationship('Association', back_populates='league_seasons')
     season = sqla.relationship('Season', back_populates='league_seasons')
 
-    @validates('league_id', 'season_id')
+    @validates('league_id', 'season_year')
     def validate_not_empty(self, key, value):
         if not value and value != 0:
             raise ValueError(f"{key} is required.")

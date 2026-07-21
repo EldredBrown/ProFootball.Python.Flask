@@ -29,16 +29,13 @@ def create_app():
     # Flask-Migrate
     Migrate(app, sqla, render_as_batch=True)
 
-    from app.flask import (home_controller, season_controller, league_controller, conference_controller,
-                           division_controller, team_controller, game_controller, league_season_controller,
-                           team_season_admin_controller, team_season_controller, season_standings_controller,
-                           season_rankings_controller, game_predictor_controller)
+    from app.flask import (home_controller, season_controller, association_controller, team_controller, game_controller,
+                           league_season_controller, team_season_admin_controller, team_season_controller,
+                           season_standings_controller, season_rankings_controller, game_predictor_controller)
 
     app.register_blueprint(home_controller.blueprint, url_prefix='/')
     app.register_blueprint(season_controller.blueprint, url_prefix='/seasons')
-    app.register_blueprint(league_controller.blueprint, url_prefix='/leagues')
-    app.register_blueprint(conference_controller.blueprint, url_prefix='/conferences')
-    app.register_blueprint(division_controller.blueprint, url_prefix='/divisions')
+    app.register_blueprint(association_controller.blueprint, url_prefix='/associations')
     app.register_blueprint(team_controller.blueprint, url_prefix='/teams')
     app.register_blueprint(game_controller.blueprint, url_prefix='/games')
     app.register_blueprint(league_season_controller.blueprint, url_prefix='/league_seasons')
@@ -54,10 +51,8 @@ def create_app():
 
 
 def configure(binder):
-    from app.data.repositories.conference_repository import ConferenceRepository
-    from app.data.repositories.division_repository import DivisionRepository
+    from app.data.repositories.association_repository import AssociationRepository
     from app.data.repositories.game_repository import GameRepository
-    from app.data.repositories.league_repository import LeagueRepository
     from app.data.repositories.league_season_repository import LeagueSeasonRepository
     from app.data.repositories.league_season_totals_repository import LeagueSeasonTotalsRepository
     from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
@@ -72,10 +67,8 @@ def configure(binder):
     from app.services.game_service.process_game_strategy.process_game_strategy_factory import ProcessGameStrategyFactory
     from app.services.weekly_update_service.weekly_update_service import WeeklyUpdateService
 
-    binder.bind(ConferenceRepository, to=ConferenceRepository, scope=singleton)
-    binder.bind(DivisionRepository, to=DivisionRepository, scope=singleton)
+    binder.bind(AssociationRepository, to=AssociationRepository, scope=singleton)
     binder.bind(GameRepository, to=GameRepository, scope=singleton)
-    binder.bind(LeagueRepository, to=LeagueRepository, scope=singleton)
     binder.bind(LeagueSeasonRepository, to=LeagueSeasonRepository, scope=singleton)
     binder.bind(LeagueSeasonTotalsRepository, to=LeagueSeasonTotalsRepository, scope=singleton)
     binder.bind(SeasonRepository, to=SeasonRepository, scope=singleton)

@@ -38,25 +38,25 @@ class ProcessGameStrategy(ABC):
         """
         guard.raise_if_none(game, f"{type(self).__name__}.process_game: game")
 
-        season_id = game.season_id
+        season_year = game.season_year
 
         guest = self.team_repository.get_team_by_name(game.guest_name)
-        guest_season = self.team_season_repository.get_team_season_by_team_and_season(guest.id, season_id)
+        guest_season = self.team_season_repository.get_team_season_by_team_and_season(guest.id, season_year)
         if guest_season is None:
-            # raise EntityNotFoundError(f"No team season found for guest '{game.guest_name}' in year {season_id}")
+            # raise EntityNotFoundError(f"No team season found for guest '{game.guest_name}' in year {season_year}")
             pass
 
         host = self.team_repository.get_team_by_name(game.host_name)
-        host_season = self.team_season_repository.get_team_season_by_team_and_season(host.id, season_id)
+        host_season = self.team_season_repository.get_team_season_by_team_and_season(host.id, season_year)
         if host_season is None:
-            # raise EntityNotFoundError(f"No team season found for host '{game.host_name}' in year {season_id}")
+            # raise EntityNotFoundError(f"No team season found for host '{game.host_name}' in year {season_year}")
             pass
 
         # The following if block is only a temporary patch to allow this app to work through the two seasons of the APFA,
         # when member teams were permitted to play counting games against non-member opponents. This patch will be removed
         # as soon as I progress to that season where this practice was no longer permitted.
         if guest_season is None and host_season is None:
-            raise EntityNotFoundError(f"No team season found for either guest '{game.guest_name}' or host '{game.host_name}' in year {season_id}")
+            raise EntityNotFoundError(f"No team season found for either guest '{game.guest_name}' or host '{game.host_name}' in year {season_year}")
 
         self._edit_win_loss_data(guest_season, host_season, game)
         self._edit_scoring_data(guest_season, host_season, game.guest_score, game.host_score)

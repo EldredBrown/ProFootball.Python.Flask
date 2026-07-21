@@ -44,9 +44,9 @@ def create() -> Response | str:
             flash(f"Item {form.league_name.data}, {form.season_year.data} has been successfully submitted.", 'success')
             return redirect(url_for('league_season.index'))
         except ValueError as err:
-            return _handle_error(err, 'league_seasons/create.html', form)
+            return _handle_value_error(err, 'league_seasons/create.html', form)
         except IntegrityError as err:
-            return _handle_error(err, 'league_seasons/create.html', form)
+            return _handle_integrity_error(err, 'INSERT', 'league_seasons/create.html', form)
     else:
         if form.errors:
             flash(f"{form.errors}", 'danger')
@@ -71,9 +71,14 @@ def edit(id: int) -> Response | str:
                 )
                 return redirect(url_for('league_season.details', id=id))
             except ValueError as err:
-                return _handle_error(err, 'league_seasons/edit.html', form, league_season=old_league_season_copy)
+                return _handle_value_error(
+                    err, 'league_seasons/edit.html', form, league_season=old_league_season_copy
+                )
             except IntegrityError as err:
-                return _handle_error(err, 'league_seasons/edit.html', form, league_season=old_league_season_copy)
+                return _handle_integrity_error(
+                    err, 'UPDATE', 'league_seasons/edit.html', form,
+                    league_season=old_league_season_copy
+                )
             except IndexError:
                 abort(404)
         else:
@@ -100,7 +105,7 @@ def delete(id: int) -> Response | str:
         if request.method == 'POST':
             league_season_repository.delete_league_season(id)
             flash(
-                f"LeagueSeason {league_season.league.short_name}. {league_season.season.id} has been successfully deleted.",
+                f"LeagueSeason {league_season.league.short_name}. {league_season.season.year} has been successfully deleted.",
                 'success'
             )
             return redirect(url_for('league_season.index'))
@@ -112,13 +117,17 @@ def delete(id: int) -> Response | str:
 
 def _get_form_data_from_model(form: LeagueSeasonForm, league_season: LeagueSeason) -> None:
     form.league_name.data = league_season.league.short_name
-    form.season_year.data = league_season.season.id
+    form.season_year.data = league_season.season.year
+    form.num_of_weeks_scheduled.data = league_season.num_of_weeks_scheduled
+    form.num_of_weeks_completed.data = league_season.num_of_weeks_completed
 
 
 def _get_kwargs_from_form(form: LeagueSeasonForm, id: int=None) -> dict[str, Any]:
     kwargs = {
         'league_name': str(form.league_name.data),
         'season_year': int(form.season_year.data),
+        'num_of_weeks_scheduled': int(form.num_of_weeks_scheduled.data),
+        'num_of_weeks_completed': int(form.num_of_weeks_completed.data),
     }
     if id:
         kwargs['id'] = id
@@ -131,6 +140,29 @@ def _get_model_from_form(form: LeagueSeasonForm, id: int=None) -> LeagueSeason:
     return league_season
 
 
-def _handle_error(err: Any, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None) -> str:
+def _handle_value_error(err: Any, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name, form=form, league_season=league_season)
+    return render_template(template_name, league_season=league_season, form=form)
+
+
+def _handle_integrity_error(
+        err: Any, sql_operation: str, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None
+) -> str:
+    if str(err.args[0]).find("Violation of PRIMARY KEY constraint") != -1:
+        err_msg = "A LeagueSeason with the same id already exists."
+    elif str(err.args[0]).find("Violation of UNIQUE KEY constraint 'UQ_LeagueSeason_League_Season'") != -1:
+        err_msg = "A LeagueSeason with the same league_id and season_year already exists."
+    elif str(err.args[0]).find(f"The {sql_operation} statement conflicted with the FOREIGN KEY constraint 'FK_LeagueSeason_Association_LeagueId'") != -1:
+        err_msg = "FOREIGN KEY constraint violation on league name."
+    elif str(err.args[0]).find(f"The {sql_operation} statement conflicted with the FOREIGN KEY constraint 'FK_LeagueSeason_Season_SeasonYear'") != -1:
+        err_msg = "FOREIGN KEY constraint violation on season year."
+    else:
+        err_msg = "An unexpected error occurred."
+
+    flash(err_msg, 'danger')
+    return render_template(template_name, league_season=league_season, form=form)
+
+
+def _handle_value_error(err: Any, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None) -> str:
+    flash(str(err), 'danger')
+    return render_template(template_name, league_season=league_season, form=form)

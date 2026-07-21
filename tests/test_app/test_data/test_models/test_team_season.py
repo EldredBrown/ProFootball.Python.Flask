@@ -27,7 +27,7 @@ def test_winning_percentage_should_return_correct_winning_percentage(
     # Arrange
     test_team_season = TeamSeason(
         team_id=1,
-        season_id=1920,
+        season_year=1920,
         league_id=1,
         games=test_games,
         wins=test_wins,
@@ -49,7 +49,7 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
 
     test_team_season = TeamSeason(
         team_id=1,
-        season_id=1920,
+        season_year=1920,
         league_id=1,
         points_for = 0,
         points_against = 0,
@@ -84,7 +84,7 @@ def test_calculate_expected_wins_and_losses_when_expected_winning_percentage_is_
 
     test_team_season = TeamSeason(
         team_id=1,
-        season_id=1920,
+        season_year=1920,
         league_id=1,
         games=2,
         points_for = 1,
@@ -156,7 +156,7 @@ def test_team_season_update_rankings_should_update_rankings_to_correct_values(
     # Arrange
     test_team_season = TeamSeason(
         team_id=1,
-        season_id=1920,
+        season_year=1920,
         league_id=1,
         games=test_games,
         points_for=test_points_for,

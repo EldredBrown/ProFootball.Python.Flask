@@ -17,7 +17,19 @@
                 Season
             </dt>
             <dd class="col-sm-10">
-                {{ league_season.season.id }}
+                {{ league_season.season.year }}
+            </dd>
+            <dt class="col-sm-2">
+                Weeks Scheduled
+            </dt>
+            <dd class="col-sm-10">
+                {{ league_season.num_of_weeks_scheduled }}
+            </dd>
+            <dt class="col-sm-2">
+                Weeks Completed
+            </dt>
+            <dd class="col-sm-10">
+                {{ league_season.num_of_weeks_completed }}
             </dd>
             <dt class="col-sm-2">
                 Total Games

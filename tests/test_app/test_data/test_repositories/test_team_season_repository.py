@@ -30,17 +30,17 @@ def test_get_team_seasons_should_get_team_seasons(test_app, test_repo):
         team_seasons_in = [
             TeamSeason(
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
         ]
@@ -63,47 +63,47 @@ def test_get_team_seasons_by_team_when_team_id_is_none_should_get_empty_list(tes
         team_seasons_in = (
             TeamSeason(
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -128,47 +128,47 @@ def test_get_team_seasons_by_team_when_team_id_is_not_none_should_get_team_seaso
         team_seasons_in = (
             TeamSeason(
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -185,7 +185,7 @@ def test_get_team_seasons_by_team_when_team_id_is_not_none_should_get_team_seaso
         assert team_seasons_out == [ts for ts in team_seasons_in if ts.team_id == team_id]
 
 
-def test_get_team_seasons_by_season_when_season_id_is_none_should_get_empty_list(test_app, test_repo):
+def test_get_team_seasons_by_season_when_season_year_is_none_should_get_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
@@ -193,47 +193,47 @@ def test_get_team_seasons_by_season_when_season_id_is_none_should_get_empty_list
         team_seasons_in = (
             TeamSeason(
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -242,13 +242,13 @@ def test_get_team_seasons_by_season_when_season_id_is_none_should_get_empty_list
         sqla.session.commit()
 
         # Act
-        team_seasons_out = test_repo.get_team_seasons_by_season(season_id=None)
+        team_seasons_out = test_repo.get_team_seasons_by_season(season_year=None)
 
     # Assert
     assert team_seasons_out == []
 
 
-def test_get_team_seasons_by_season_when_season_id_is_not_none_should_get_team_seasons_for_the_specified_season_id(
+def test_get_team_seasons_by_season_when_season_year_is_not_none_should_get_team_seasons_for_the_specified_season_year(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -258,47 +258,47 @@ def test_get_team_seasons_by_season_when_season_id_is_not_none_should_get_team_s
         team_seasons_in = (
             TeamSeason(
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 team_id=1,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=2,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
             TeamSeason(
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -306,13 +306,13 @@ def test_get_team_seasons_by_season_when_season_id_is_not_none_should_get_team_s
             sqla.session.add(team_season)
         sqla.session.commit()
 
-        season_id = 1921
+        season_year = 1921
 
         # Act
-        team_seasons_out = test_repo.get_team_seasons_by_season(season_id=season_id)
+        team_seasons_out = test_repo.get_team_seasons_by_season(season_year=season_year)
 
         # Assert
-        assert team_seasons_out == [ts for ts in team_seasons_in if ts.season_id == season_id]
+        assert team_seasons_out == [ts for ts in team_seasons_in if ts.season_year == season_year]
 
 
 def test_get_team_season_when_team_seasons_is_empty_should_return_none(test_app, test_repo):
@@ -338,19 +338,19 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_not_f
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
         )
@@ -376,19 +376,19 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_found
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
         )
@@ -411,7 +411,7 @@ def test_get_team_season_by_team_and_season_when_team_seasons_is_empty_should_re
         db_init.init_db()
 
         # Act
-        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=1, season_id=1920)
+        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=1, season_year=1920)
 
     # Assert
     assert team_season_out is None
@@ -428,19 +428,19 @@ def test_get_team_season_by_league_and_season_when_team_seasons_is_not_empty_and
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -449,7 +449,7 @@ def test_get_team_season_by_league_and_season_when_team_seasons_is_not_empty_and
         sqla.session.commit()
 
         # Act
-        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=-1, season_id=1919)
+        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=-1, season_year=1919)
 
     # Assert
     assert team_season_out is None
@@ -466,19 +466,19 @@ def test_get_team_season_by_team_and_season_when_team_seasons_is_not_empty_and_t
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -487,7 +487,7 @@ def test_get_team_season_by_team_and_season_when_team_seasons_is_not_empty_and_t
         sqla.session.commit()
 
         # Act
-        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=2, season_id=1921)
+        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=2, season_year=1921)
 
     # Assert
     assert team_season_out is team_seasons_in[1]
@@ -501,7 +501,7 @@ def test_add_team_season_when_no_integrity_error_caught_should_add_team_season(
     # Arrange
     team_season_in = TeamSeason(
         team_id=1,
-        season_id=1920
+        season_year=1920
     )
 
     # Act
@@ -521,7 +521,7 @@ def test_add_team_season_when_integrity_error_caught_should_rollback_transaction
     # Arrange
     team_season_in = TeamSeason(
         team_id=1,
-        season_id=1920
+        season_year=1920
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -560,15 +560,15 @@ def test_add_team_seasons_when_team_seasons_arg_is_not_empty_and_no_integrity_er
     team_seasons_in = (
         TeamSeason(
             team_id=1,
-            season_id=1920,
+            season_year=1920,
         ),
         TeamSeason(
             team_id=2,
-            season_id=1921,
+            season_year=1921,
         ),
         TeamSeason(
             team_id=3,
-            season_id=1922,
+            season_year=1922,
         ),
     )
 
@@ -594,15 +594,15 @@ def test_add_team_seasons_when_team_seasons_arg_is_not_empty_and_integrity_error
     team_seasons_in = (
         TeamSeason(
             team_id=1,
-            season_id=1920,
+            season_year=1920,
         ),
         TeamSeason(
             team_id=2,
-            season_id=1921,
+            season_year=1921,
         ),
         TeamSeason(
             team_id=3,
-            season_id=1922,
+            season_year=1922,
         ),
     )
     fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
@@ -629,19 +629,19 @@ def test_team_season_exists_when_team_season_does_not_exist_should_return_false(
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -665,19 +665,19 @@ def test_team_season_exists_when_team_season_exists_should_return_true(test_app,
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -692,7 +692,7 @@ def test_team_season_exists_when_team_season_exists_should_return_true(test_app,
     assert team_season_exists
 
 
-def test_team_season_exists_with_team_id_and_season_id_when_team_season_does_not_exist_should_return_false(
+def test_team_season_exists_with_team_id_and_season_year_when_team_season_does_not_exist_should_return_false(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -703,19 +703,19 @@ def test_team_season_exists_with_team_id_and_season_id_when_team_season_does_not
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -724,13 +724,13 @@ def test_team_season_exists_with_team_id_and_season_id_when_team_season_does_not
         sqla.session.commit()
 
         # Act
-        team_season_exists = test_repo.team_season_exists_with_team_id_and_season_id(team_id=-1, season_id=1919)
+        team_season_exists = test_repo.team_season_exists_with_team_id_and_season_year(team_id=-1, season_year=1919)
 
     # Assert
     assert not team_season_exists
 
 
-def test_team_season_exists_with_team_name_and_season_id_when_team_season_exists_should_return_true(
+def test_team_season_exists_with_team_name_and_season_year_when_team_season_exists_should_return_true(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -741,19 +741,19 @@ def test_team_season_exists_with_team_name_and_season_id_when_team_season_exists
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -762,7 +762,7 @@ def test_team_season_exists_with_team_name_and_season_id_when_team_season_exists
         sqla.session.commit()
 
         # Act
-        team_season_exists = test_repo.team_season_exists_with_team_id_and_season_id(team_id=2, season_id=1921)
+        team_season_exists = test_repo.team_season_exists_with_team_id_and_season_year(team_id=2, season_year=1921)
 
     # Assert
     assert team_season_exists
@@ -782,7 +782,7 @@ def test_update_team_season_when_no_team_season_exists_with_id_should_return_tea
     test_repo = TeamSeasonRepository()
     team_season = MagicMock(TeamSeason)
     team_season.team_id = 1
-    team_season.season_id = 1920
+    team_season.season_year = 1920
     team_season.league_id = 1
     try:
         team_season_updated = test_repo.update_team_season(team_season)
@@ -794,7 +794,7 @@ def test_update_team_season_when_no_team_season_exists_with_id_should_return_tea
     fake_try_commit.assert_not_called()
     assert isinstance(team_season_updated, TeamSeason)
     assert team_season_updated.team_id == team_season.team_id
-    assert team_season_updated.season_id == team_season.season_id
+    assert team_season_updated.season_year == team_season.season_year
     assert team_season_updated.league_id == team_season.league_id
     assert team_season_updated.conference_id == team_season.conference_id
     assert team_season_updated.division_id == team_season.division_id
@@ -833,7 +833,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1,
                 conference_id=1,
                 division_id=1,
@@ -856,7 +856,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=2,
                 conference_id=2,
                 division_id=2,
@@ -879,7 +879,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=3,
                 conference_id=3,
                 division_id=3,
@@ -907,7 +907,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
         new_team_season = TeamSeason(
             id=2,
             team_id=4,
-            season_id=4,
+            season_year=4,
             league_id=4,
             conference_id=4,
             division_id=4,
@@ -940,7 +940,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
     fake_try_commit.assert_called_once()
     assert isinstance(team_season_updated, TeamSeason)
     assert team_season_updated.team_id == new_team_season.team_id
-    assert team_season_updated.season_id == new_team_season.season_id
+    assert team_season_updated.season_year == new_team_season.season_year
     assert team_season_updated.league_id == new_team_season.league_id
     assert team_season_updated.conference_id == new_team_season.conference_id
     assert team_season_updated.division_id == new_team_season.division_id
@@ -980,7 +980,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1,
                 conference_id=1,
                 division_id=1,
@@ -1003,7 +1003,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=2,
                 conference_id=2,
                 division_id=2,
@@ -1026,7 +1026,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=3,
                 conference_id=3,
                 division_id=3,
@@ -1054,7 +1054,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
         new_team_season = TeamSeason(
             id=2,
             team_id=4,
-            season_id=4,
+            season_year=4,
             league_id=4,
             conference_id=4,
             division_id=4,
@@ -1100,19 +1100,19 @@ def test_delete_team_season_when_team_season_does_not_exist_should_return_none_a
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -1142,19 +1142,19 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_not_caug
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )
@@ -1187,19 +1187,19 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_caught_s
             TeamSeason(
                 id=1,
                 team_id=1,
-                season_id=1920,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_id=1921,
+                season_year=1921,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_id=1922,
+                season_year=1922,
                 league_id=1
             ),
         )

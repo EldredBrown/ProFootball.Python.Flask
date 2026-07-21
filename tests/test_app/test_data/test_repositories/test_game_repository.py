@@ -29,7 +29,7 @@ def test_get_games_should_get_games(test_app, test_repo):
 
         games_in = [
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -38,7 +38,7 @@ def test_get_games_should_get_games(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -47,7 +47,7 @@ def test_get_games_should_get_games(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -67,14 +67,14 @@ def test_get_games_should_get_games(test_app, test_repo):
     assert games_out == games_in
 
 
-def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list(test_app, test_repo):
+def test_get_games_by_season_when_season_year_arg_is_none_should_return_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -83,7 +83,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -92,7 +92,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -101,7 +101,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -110,7 +110,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -119,7 +119,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -128,7 +128,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -137,7 +137,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -146,7 +146,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -167,7 +167,7 @@ def test_get_games_by_season_when_season_id_arg_is_none_should_return_empty_list
     assert games_out == []
 
 
-def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_for_specified_season_id(
+def test_get_games_by_season_when_season_year_arg_is_not_none_should_return_games_for_specified_season_year(
         test_app, test_repo
 ):
     with test_app.app_context():
@@ -176,7 +176,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -185,7 +185,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -194,7 +194,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -203,7 +203,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -212,7 +212,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -221,7 +221,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1921,
+                season_year=1921,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -230,7 +230,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -239,7 +239,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -248,7 +248,7 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
                 is_playoff=False
             ),
             Game(
-                season_id=1922,
+                season_year=1922,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -267,317 +267,153 @@ def test_get_games_by_season_when_season_id_arg_is_not_none_should_return_games_
 
     # Assert
     for game in games_out:
-        assert game.season_id == filter_year
+        assert game.season_year == filter_year
 
 
-def test_get_games_by_season_and_week_when_season_id_arg_is_none_should_return_empty_list(
+def test_get_games_by_season_league_and_week_when_args_are_none_should_return_empty_list(
         test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
 
-        games_in = (
-            Game(
-                season_id=1920,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
+        games_in = []
+        for s in range(1920, 1923):
+            for l in range(1, 4):
+                for w in range(1, 4):
+                    for t in range(1, 4):
+                        game = Game(
+                            season_year=s,
+                            league_id=l,
+                            week=w,
+                            guest_name=f"Guest {t}",
+                            guest_score=0,
+                            host_name=f"Guest {t}",
+                            host_score=0
+                        )
+                        games_in.append(game)
+                        sqla.session.add(game)
         sqla.session.commit()
 
         # Act
-        filter_year = None
-        filter_week = 2
-        games_out = test_repo.get_games_by_season_and_week(filter_year, filter_week)
-
-    # Assert
-    assert games_out == []
-
-
-def test_get_games_by_season_and_week_when_season_id_arg_is_not_none_and_week_arg_is_none_should_return_empty_list(
-        test_app, test_repo
-):
-    with test_app.app_context():
-        # Arrange
-        db_init.init_db()
-
-        games_in = (
-            Game(
-                season_id=1920,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
-
-        # Act
-        filter_year = 1921
+        season_year = None
+        league_id = None
         filter_week = None
-        games_out = test_repo.get_games_by_season_and_week(filter_year, filter_week)
+        games_out = test_repo.get_games_by_season_league_and_week(season_year, league_id, filter_week)
 
     # Assert
     assert games_out == []
 
 
-def test_get_games_by_season_and_week_when_args_are_not_none_should_return_games_for_specified_season_id_and_week(
+def test_get_games_by_season_league_and_week_when_season_year_arg_is_not_none_should_return_all_games_for_matching_season(
         test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
         db_init.init_db()
 
-        games_in = (
-            Game(
-                season_id=1920,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1920,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1921,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=1,
-                guest_name="St. Paul Ideals",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=48,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=2,
-                guest_name="Wheeling Stogies",
-                guest_score=0,
-                host_name="Akron Pros",
-                host_score=43,
-                is_playoff=False
-            ),
-            Game(
-                season_id=1922,
-                week=3,
-                guest_name="Muncie Flyers",
-                guest_score=0,
-                host_name="Rock Island Independents",
-                host_score=45,
-                is_playoff=False
-            ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
+        games_in = []
+        for s in range(1920, 1923):
+            for l in range(1, 4):
+                for w in range(1, 4):
+                    for t in range(1, 4):
+                        game = Game(
+                            season_year=s,
+                            league_id=l,
+                            week=w,
+                            guest_name=f"Guest {t}",
+                            guest_score=0,
+                            host_name=f"Guest {t}",
+                            host_score=0
+                        )
+                        games_in.append(game)
+                        sqla.session.add(game)
         sqla.session.commit()
 
         # Act
-        filter_year = 1921
-        filter_week = 2
-        games_out = test_repo.get_games_by_season_and_week(filter_year, filter_week)
+        season_year = 1922
+        league_id = None
+        filter_week = None
+        games_out = test_repo.get_games_by_season_league_and_week(season_year, league_id, filter_week)
 
-    # Assert
-    for game in games_out:
-        assert game.season_id == filter_year and game.week == filter_week
+        # Assert
+        assert games_out == [
+            g for g in games_in if g.season_year == season_year
+        ]
+
+
+def test_get_games_by_season_league_and_week_when_season_year_and_league_id_args_are_not_none_should_return_all_games_for_matching_season_and_league(
+        test_app, test_repo
+):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = []
+        for s in range(1920, 1923):
+            for l in range(1, 4):
+                for w in range(1, 4):
+                    for t in range(1, 4):
+                        game = Game(
+                            season_year=s,
+                            league_id=l,
+                            week=w,
+                            guest_name=f"Guest {t}",
+                            guest_score=0,
+                            host_name=f"Guest {t}",
+                            host_score=0
+                        )
+                        games_in.append(game)
+                        sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        season_year = 1922
+        league_id = 3
+        filter_week = None
+        games_out = test_repo.get_games_by_season_league_and_week(season_year, league_id, filter_week)
+
+        # Assert
+        assert games_out == [
+            g for g in games_in if g.season_year == season_year and g.league_id == league_id
+        ]
+
+
+def test_get_games_by_season_league_and_week_when_all_args_are_not_none_should_return_all_games_for_matching_season_and_league_and_week(
+        test_app, test_repo
+):
+    with test_app.app_context():
+        # Arrange
+        db_init.init_db()
+
+        games_in = []
+        for s in range(1920, 1923):
+            for l in range(1, 4):
+                for w in range(1, 4):
+                    for t in range(1, 4):
+                        game = Game(
+                            season_year=s,
+                            league_id=l,
+                            week=w,
+                            guest_name=f"Guest {t}",
+                            guest_score=0,
+                            host_name=f"Guest {t}",
+                            host_score=0
+                        )
+                        games_in.append(game)
+                        sqla.session.add(game)
+        sqla.session.commit()
+
+        # Act
+        season_year = 1922
+        league_id = 3
+        filter_week = 1
+        games_out = test_repo.get_games_by_season_league_and_week(season_year, league_id, filter_week)
+
+        # Assert
+        assert games_out == [
+            g for g in games_in if g.season_year == season_year and g.league_id == league_id and g.week == filter_week
+        ]
 
 
 def test_get_game_when_games_is_empty_should_return_none(test_app, test_repo):
@@ -599,7 +435,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -608,7 +444,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -617,7 +453,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -644,7 +480,7 @@ def test_get_game_when_game_is_found_should_return_game(test_app, test_repo):
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -653,7 +489,7 @@ def test_get_game_when_game_is_found_should_return_game(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -662,7 +498,7 @@ def test_get_game_when_game_is_found_should_return_game(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -705,7 +541,7 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -714,7 +550,7 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -723,7 +559,7 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -750,7 +586,7 @@ def test_get_game_by_season_week_guest_and_host_when_game_is_found_should_return
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -759,7 +595,7 @@ def test_get_game_by_season_week_guest_and_host_when_game_is_found_should_return
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -768,7 +604,7 @@ def test_get_game_by_season_week_guest_and_host_when_game_is_found_should_return
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -798,7 +634,7 @@ def test_add_game_when_no_integrity_error_caught_should_add_game(
     with test_app.app_context():
         # Arrange
         game_in = Game(
-            season_id=1920,
+            season_year=1920,
             week=1,
             guest_name="St. Paul Ideals",
             guest_score=0,
@@ -824,7 +660,7 @@ def test_add_game_when_integrity_error_caught_should_rollback_transaction_and_re
     with test_app.app_context():
         # Arrange
         game_in = Game(
-            season_id=1920,
+            season_year=1920,
             week=1,
             guest_name="St. Paul Ideals",
             guest_score=0,
@@ -870,7 +706,7 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
         # Arrange
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -879,7 +715,7 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -888,7 +724,7 @@ def test_add_games_when_games_arg_is_not_empty_and_no_integrity_error_caught_sho
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -920,7 +756,7 @@ def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_r
         # Arrange
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -929,7 +765,7 @@ def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_r
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -938,7 +774,7 @@ def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_r
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -969,7 +805,7 @@ def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -978,7 +814,7 @@ def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -987,7 +823,7 @@ def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1016,7 +852,7 @@ def test_game_exists_when_game_exists_should_return_true(test_app, test_repo):
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1025,7 +861,7 @@ def test_game_exists_when_game_exists_should_return_true(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1034,7 +870,7 @@ def test_game_exists_when_game_exists_should_return_true(test_app, test_repo):
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1070,7 +906,7 @@ def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_upda
         # Act
         game = Game(
             id=1,
-            season_id=1920,
+            season_year=1920,
             week=1,
             guest_name="St. Paul Ideals",
             guest_score=0,
@@ -1088,7 +924,7 @@ def test_update_game_when_no_game_exists_with_id_should_return_game_and_not_upda
     fake_try_commit.assert_not_called()
     assert isinstance(game_updated, Game)
     assert game_updated.id == game.id
-    assert game_updated.season_id == game.season_id
+    assert game_updated.season_year == game.season_year
     assert game_updated.week == game.week
     assert game_updated.guest_name == game.guest_name
     assert game_updated.guest_score == game.guest_score
@@ -1115,7 +951,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
 
         games = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1124,7 +960,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1133,7 +969,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1148,7 +984,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
 
         new_game = Game(
             id=2,
-            season_id=1920,
+            season_year=1920,
             week=2,
             guest_name="Columbus Panhandles",
             guest_score=0,
@@ -1169,7 +1005,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
     fake_try_commit.assert_called_once()
     assert isinstance(game_updated, Game)
     assert game_updated.id == new_game.id
-    assert game_updated.season_id == new_game.season_id
+    assert game_updated.season_year == new_game.season_year
     assert game_updated.week == new_game.week
     assert game_updated.guest_name == new_game.guest_name
     assert game_updated.guest_score == new_game.guest_score
@@ -1198,7 +1034,7 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
 
         games = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1207,7 +1043,7 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1216,7 +1052,7 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1231,7 +1067,7 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
 
         new_game = Game(
             id=2,
-            season_id=1920,
+            season_year=1920,
             week=2,
             guest_name="Columbus Panhandles",
             guest_score=0,
@@ -1263,7 +1099,7 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
 
         games = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1272,7 +1108,7 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1281,7 +1117,7 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1314,7 +1150,7 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
 
         games = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1323,7 +1159,7 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1332,7 +1168,7 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1368,7 +1204,7 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
 
         games = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1377,7 +1213,7 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1386,7 +1222,7 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1416,7 +1252,7 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
 
         games_in = (
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=1,
                 guest_name="St. Paul Ideals",
                 guest_score=0,
@@ -1425,7 +1261,7 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=2,
                 guest_name="Wheeling Stogies",
                 guest_score=0,
@@ -1434,7 +1270,7 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
                 is_playoff=False
             ),
             Game(
-                season_id=1920,
+                season_year=1920,
                 week=3,
                 guest_name="Muncie Flyers",
                 guest_score=0,
@@ -1448,7 +1284,7 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
         sqla.session.commit()
 
         # Act
-        result = test_repo.get_max_week_by_season(season_id=1920)
+        result = test_repo.get_max_week_by_season(season_year=1920)
 
     # Assert
     assert result == 3
@@ -1460,7 +1296,7 @@ def test_get_max_week_by_season_when_weeks_is_false_should_return_max_week(test_
         db_init.init_db()
 
         # Act
-        result = test_repo.get_max_week_by_season(season_id=1920)
+        result = test_repo.get_max_week_by_season(season_year=1920)
 
     # Assert
     assert result is None

@@ -4,24 +4,12 @@ from wtforms.validators import DataRequired, InputRequired, NumberRange
 
 
 class SeasonForm(FlaskForm):
-    id = IntegerField(
+    year = IntegerField(
         "Year",
         validators=[
             InputRequired("Please enter a year."),
             DataRequired("Please enter a year."),
             NumberRange(min=1920, message="Please enter a year no earlier than 1920.")
-        ]
-    )
-    num_of_weeks_scheduled = IntegerField(
-        "Weeks Scheduled", default=0,
-        validators=[
-            NumberRange(min=0, message="Please enter a non-negative number of weeks scheduled.")
-        ]
-    )
-    num_of_weeks_completed = IntegerField(
-        "Weeks Completed", default=0,
-        validators=[
-            NumberRange(min=0, message="Please enter a non-negative number of weeks completed.")
         ]
     )
 

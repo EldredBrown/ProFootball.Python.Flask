@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, InputRequired, NumberRange, Validat
 
 
 def team_name_length_check(form, field):
-    length_check(field, 50)
+    length_check(field, 100)
 
 
 def length_check(field, length):
@@ -20,6 +20,9 @@ class GameForm(FlaskForm):
             DataRequired("Please enter a year."),
             NumberRange(min=1920, message="Please enter a year no earlier than 1920.")
         ]
+    )
+    league_name = StringField(
+        "League Name"
     )
     week = IntegerField(
         "Week",

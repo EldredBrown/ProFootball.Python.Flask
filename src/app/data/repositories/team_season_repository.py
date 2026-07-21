@@ -24,7 +24,7 @@ class TeamSeasonRepository:
         """
         Gets all the team_seasons in the data store filtered by season_year.
 
-        :param season_id: The season_year to filter.
+        :param season_year: The season_year to filter.
 
         :return: A list of all fetched team_seasons.
         """
@@ -33,18 +33,18 @@ class TeamSeasonRepository:
             return []
         return team_seasons.filter_by(team_id=team_id).all()
 
-    def get_team_seasons_by_season(self, season_id: Optional[int]) -> List[TeamSeason]:
+    def get_team_seasons_by_season(self, season_year: Optional[int]) -> List[TeamSeason]:
         """
         Gets all the team_seasons in the data store filtered by season_year.
 
-        :param season_id: The season_year to filter.
+        :param season_year: The season_year to filter.
 
         :return: A list of all fetched team_seasons.
         """
         team_seasons = self._get_team_seasons_with_navigation_properties()
-        if season_id is None:
+        if season_year is None:
             return []
-        return team_seasons.filter_by(season_id=season_id).all()
+        return team_seasons.filter_by(season_year=season_year).all()
 
     def get_team_season(self, id: int) -> Optional[TeamSeason]:
         """
@@ -59,11 +59,11 @@ class TeamSeasonRepository:
             return None
         return team_seasons.get(id)
 
-    def get_team_season_by_team_and_season(self, team_id: int, season_id: int) -> Optional[TeamSeason]:
+    def get_team_season_by_team_and_season(self, team_id: int, season_year: int) -> Optional[TeamSeason]:
         team_seasons = self._get_team_seasons_with_navigation_properties()
         if len(team_seasons.all()) == 0:
             return None
-        return team_seasons.filter_by(team_id=team_id, season_id=season_id).first()
+        return team_seasons.filter_by(team_id=team_id, season_year=season_year).first()
 
     def add_team_season(self, team_season: TeamSeason) -> TeamSeason:
         """
@@ -126,8 +126,8 @@ class TeamSeasonRepository:
         """
         return self.get_team_season(id) is not None
 
-    def team_season_exists_with_team_id_and_season_id(self, team_id: int, season_id: int) -> bool:
-        return self.get_team_season_by_team_and_season(team_id, season_id) is not None
+    def team_season_exists_with_team_id_and_season_year(self, team_id: int, season_year: int) -> bool:
+        return self.get_team_season_by_team_and_season(team_id, season_year) is not None
 
     def _get_team_seasons_with_navigation_properties(self):
         return TeamSeason.query.options(
@@ -141,7 +141,7 @@ class TeamSeasonRepository:
     def _set_values_of_team_season_in_db(self, team_season: TeamSeason) -> TeamSeason | None:
         team_season_in_db = self.get_team_season(team_season.id)
         team_season_in_db.team_id = team_season.team_id
-        team_season_in_db.season_id = team_season.season_id
+        team_season_in_db.season_year = team_season.season_year
         team_season_in_db.league_id = team_season.league_id
         team_season_in_db.conference_id = team_season.conference_id
         team_season_in_db.division_id = team_season.division_id

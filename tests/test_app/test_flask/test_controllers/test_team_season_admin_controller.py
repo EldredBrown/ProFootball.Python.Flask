@@ -6,9 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 import app.flask.team_season_admin_controller as mod
-from app.data.models.conference import Conference
-from app.data.models.division import Division
-from app.data.models.league import League
+from app.data.models.association import Association
 from app.data.models.season import Season
 from app.data.models.team import Team
 from app.data.models.team_season import TeamSeason
@@ -149,19 +147,19 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
         fake_url_for, fake_redirect
 ):
     # Arrange
-    team_season = TeamSeason(team_id=1, season_id=1920)
+    team_season = TeamSeason(team_id=1, season_year=1920, league_id=1, conference_id=2, division_id=3)
     team_season.team = Team(id=1, name="Team")
-    team_season.season = Season(id=1920)
-    team_season.league = League(id=1, short_name="L")
-    team_season.conference = Conference(id=1, short_name="C")
-    team_season.division = Division(id=1, name="Division")
+    team_season.season = Season(year=1920)
+    team_season.league = Association(id=1, long_name="League", short_name="L")
+    team_season.conference = Association(id=2, long_name="Conference", short_name="C")
+    team_season.division = Association(id=3, long_name="Division", short_name="D")
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = team_season.team.name
-    fake_form.return_value.season_year.data = team_season.season.id
+    fake_form.return_value.season_year.data = team_season.season.year
     fake_form.return_value.league_name.data = team_season.league.short_name
     fake_form.return_value.conference_name.data = team_season.conference.short_name
-    fake_form.return_value.division_name.data = team_season.division.name
+    fake_form.return_value.division_name.data = team_season.division.short_name
 
     fake_team_season_factory.create_team_season.return_value = team_season
 
@@ -176,15 +174,15 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     fake_form.return_value.validate_on_submit.assert_called_once()
     view_kwargs = {
         'team_name': team_season.team.name,
-        'season_year': team_season.season.id,
+        'season_year': team_season.season.year,
         'league_name': team_season.league.short_name,
         'conference_name': team_season.conference.short_name,
-        'division_name': team_season.division.name,
+        'division_name': team_season.division.short_name,
     }
     fake_team_season_factory.create_team_season.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(TeamSeasonRepository)
     fake_team_season_repository.add_team_season.assert_called_once_with(team_season)
-    fake_flash(f"Item {team_season.team.name}, {team_season.season.id} has been successfully submitted.", 'success')
+    fake_flash(f"Item {team_season.team.name}, {team_season.season.year} has been successfully submitted.", 'success')
     fake_url_for.assert_called_once_with('team_season_admin.index')
     fake_redirect.assert_called_once_with(fake_url_for.return_value)
     assert result is fake_redirect.return_value
@@ -200,19 +198,19 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
         fake_flash, fake_render_template
 ):
     # Arrange
-    team_season = TeamSeason(team_id=1, season_id=1920)
+    team_season = TeamSeason(team_id=1, season_year=1920, league_id=1, conference_id=2, division_id=3)
     team_season.team = Team(id=1, name="Team")
-    team_season.season = Season(id=1920)
-    team_season.league = League(id=1, short_name="L")
-    team_season.conference = Conference(id=1, short_name="C")
-    team_season.division = Division(id=1, name="Division")
+    team_season.season = Season(year=1920)
+    team_season.league = Association(id=1, long_name="League", short_name="L")
+    team_season.conference = Association(id=2, long_name="Conference", short_name="C")
+    team_season.division = Association(id=3, long_name="Division", short_name="D")
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = team_season.team.name
-    fake_form.return_value.season_year.data = team_season.season.id
+    fake_form.return_value.season_year.data = team_season.season.year
     fake_form.return_value.league_name.data = team_season.league.short_name
     fake_form.return_value.conference_name.data = team_season.conference.short_name
-    fake_form.return_value.division_name.data = team_season.division.name
+    fake_form.return_value.division_name.data = team_season.division.short_name
 
     fake_team_season_factory.create_team_season.return_value = team_season
 
@@ -229,10 +227,10 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     fake_form.return_value.validate_on_submit.assert_called_once()
     view_kwargs = {
         'team_name': team_season.team.name,
-        'season_year': team_season.season.id,
+        'season_year': team_season.season.year,
         'league_name': team_season.league.short_name,
         'conference_name': team_season.conference.short_name,
-        'division_name': team_season.division.name,
+        'division_name': team_season.division.short_name,
     }
     fake_team_season_factory.create_team_season.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(TeamSeasonRepository)
@@ -254,19 +252,19 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
         fake_flash, fake_render_template
 ):
     # Arrange
-    team_season = TeamSeason(team_id=1, season_id=1920)
+    team_season = TeamSeason(team_id=1, season_year=1920, league_id=1, conference_id=2, division_id=3)
     team_season.team = Team(id=1, name="Team")
-    team_season.season = Season(id=1920)
-    team_season.league = League(id=1, short_name="L")
-    team_season.conference = Conference(id=1, short_name="C")
-    team_season.division = Division(id=1, name="Division")
+    team_season.season = Season(year=1920)
+    team_season.league = Association(id=1, long_name="League", short_name="L")
+    team_season.conference = Association(id=2, long_name="Conference", short_name="C")
+    team_season.division = Association(id=3, long_name="Division", short_name="D")
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = team_season.team.name
-    fake_form.return_value.season_year.data = team_season.season.id
+    fake_form.return_value.season_year.data = team_season.season.year
     fake_form.return_value.league_name.data = team_season.league.short_name
     fake_form.return_value.conference_name.data = team_season.conference.short_name
-    fake_form.return_value.division_name.data = team_season.division.name
+    fake_form.return_value.division_name.data = team_season.division.short_name
 
     fake_team_season_factory.create_team_season.return_value = team_season
 
@@ -283,10 +281,10 @@ def test_create_when_form_submitted_and_integrity_error_caught_should_flash_erro
     fake_form.return_value.validate_on_submit.assert_called_once()
     view_kwargs = {
         'team_name': team_season.team.name,
-        'season_year': team_season.season.id,
+        'season_year': team_season.season.year,
         'league_name': team_season.league.short_name,
         'conference_name': team_season.conference.short_name,
-        'division_name': team_season.division.name,
+        'division_name': team_season.division.short_name,
     }
     fake_team_season_factory.create_team_season.assert_called_once_with(**view_kwargs)
     fake_injector.get.assert_called_once_with(TeamSeasonRepository)
@@ -338,15 +336,15 @@ def test_edit_when_team_season_found_and_form_not_submitted_and_no_form_errors_s
     fake_team_season_repository.get_team_season.return_value = old_team_season
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L")
-    old_team_season_copy.conference = Conference(id=1, short_name="C")
-    old_team_season_copy.division = Division(id=1, name="Division")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L")
+    old_team_season_copy.conference = Association(id=1, short_name="C")
+    old_team_season_copy.division = Association(id=1, short_name="D")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     fake_form.return_value.validate_on_submit.return_value = False
@@ -363,10 +361,10 @@ def test_edit_when_team_season_found_and_form_not_submitted_and_no_form_errors_s
     fake_copy.deepcopy.assert_called_once_with(old_team_season)
     fake_form.assert_called_once()
     assert fake_form.return_value.team_name.data == old_team_season_copy.team.name
-    assert fake_form.return_value.season_year.data == old_team_season_copy.season.id
+    assert fake_form.return_value.season_year.data == old_team_season_copy.season.year
     assert fake_form.return_value.league_name.data == old_team_season_copy.league.short_name
     assert fake_form.return_value.conference_name.data == old_team_season_copy.conference.short_name
-    assert fake_form.return_value.division_name.data == old_team_season_copy.division.name
+    assert fake_form.return_value.division_name.data == old_team_season_copy.division.short_name
     fake_form.return_value.validate_on_submit.assert_called_once()
     fake_flash.assert_not_called()
     fake_render_template.assert_called_once_with(
@@ -391,15 +389,15 @@ def test_edit_when_team_season_found_and_form_not_submitted_and_form_errors_shou
     fake_team_season_repository.get_team_season.return_value = old_team_season
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L")
-    old_team_season_copy.conference = Conference(id=1, short_name="C")
-    old_team_season_copy.division = Division(id=1, name="Division")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L")
+    old_team_season_copy.conference = Association(id=1, short_name="C")
+    old_team_season_copy.division = Association(id=1, short_name="D")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     fake_form.return_value.validate_on_submit.return_value = False
@@ -417,10 +415,10 @@ def test_edit_when_team_season_found_and_form_not_submitted_and_form_errors_shou
     fake_copy.deepcopy.assert_called_once_with(old_team_season)
     fake_form.assert_called_once()
     assert fake_form.return_value.team_name.data == old_team_season_copy.team.name
-    assert fake_form.return_value.season_year.data == old_team_season_copy.season.id
+    assert fake_form.return_value.season_year.data == old_team_season_copy.season.year
     assert fake_form.return_value.league_name.data == old_team_season_copy.league.short_name
     assert fake_form.return_value.conference_name.data == old_team_season_copy.conference.short_name
-    assert fake_form.return_value.division_name.data == old_team_season_copy.division.name
+    assert fake_form.return_value.division_name.data == old_team_season_copy.division.short_name
     fake_form.return_value.validate_on_submit.assert_called_once()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template('team_seasons_admin/create.html', form=fake_form.return_value)
@@ -445,22 +443,22 @@ def test_edit_when_team_season_found_and_form_submitted_and_no_errors_caught_sho
     fake_team_season_repository.get_team_season.return_value = old_team_season
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L1")
-    old_team_season_copy.conference = Conference(id=1, short_name="C1")
-    old_team_season_copy.division = Division(id=1, name="Division 1")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L1")
+    old_team_season_copy.conference = Association(id=1, short_name="C1")
+    old_team_season_copy.division = Association(id=1, short_name="D1")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     new_team_name = "Team 2"
     new_season_year = 1921
     new_league_name = "L2"
     new_conference_name = "C2"
-    new_division_name = "Division 2"
+    new_division_name = "Association 2"
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = new_team_name
@@ -517,15 +515,15 @@ def test_edit_when_team_season_found_and_form_submitted_and_value_error_caught_s
     fake_team_season_repository.update_team_season.side_effect = err
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L1")
-    old_team_season_copy.conference = Conference(id=1, short_name="C1")
-    old_team_season_copy.division = Division(id=1, name="Division 1")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L1")
+    old_team_season_copy.conference = Association(id=1, short_name="C1")
+    old_team_season_copy.division = Association(id=1, short_name="D1")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     new_id = 2
@@ -533,7 +531,7 @@ def test_edit_when_team_season_found_and_form_submitted_and_value_error_caught_s
     new_season_year = 1921
     new_league_name = "L2"
     new_conference_name = "C2"
-    new_division_name = "Division 2"
+    new_division_name = "Association 2"
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = new_team_name
@@ -544,16 +542,16 @@ def test_edit_when_team_season_found_and_form_submitted_and_value_error_caught_s
 
     new_team_season = TeamSeason(
         team_id=new_id,
-        season_id=new_season_year,
+        season_year=new_season_year,
         league_id=new_id,
         conference_id=new_id,
         division_id=new_id
     )
     new_team_season.team = Team(id=new_id, name=new_team_name)
-    new_team_season.season = Season(id=new_season_year)
-    new_team_season.league = League(id=new_id, short_name=new_league_name)
-    new_team_season.conference = Conference(id=new_id, short_name=new_conference_name)
-    new_team_season.division = Division(id=new_id, name=new_division_name)
+    new_team_season.season = Season(year=new_season_year)
+    new_team_season.league = Association(id=new_id, short_name=new_league_name)
+    new_team_season.conference = Association(id=new_id, short_name=new_conference_name)
+    new_team_season.division = Association(id=new_id, short_name=new_division_name)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
     id = 1
@@ -603,15 +601,15 @@ def test_edit_when_team_season_found_and_form_submitted_and_integrity_error_caug
     fake_team_season_repository.update_team_season.side_effect = err
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L1")
-    old_team_season_copy.conference = Conference(id=1, short_name="C1")
-    old_team_season_copy.division = Division(id=1, name="Division 1")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L1")
+    old_team_season_copy.conference = Association(id=1, short_name="C1")
+    old_team_season_copy.division = Association(id=1, short_name="D1")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     new_id = 2
@@ -619,7 +617,7 @@ def test_edit_when_team_season_found_and_form_submitted_and_integrity_error_caug
     new_season_year = 1921
     new_league_name = "L2"
     new_conference_name = "C2"
-    new_division_name = "Division 2"
+    new_division_name = "Association 2"
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = new_team_name
@@ -630,16 +628,16 @@ def test_edit_when_team_season_found_and_form_submitted_and_integrity_error_caug
 
     new_team_season = TeamSeason(
         team_id=new_id,
-        season_id=new_season_year,
+        season_year=new_season_year,
         league_id=new_id,
         conference_id=new_id,
         division_id=new_id
     )
     new_team_season.team = Team(id=new_id, name=new_team_name)
-    new_team_season.season = Season(id=new_season_year)
-    new_team_season.league = League(id=new_id, short_name=new_league_name)
-    new_team_season.conference = Conference(id=new_id, short_name=new_conference_name)
-    new_team_season.division = Division(id=new_id, name=new_division_name)
+    new_team_season.season = Season(year=new_season_year)
+    new_team_season.league = Association(id=new_id, short_name=new_league_name)
+    new_team_season.conference = Association(id=new_id, short_name=new_conference_name)
+    new_team_season.division = Association(id=new_id, short_name=new_division_name)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
     id = 1
@@ -687,15 +685,15 @@ def test_edit_when_team_season_found_and_form_submitted_and_index_error_caught_s
     fake_team_season_repository.update_team_season.side_effect = err
     fake_injector.get.return_value = fake_team_season_repository
 
-    new_team_season = TeamSeason(team_id=2, season_id=1921)
+    new_team_season = TeamSeason(team_id=2, season_year=1921)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
-    old_team_season_copy = TeamSeason(team_id=1, season_id=1920)
+    old_team_season_copy = TeamSeason(team_id=1, season_year=1920)
     old_team_season_copy.team = Team(id=1, name='Team 1')
-    old_team_season_copy.season = Season(id=1920)
-    old_team_season_copy.league = League(id=1, short_name="L1")
-    old_team_season_copy.conference = Conference(id=1, short_name="C1")
-    old_team_season_copy.division = Division(id=1, name="Division 1")
+    old_team_season_copy.season = Season(year=1920)
+    old_team_season_copy.league = Association(id=1, short_name="L1")
+    old_team_season_copy.conference = Association(id=1, short_name="C1")
+    old_team_season_copy.division = Association(id=1, short_name="D1")
     fake_copy.deepcopy.return_value = old_team_season_copy
 
     new_id = 2
@@ -703,7 +701,7 @@ def test_edit_when_team_season_found_and_form_submitted_and_index_error_caught_s
     new_season_year = 1921
     new_league_name = "L2"
     new_conference_name = "C2"
-    new_division_name = "Division 2"
+    new_division_name = "Association 2"
 
     fake_form.return_value.validate_on_submit.return_value = True
     fake_form.return_value.team_name.data = new_team_name
@@ -714,16 +712,16 @@ def test_edit_when_team_season_found_and_form_submitted_and_index_error_caught_s
 
     new_team_season = TeamSeason(
         team_id=new_id,
-        season_id=new_season_year,
+        season_year=new_season_year,
         league_id=new_id,
         conference_id=new_id,
         division_id=new_id
     )
     new_team_season.team = Team(id=new_id, name=new_team_name)
-    new_team_season.season = Season(id=new_season_year)
-    new_team_season.league = League(id=new_id, short_name=new_league_name)
-    new_team_season.conference = Conference(id=new_id, short_name=new_conference_name)
-    new_team_season.division = Division(id=new_id, name=new_division_name)
+    new_team_season.season = Season(year=new_season_year)
+    new_team_season.league = Association(id=new_id, short_name=new_league_name)
+    new_team_season.conference = Association(id=new_id, short_name=new_conference_name)
+    new_team_season.division = Association(id=new_id, short_name=new_division_name)
     fake_team_season_factory.create_team_season.return_value = new_team_season
 
     id = 1
@@ -818,12 +816,12 @@ def test_delete_when_request_method_is_post_and_team_season_found_should_flash_s
 ):
     # Arrange
     fake_team_season_repository = MagicMock(TeamSeasonRepository)
-    team_season = TeamSeason(team_id=1, season_id=1920, league_id=1, conference_id=1, division_id=1)
+    team_season = TeamSeason(team_id=1, season_year=1920, league_id=1, conference_id=2, division_id=3)
     team_season.team = Team(id=1, name="Team")
-    team_season.season = Season(id=1920)
-    team_season.league = League(id=1, short_name="L")
-    team_season.conference = Conference(id=1, short_name="C")
-    team_season.division = Division(id=1, name="Division")
+    team_season.season = Season(year=1920)
+    team_season.league = Association(id=1, long_name="League", short_name="L")
+    team_season.conference = Association(id=2, long_name="Conference", short_name="C")
+    team_season.division = Association(id=3, long_name="Division", short_name="D")
     fake_team_season_repository.get_team_season.return_value = team_season
     fake_injector.get.return_value = fake_team_season_repository
 
@@ -842,7 +840,7 @@ def test_delete_when_request_method_is_post_and_team_season_found_should_flash_s
     fake_team_season_repository.get_team_season.assert_called_once_with(id)
     fake_team_season_repository.delete_team_season.assert_called_once_with(id)
     fake_flash.assert_called_once_with(
-        f"TeamSeason {team_season.team.name}. {team_season.season.id} has been successfully deleted.",
+        f"TeamSeason {team_season.team.name}. {team_season.season.year} has been successfully deleted.",
         'success'
     )
     fake_url_for.assert_called_once_with('team_season_admin.index')

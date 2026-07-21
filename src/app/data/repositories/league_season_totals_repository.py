@@ -12,13 +12,13 @@ class LeagueSeasonTotalsRepository:
     Provides CRUD access to an external data store.
     """
 
-    def get_league_season_totals(self, league_id: int, season_id: int) -> LeagueSeasonTotals:
+    def get_league_season_totals(self, league_id: int, season_year: int) -> LeagueSeasonTotals:
         """
         Gets the league_season_totals in the data store with the specified team_name and season_year.
 
         :return: The fetched league_season_totals.
         """
-        querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_id}', {season_id};"
+        querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_id}', {season_year};"
         result = self._call_procedure(querystring)
         totals = result.first()
         return LeagueSeasonTotals(
