@@ -50,6 +50,26 @@ def create() -> Response | str:
         return render_template('seasons/create.html', form=form)
 
 
+def _get_model_from_form(form: SeasonForm, year: int=None, old_season: Season=None) -> Season:
+    kwargs = _get_kwargs_from_form(form, year)
+    season = season_factory.create_season(old_season, **kwargs)
+    return season
+
+
+def _get_kwargs_from_form(form: SeasonForm, year: int=None) -> dict[str, Any]:
+    kwargs = {
+        'year': int(form.year.data),
+    }
+    if year:
+        kwargs['year'] = year
+    return kwargs
+
+
+def _handle_error(err: Any, template_name_or_list: str, form: SeasonForm, season: Season=None) -> str:
+    flash(str(err), 'danger')
+    return render_template(template_name_or_list, form=form, season=season)
+
+
 @blueprint.route('/delete/<int:year>', methods=['GET', 'POST'])
 def delete(year: int) -> Response | str:
     form = DeleteSeasonForm()
@@ -67,23 +87,3 @@ def delete(year: int) -> Response | str:
             return render_template('seasons/delete.html', season=season, form=form)
     except IndexError:
         abort(404)
-
-
-def _get_kwargs_from_form(form: SeasonForm, year: int=None) -> dict[str, Any]:
-    kwargs = {
-        'year': int(form.year.data),
-    }
-    if year:
-        kwargs['year'] = year
-    return kwargs
-
-
-def _get_model_from_form(form: SeasonForm, year: int=None, old_season: Season=None) -> Season:
-    kwargs = _get_kwargs_from_form(form, year)
-    season = season_factory.create_season(old_season, **kwargs)
-    return season
-
-
-def _handle_error(err: Any, template_name_or_list: str, form: SeasonForm, season: Season=None) -> str:
-    flash(str(err), 'danger')
-    return render_template(template_name_or_list, form=form, season=season)

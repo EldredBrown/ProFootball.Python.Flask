@@ -85,31 +85,10 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    form = DeleteAssociationForm()
-    try:
-        association_repository = injector.get(AssociationRepository)
-        association = association_repository.get_association(id)
-        if not association:
-            abort(404)
-
-        if request.method == 'POST':
-            association_repository.delete_association(id)
-            flash(f"Association {association.short_name} has been successfully deleted.", 'success')
-            return redirect(url_for('association.index'))
-        else:
-            return render_template('associations/delete.html', association=association, form=form)
-    except IndexError:
-        abort(404)
-
-
-def _get_form_data_from_model(form: AssociationForm, association: Association) -> None:
-    form.long_name.data = association.long_name
-    form.short_name.data = association.short_name
-    form.parent_name.data = None if association.parent is None else association.parent.short_name
-    form.first_season_year.data = association.first_season_year
-    form.last_season_year.data = association.last_season_year
+def _get_model_from_form(form: AssociationForm, id: int=None) -> Association:
+    kwargs = _get_kwargs_from_form(form, id)
+    association = association_factory.create_association(**kwargs)
+    return association
 
 
 def _get_kwargs_from_form(form: AssociationForm, id: int=None) -> dict[str, Any]:
@@ -123,12 +102,6 @@ def _get_kwargs_from_form(form: AssociationForm, id: int=None) -> dict[str, Any]
     if id:
         kwargs['id'] = id
     return kwargs
-
-
-def _get_model_from_form(form: AssociationForm, id: int=None) -> Association:
-    kwargs = _get_kwargs_from_form(form, id)
-    association = association_factory.create_association(**kwargs)
-    return association
 
 
 def _handle_value_error(err: Any, template_name: str, form: AssociationForm, association: Association=None) -> str:
@@ -150,3 +123,30 @@ def _handle_integrity_error(err: Any, sql_operation: str, template_name: str, fo
 
     flash(err_msg, 'danger')
     return render_template(template_name, association=association, form=form)
+
+
+def _get_form_data_from_model(form: AssociationForm, association: Association) -> None:
+    form.long_name.data = association.long_name
+    form.short_name.data = association.short_name
+    form.parent_name.data = None if association.parent is None else association.parent.short_name
+    form.first_season_year.data = association.first_season_year
+    form.last_season_year.data = association.last_season_year
+
+
+@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id: int) -> Response | str:
+    form = DeleteAssociationForm()
+    try:
+        association_repository = injector.get(AssociationRepository)
+        association = association_repository.get_association(id)
+        if not association:
+            abort(404)
+
+        if request.method == 'POST':
+            association_repository.delete_association(id)
+            flash(f"Association {association.short_name} has been successfully deleted.", 'success')
+            return redirect(url_for('association.index'))
+        else:
+            return render_template('associations/delete.html', association=association, form=form)
+    except IndexError:
+        abort(404)

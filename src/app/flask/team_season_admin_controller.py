@@ -88,6 +88,38 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
+def _get_model_from_form(form: TeamSeasonForm, id: int=None) -> TeamSeason:
+    kwargs = _get_kwargs_from_form(form, id)
+    team_season = team_season_factory.create_team_season(**kwargs)
+    return team_season
+
+
+def _get_kwargs_from_form(form: TeamSeasonForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'team_name': str(form.team_name.data),
+        'season_year': int(form.season_year.data),
+        'league_name': str(form.league_name.data),
+        'conference_name': str(form.conference_name.data),
+        'division_name': str(form.division_name.data),
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _get_form_data_from_model(form: TeamSeasonForm, team_season: TeamSeason) -> None:
+    form.team_name.data = team_season.team.name
+    form.season_year.data = team_season.season.year
+    form.league_name.data = team_season.league.short_name
+    form.conference_name.data = team_season.conference.short_name if team_season.conference else ''
+    form.division_name.data = team_season.division.short_name if team_season.division else ''
+
+
+def _handle_error(err: Any, template_name: str, form: TeamSeasonForm, team_season: TeamSeason=None) -> str:
+    flash(str(err), 'danger')
+    return render_template(template_name, form=form, team_season=team_season)
+
+
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int) -> Response | str:
     form = DeleteTeamSeasonForm()
@@ -108,35 +140,3 @@ def delete(id: int) -> Response | str:
             return render_template('team_seasons_admin/delete.html', team_season=team_season, form=form)
     except IndexError:
         abort(404)
-
-
-def _get_form_data_from_model(form: TeamSeasonForm, team_season: TeamSeason) -> None:
-    form.team_name.data = team_season.team.name
-    form.season_year.data = team_season.season.year
-    form.league_name.data = team_season.league.short_name
-    form.conference_name.data = team_season.conference.short_name if team_season.conference else ''
-    form.division_name.data = team_season.division.short_name if team_season.division else ''
-
-
-def _get_kwargs_from_form(form: TeamSeasonForm, id: int=None) -> dict[str, Any]:
-    kwargs = {
-        'team_name': str(form.team_name.data),
-        'season_year': int(form.season_year.data),
-        'league_name': str(form.league_name.data),
-        'conference_name': str(form.conference_name.data),
-        'division_name': str(form.division_name.data),
-    }
-    if id:
-        kwargs['id'] = id
-    return kwargs
-
-
-def _get_model_from_form(form: TeamSeasonForm, id: int=None) -> TeamSeason:
-    kwargs = _get_kwargs_from_form(form, id)
-    team_season = team_season_factory.create_team_season(**kwargs)
-    return team_season
-
-
-def _handle_error(err: Any, template_name: str, form: TeamSeasonForm, team_season: TeamSeason=None) -> str:
-    flash(str(err), 'danger')
-    return render_template(template_name, form=form, team_season=team_season)

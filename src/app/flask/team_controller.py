@@ -83,6 +83,30 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
+def _get_model_from_form(form: TeamForm, id: int=None) -> Team:
+    kwargs = _get_kwargs_from_form(form, id)
+    team = team_factory.create_team(**kwargs)
+    return team
+
+
+def _get_kwargs_from_form(form: TeamForm, id: int=None) -> dict[str, Any]:
+    kwargs = {
+        'name': str(form.name.data),
+    }
+    if id:
+        kwargs['id'] = id
+    return kwargs
+
+
+def _handle_error(err: Any, template_name: str, form: TeamForm, team: Team=None) -> str:
+    flash(str(err), 'danger')
+    return render_template(template_name, form=form, team=team)
+
+
+def _get_form_data_from_model(form: TeamForm, team: Team) -> None:
+    form.name.data = team.name
+
+
 @blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id: int) -> Response | str:
     form = DeleteTeamForm()
@@ -100,27 +124,3 @@ def delete(id: int) -> Response | str:
             return render_template('teams/delete.html', team=team, form=form)
     except IndexError:
         abort(404)
-
-
-def _get_form_data_from_model(form: TeamForm, team: Team) -> None:
-    form.name.data = team.name
-
-
-def _get_kwargs_from_form(form: TeamForm, id: int=None) -> dict[str, Any]:
-    kwargs = {
-        'name': str(form.name.data),
-    }
-    if id:
-        kwargs['id'] = id
-    return kwargs
-
-
-def _get_model_from_form(form: TeamForm, id: int=None) -> Team:
-    kwargs = _get_kwargs_from_form(form, id)
-    team = team_factory.create_team(**kwargs)
-    return team
-
-
-def _handle_error(err: Any, template_name: str, form: TeamForm, team: Team=None) -> str:
-    flash(str(err), 'danger')
-    return render_template(template_name, form=form, team=team)

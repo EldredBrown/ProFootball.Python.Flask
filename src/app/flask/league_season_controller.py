@@ -93,33 +93,10 @@ def edit(id: int) -> Response | str:
         abort(404)
 
 
-@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id: int) -> Response | str:
-    form = DeleteLeagueSeasonForm()
-    try:
-        league_season_repository = injector.get(LeagueSeasonRepository)
-        league_season = league_season_repository.get_league_season(id)
-        if not league_season:
-            abort(404)
-
-        if request.method == 'POST':
-            league_season_repository.delete_league_season(id)
-            flash(
-                f"LeagueSeason {league_season.league.short_name}. {league_season.season.year} has been successfully deleted.",
-                'success'
-            )
-            return redirect(url_for('league_season.index'))
-        else:
-            return render_template('league_seasons/delete.html', league_season=league_season, form=form)
-    except IndexError:
-        abort(404)
-
-
-def _get_form_data_from_model(form: LeagueSeasonForm, league_season: LeagueSeason) -> None:
-    form.league_name.data = league_season.league.short_name
-    form.season_year.data = league_season.season.year
-    form.num_of_weeks_scheduled.data = league_season.num_of_weeks_scheduled
-    form.num_of_weeks_completed.data = league_season.num_of_weeks_completed
+def _get_model_from_form(form: LeagueSeasonForm, id: int=None) -> LeagueSeason:
+    kwargs = _get_kwargs_from_form(form, id)
+    league_season = league_season_factory.create_league_season(**kwargs)
+    return league_season
 
 
 def _get_kwargs_from_form(form: LeagueSeasonForm, id: int=None) -> dict[str, Any]:
@@ -132,12 +109,6 @@ def _get_kwargs_from_form(form: LeagueSeasonForm, id: int=None) -> dict[str, Any
     if id:
         kwargs['id'] = id
     return kwargs
-
-
-def _get_model_from_form(form: LeagueSeasonForm, id: int=None) -> LeagueSeason:
-    kwargs = _get_kwargs_from_form(form, id)
-    league_season = league_season_factory.create_league_season(**kwargs)
-    return league_season
 
 
 def _handle_value_error(err: Any, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None) -> str:
@@ -163,6 +134,30 @@ def _handle_integrity_error(
     return render_template(template_name, league_season=league_season, form=form)
 
 
-def _handle_value_error(err: Any, template_name: str, form: LeagueSeasonForm, league_season: LeagueSeason=None) -> str:
-    flash(str(err), 'danger')
-    return render_template(template_name, league_season=league_season, form=form)
+def _get_form_data_from_model(form: LeagueSeasonForm, league_season: LeagueSeason) -> None:
+    form.league_name.data = league_season.league.short_name
+    form.season_year.data = league_season.season.year
+    form.num_of_weeks_scheduled.data = league_season.num_of_weeks_scheduled
+    form.num_of_weeks_completed.data = league_season.num_of_weeks_completed
+
+
+@blueprint.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id: int) -> Response | str:
+    form = DeleteLeagueSeasonForm()
+    try:
+        league_season_repository = injector.get(LeagueSeasonRepository)
+        league_season = league_season_repository.get_league_season(id)
+        if not league_season:
+            abort(404)
+
+        if request.method == 'POST':
+            league_season_repository.delete_league_season(id)
+            flash(
+                f"LeagueSeason {league_season.league.short_name}. {league_season.season.year} has been successfully deleted.",
+                'success'
+            )
+            return redirect(url_for('league_season.index'))
+        else:
+            return render_template('league_seasons/delete.html', league_season=league_season, form=form)
+    except IndexError:
+        abort(404)
