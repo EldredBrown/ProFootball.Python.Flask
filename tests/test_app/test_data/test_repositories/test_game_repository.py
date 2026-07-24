@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch, call
 
 import pytest
@@ -25,8 +26,6 @@ def test_repo():
 def test_get_games_should_get_games(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         games_in = [
             Game(
                 season_year=1920,
@@ -56,9 +55,7 @@ def test_get_games_should_get_games(test_app, test_repo):
                 is_playoff=False
             ),
         ]
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        _set_up_db(games_in)
 
         # Act
         games_out = test_repo.get_games()
@@ -70,9 +67,7 @@ def test_get_games_should_get_games(test_app, test_repo):
 def test_get_games_by_season_when_season_year_arg_is_none_should_return_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -154,10 +149,8 @@ def test_get_games_by_season_when_season_year_arg_is_none_should_return_empty_li
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         filter_year = None
@@ -172,9 +165,7 @@ def test_get_games_by_season_when_season_year_arg_is_not_none_should_return_game
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -256,10 +247,8 @@ def test_get_games_by_season_when_season_year_arg_is_not_none_should_return_game
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         filter_year = 1921
@@ -275,8 +264,6 @@ def test_get_games_by_season_league_and_week_when_args_are_none_should_return_em
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         games_in = []
         for s in range(1920, 1923):
             for l in range(1, 4):
@@ -292,8 +279,7 @@ def test_get_games_by_season_league_and_week_when_args_are_none_should_return_em
                             host_score=0
                         )
                         games_in.append(game)
-                        sqla.session.add(game)
-        sqla.session.commit()
+        _set_up_db(games_in)
 
         # Act
         season_year = None
@@ -310,8 +296,6 @@ def test_get_games_by_season_league_and_week_when_season_year_arg_is_not_none_sh
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         games_in = []
         for s in range(1920, 1923):
             for l in range(1, 4):
@@ -327,8 +311,7 @@ def test_get_games_by_season_league_and_week_when_season_year_arg_is_not_none_sh
                             host_score=0
                         )
                         games_in.append(game)
-                        sqla.session.add(game)
-        sqla.session.commit()
+        _set_up_db(games_in)
 
         # Act
         season_year = 1922
@@ -347,8 +330,6 @@ def test_get_games_by_season_league_and_week_when_season_year_and_league_id_args
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         games_in = []
         for s in range(1920, 1923):
             for l in range(1, 4):
@@ -364,8 +345,7 @@ def test_get_games_by_season_league_and_week_when_season_year_and_league_id_args
                             host_score=0
                         )
                         games_in.append(game)
-                        sqla.session.add(game)
-        sqla.session.commit()
+        _set_up_db(games_in)
 
         # Act
         season_year = 1922
@@ -401,8 +381,7 @@ def test_get_games_by_season_league_and_week_when_all_args_are_not_none_should_r
                             host_score=0
                         )
                         games_in.append(game)
-                        sqla.session.add(game)
-        sqla.session.commit()
+        _set_up_db(games_in)
 
         # Act
         season_year = 1922
@@ -419,7 +398,8 @@ def test_get_games_by_season_league_and_week_when_all_args_are_not_none_should_r
 def test_get_game_when_games_is_empty_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        games_in = []
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game(1)
@@ -431,9 +411,7 @@ def test_get_game_when_games_is_empty_should_return_none(test_app, test_repo):
 def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -461,10 +439,8 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game(id=-1)
@@ -476,9 +452,7 @@ def test_get_game_when_games_is_not_empty_and_game_is_not_found_should_return_no
 def test_get_game_when_game_is_found_should_return_game(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -506,10 +480,8 @@ def test_get_game_when_game_is_found_should_return_game(test_app, test_repo):
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game(id=3)
@@ -523,7 +495,8 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_empty_should_retur
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        games_in = []
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game_by_season_week_guest_and_host(1920, 1, "Guest", "Host")
@@ -537,9 +510,7 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -567,10 +538,8 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game_by_season_week_guest_and_host(1920, 2, "Guest", "Host")
@@ -582,9 +551,7 @@ def test_get_game_by_season_week_guest_and_host_when_games_is_not_empty_and_game
 def test_get_game_by_season_week_guest_and_host_when_game_is_found_should_return_game(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -612,10 +579,8 @@ def test_get_game_by_season_week_guest_and_host_when_game_is_found_should_return
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         game_out = test_repo.get_game_by_season_week_guest_and_host(
@@ -787,7 +752,7 @@ def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_r
 
         # Act
         with pytest.raises(IntegrityError):
-            games_out = test_repo.add_games(games_in)
+            _ = test_repo.add_games(games_in)
 
     # Assert
     fake_sqla.session.add.assert_has_calls([
@@ -801,9 +766,7 @@ def test_add_games_when_integrity_error_caught_should_rollback_transaction_and_r
 def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -831,14 +794,11 @@ def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
-
-        id = -1
+        ]
+        _set_up_db(games_in)
 
         # Act
+        id = -1
         game_exists = test_repo.game_exists(id)
 
     # Assert
@@ -848,9 +808,7 @@ def test_game_exists_when_game_does_not_exist_should_return_false(test_app, test
 def test_game_exists_when_game_exists_should_return_true(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -878,14 +836,11 @@ def test_game_exists_when_game_exists_should_return_true(test_app, test_repo):
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
-
-        id = 1
+        ]
+        _set_up_db(games_in)
 
         # Act
+        id = 1
         game_exists = test_repo.game_exists(id)
 
     # Assert
@@ -947,9 +902,7 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
         # Arrange
         fake_game_exists.return_value = True
 
-        db_init.init_db()
-
-        games = (
+        games = [
             Game(
                 season_year=1920,
                 week=1,
@@ -977,10 +930,8 @@ def test_update_game_when_game_exists_with_id_and_no_integrity_error_caught_shou
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games)
 
         new_game = Game(
             id=2,
@@ -1030,9 +981,7 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
         # Arrange
         fake_game_exists.return_value = True
 
-        db_init.init_db()
-
-        games = (
+        games = [
             Game(
                 season_year=1920,
                 week=1,
@@ -1060,10 +1009,8 @@ def test_update_game_when_integrity_error_caught_should_rollback_transaction_and
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games)
 
         new_game = Game(
             id=2,
@@ -1095,9 +1042,7 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games = (
+        games = [
             Game(
                 season_year=1920,
                 week=1,
@@ -1125,10 +1070,8 @@ def test_delete_game_when_game_does_not_exist_should_return_none_and_not_delete_
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games)
 
         # Act
         game_deleted = test_repo.delete_game(id=-1)
@@ -1146,9 +1089,7 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games = (
+        games = [
             Game(
                 season_year=1920,
                 week=1,
@@ -1176,10 +1117,8 @@ def test_delete_game_when_game_exists_and_integrity_error_not_caught_should_retu
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games)
 
         # Act
         try:
@@ -1200,9 +1139,7 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games = (
+        games = [
             Game(
                 season_year=1920,
                 week=1,
@@ -1230,10 +1167,8 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games)
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -1248,9 +1183,7 @@ def test_delete_game_when_integrity_error_caught_should_rollback_commit(
 def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        games_in = (
+        games_in = [
             Game(
                 season_year=1920,
                 week=1,
@@ -1278,10 +1211,8 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
                 host_score=45,
                 is_playoff=False
             ),
-        )
-        for game in games_in:
-            sqla.session.add(game)
-        sqla.session.commit()
+        ]
+        _set_up_db(games_in)
 
         # Act
         result = test_repo.get_max_week_by_season(season_year=1920)
@@ -1293,10 +1224,19 @@ def test_get_max_week_by_season_when_weeks_is_true_should_return_max_week(test_a
 def test_get_max_week_by_season_when_weeks_is_false_should_return_max_week(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        games_in = []
+        _set_up_db(games_in)
 
         # Act
         result = test_repo.get_max_week_by_season(season_year=1920)
 
     # Assert
     assert result is None
+
+
+def _set_up_db(games: List[Game]) -> None:
+    db_init.init_db()
+
+    for game in games:
+        sqla.session.add(game)
+    sqla.session.commit()

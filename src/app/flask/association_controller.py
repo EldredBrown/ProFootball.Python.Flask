@@ -44,9 +44,9 @@ def create() -> Response | str:
             flash(f"Item {form.short_name.data} has been successfully submitted.", 'success')
             return redirect(url_for('association.index'))
         except ValueError as err:
-            return _handle_error(err, 'associations/create.html', form)
+            return _handle_value_error(err, 'associations/create.html', form)
         except IntegrityError as err:
-            return _handle_error(err, 'associations/create.html', form)
+            return _handle_integrity_error(err, 'INSERT', 'associations/create.html', form)
     else:
         if form.errors:
             flash(f"{form.errors}", 'danger')
@@ -57,9 +57,9 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     association_repository = injector.get(AssociationRepository)
-    association = association_repository.get_association(id)
-    old_association = copy.deepcopy(association)
-    if old_association:
+    old_association = association_repository.get_association(id)
+    old_association_copy = copy.deepcopy(old_association)
+    if old_association_copy:
         form = EditAssociationForm()
         if form.validate_on_submit():
             try:
@@ -68,17 +68,19 @@ def edit(id: int) -> Response | str:
                 flash(f"Item {form.short_name.data} has been successfully updated.", 'success')
                 return redirect(url_for('association.details', id=id))
             except ValueError as err:
-                return _handle_error(err, 'associations/edit.html', form, association=old_association)
+                return _handle_value_error(err, 'associations/edit.html', form, association=old_association_copy)
             except IntegrityError as err:
-                return _handle_error(err, 'associations/edit.html', form, association=old_association)
+                return _handle_integrity_error(
+                    err, 'UPDATE', 'associations/edit.html', form, association=old_association_copy
+                )
             except IndexError:
                 abort(404)
         else:
-            _get_form_data_from_model(form, old_association)
+            _get_form_data_from_model(form, old_association_copy)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
-            return render_template('associations/edit.html', association=old_association, form=form)
+            return render_template('associations/edit.html', association=old_association_copy, form=form)
     else:
         abort(404)
 
@@ -129,6 +131,22 @@ def _get_model_from_form(form: AssociationForm, id: int=None) -> Association:
     return association
 
 
-def _handle_error(err: Any, template_name: str, form: AssociationForm, association: Association=None) -> str:
+def _handle_value_error(err: Any, template_name: str, form: AssociationForm, association: Association=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name, form=form, association=association)
+    return render_template(template_name, association=association, form=form)
+
+
+def _handle_integrity_error(err: Any, sql_operation: str, template_name: str, form: AssociationForm, association: Association=None) -> str:
+    if str(err.args[0]).find("Violation of PRIMARY KEY constraint") != -1:
+        err_msg = "An association with the same id already exists."
+    elif str(err.args[0]).find("Violation of UNIQUE KEY constraint 'UQ_Association_LongName'") != -1:
+        err_msg = "An association with the same long name already exists."
+    elif str(err.args[0]).find("Violation of UNIQUE KEY constraint 'UQ_Association_ShortName'") != -1:
+        err_msg = "An association with the same short name already exists."
+    elif str(err.args[0]).find(f"The {sql_operation} statement conflicted with the FOREIGN KEY constraint 'FK_Association_Season_FirstSeasonYear'") != -1:
+        err_msg = "FOREIGN KEY constraint violation on first season year."
+    else:
+        err_msg = "An unexpected error occurred."
+
+    flash(err_msg, 'danger')
+    return render_template(template_name, association=association, form=form)

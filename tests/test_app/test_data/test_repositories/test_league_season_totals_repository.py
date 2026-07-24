@@ -1,20 +1,15 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
-
+import app.data.repositories.league_season_totals_repository as mod
 from app.data.models.league_season_totals import LeagueSeasonTotals
-from app.data.repositories.league_season_totals_repository import LeagueSeasonTotalsRepository
-
-
-@pytest.fixture
-def test_repo():
-    return LeagueSeasonTotalsRepository()
 
 
 @patch('app.data.repositories.league_season_totals_repository.SQLQuery')
 @patch('app.data.repositories.league_season_totals_repository.sqla')
-def test_get_league_season_totals_should_get_league_season_totals(fake_sqla, fake_SQLQuery, test_repo):
+def test_get_league_season_totals_should_get_league_season_totals(
+        fake_sqla, fake_SQLQuery
+):
     # Arrange
     total_games = 1
     total_points = 2
@@ -23,14 +18,13 @@ def test_get_league_season_totals_should_get_league_season_totals(fake_sqla, fak
     totals = [total_games, total_points, average_points, week_count]
     fake_sqla.session.execute.return_value.first.return_value = totals
 
-    league_name = "League"
-    season_year = 1
-
     # Act
-    result = test_repo.get_league_season_totals(league_name, season_year)
+    league_id = 1
+    season_year = 1920
+    result = mod.get_league_season_totals(league_id, season_year)
 
     # Assert
-    querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_name}', {season_year};"
+    querystring = f"EXEC sp_GetLeagueSeasonTotals '{league_id}', {season_year};"
     fake_SQLQuery.assert_called_once_with(querystring)
     fake_sqla.session.execute.assert_called_once_with(fake_SQLQuery.return_value)
     fake_sqla.session.execute.return_value.first.assert_called_once()

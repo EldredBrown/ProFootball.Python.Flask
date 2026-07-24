@@ -3,30 +3,26 @@ from unittest.mock import patch
 
 import pytest
 
+import app.data.repositories.season_rankings_repository as mod
 from app.data.models.rankings_team_season \
     import OffensiveRankingsTeamSeason, DefensiveRankingsTeamSeason, TotalRankingsTeamSeason
-from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 
 
-@pytest.fixture()
-def test_repo():
-    return SeasonRankingsRepository()
-
-
-def test_get_offensive_rankings_by_season_year_when_season_year_is_none_should_return_empty_list(test_repo):
+@pytest.mark.parametrize("season_year", [None, 1920])
+def test_get_offensive_rankings_when_league_id_is_none_should_return_empty_list(season_year):
     # Arrange
-    season_year = None
+    league_id = None
 
     # Act
-    team_seasons_out = test_repo.get_offensive_rankings_by_season(season_year)
+    team_seasons_out = mod.get_offensive_rankings(season_year=season_year, league_id=league_id)
 
     # Assert
     assert team_seasons_out == []
 
 
 @patch('app.data.repositories.season_rankings_repository.sqla')
-def test_get_offensive_rankings_by_season_year_when_season_year_is_not_none_should_get_offensive_rankings_for_specified_season_year(
-        fake_sqla, test_repo
+def test_get_offensive_rankings_when_season_year_is_not_none_and_league_id_is_not_none_should_get_offensive_rankings(
+        fake_sqla
 ):
     # Arrange
     team_seasons_in = (
@@ -37,12 +33,14 @@ def test_get_offensive_rankings_by_season_year_when_season_year_is_not_none_shou
     fake_sqla.callproc.return_value = team_seasons_in
 
     season_year = 1920
+    league_id = 1
 
     # Act
-    team_seasons_out = test_repo.get_offensive_rankings_by_season(season_year)
+    team_seasons_out = mod.get_offensive_rankings(season_year, league_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC dbo.sp_GetRankingsOffensive @season_year = {season_year};")
+    fake_sqla.callproc.assert_called_once_with(
+        f"EXEC dbo.sp_GetRankingsOffensive @season_year = {season_year}, @league_id = {league_id};")
 
     for i in range(len(team_seasons_in)):
         team_season_out = team_seasons_out[i]
@@ -58,20 +56,27 @@ def test_get_offensive_rankings_by_season_year_when_season_year_is_not_none_shou
         assert team_season_out.offensive_index == team_season_in[6]
 
 
-def test_get_defensive_rankings_by_season_year_when_season_year_is_none_should_return_empty_list(test_repo):
+@pytest.mark.parametrize(
+    "season_year",
+    [
+        (None),
+        (1920),
+    ]
+)
+def test_get_defensive_rankings_when_league_id_is_none_should_return_empty_list(season_year):
     # Arrange
-    season_year = None
+    league_id = None
 
     # Act
-    team_seasons_out = test_repo.get_defensive_rankings_by_season(season_year)
+    team_seasons_out = mod.get_defensive_rankings(season_year=season_year, league_id=league_id)
 
     # Assert
     assert team_seasons_out == []
 
 
 @patch('app.data.repositories.season_rankings_repository.sqla')
-def test_get_defensive_rankings_by_season_year_when_season_year_is_not_none_should_get_defensive_rankings_for_specified_season_year(
-        fake_sqla, test_repo
+def test_get_defensive_rankings_when_season_year_is_not_none_and_league_id_is_not_none_should_get_defensive_rankings(
+        fake_sqla
 ):
     # Arrange
     team_seasons_in = (
@@ -82,12 +87,14 @@ def test_get_defensive_rankings_by_season_year_when_season_year_is_not_none_shou
     fake_sqla.callproc.return_value = team_seasons_in
 
     season_year = 1920
+    league_id = 1
 
     # Act
-    team_seasons_out = test_repo.get_defensive_rankings_by_season(season_year)
+    team_seasons_out = mod.get_defensive_rankings(season_year, league_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC dbo.sp_GetRankingsDefensive @season_year = {season_year};")
+    fake_sqla.callproc.assert_called_once_with(
+        f"EXEC dbo.sp_GetRankingsDefensive @season_year = {season_year}, @league_id = {league_id};")
 
     for i in range(len(team_seasons_in)):
         team_season_out = team_seasons_out[i]
@@ -103,20 +110,27 @@ def test_get_defensive_rankings_by_season_year_when_season_year_is_not_none_shou
         assert team_season_out.defensive_index == team_season_in[6]
 
 
-def test_get_total_rankings_by_season_year_when_season_year_is_none_should_return_empty_list(test_repo):
+@pytest.mark.parametrize(
+    "season_year",
+    [
+        (None),
+        (1920),
+    ]
+)
+def test_get_total_rankings_when_league_id_is_none_should_return_empty_list(season_year):
     # Arrange
-    season_year = None
+    league_id = None
 
     # Act
-    team_seasons_out = test_repo.get_total_rankings_by_season(season_year)
+    team_seasons_out = mod.get_total_rankings(season_year=season_year, league_id=league_id)
 
     # Assert
     assert team_seasons_out == []
 
 
 @patch('app.data.repositories.season_rankings_repository.sqla')
-def test_get_total_rankings_by_season_year_when_season_year_is_not_none_should_get_total_rankings_for_specified_season_year(
-        fake_sqla, test_repo
+def test_get_total_rankings_when_season_year_is_not_none_and_league_id_is_not_none_should_get_total_rankings(
+        fake_sqla
 ):
     # Arrange
     team_seasons_in = (
@@ -127,12 +141,14 @@ def test_get_total_rankings_by_season_year_when_season_year_is_not_none_should_g
     fake_sqla.callproc.return_value = team_seasons_in
 
     season_year = 1920
+    league_id = 1
 
     # Act
-    team_seasons_out = test_repo.get_total_rankings_by_season(season_year)
+    team_seasons_out = mod.get_total_rankings(season_year, league_id)
 
     # Assert
-    fake_sqla.callproc.assert_called_once_with(f"EXEC dbo.sp_GetRankingsTotal @season_year = {season_year};")
+    fake_sqla.callproc.assert_called_once_with(
+        f"EXEC dbo.sp_GetRankingsTotal @season_year = {season_year}, @league_id = {league_id};")
 
     for i in range(len(team_seasons_in)):
         team_season_out = team_seasons_out[i]

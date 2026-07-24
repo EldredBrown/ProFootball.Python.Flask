@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -20,8 +21,7 @@ def test_app():
 @patch('app.flask.season_controller.injector')
 def test_index_should_render_season_index_template(fake_injector, fake_render_template):
     # Arrange
-    fake_season_repository = MagicMock(SeasonRepository)
-    fake_injector.get.return_value = fake_season_repository
+    fake_season_repository = _set_up_index_and_details(fake_injector)
 
     # Act
     result = mod.index()
@@ -42,12 +42,10 @@ def test_details_when_season_found_should_render_season_details_template(
         fake_form, fake_injector, fake_render_template
 ):
     # Arrange
-    year = 1920
-
-    fake_season_repository = MagicMock(SeasonRepository)
-    fake_injector.get.return_value = fake_season_repository
+    fake_season_repository = _set_up_index_and_details(fake_injector)
 
     # Act
+    year = 1920
     result = mod.details(year)
 
     # Assert
@@ -66,13 +64,20 @@ def test_details_when_season_found_should_render_season_details_template(
 @patch('app.flask.season_controller.DeleteSeasonForm')
 def test_details_when_season_not_found_should_abort_with_404_error(fake_form, fake_injector):
     # Arrange
-    fake_season_repository = MagicMock(SeasonRepository)
-    fake_season_repository.get_season.side_effect = IndexError()
-    fake_injector.get.return_value = fake_season_repository
+    err = IndexError()
+    _ = _set_up_index_and_details(fake_injector, err=err)
 
     # Act
     with pytest.raises(NotFound):
-        result = mod.details(1920)
+        _ = mod.details(1920)
+
+
+def _set_up_index_and_details(fake_injector, err: Optional[Exception] = None) -> MagicMock:
+    fake_season_repository = MagicMock(SeasonRepository)
+    fake_season_repository.get_season.side_effect = err
+    fake_injector.get.return_value = fake_season_repository
+
+    return fake_season_repository
 
 
 @patch('app.flask.season_controller.render_template')
@@ -82,8 +87,7 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
         fake_form, fake_flash, fake_render_template
 ):
     # Arrange
-    fake_form.return_value.validate_on_submit.return_value = False
-    fake_form.return_value.errors = None
+    _set_up_create_get(fake_form)
 
     # Act
     result = mod.create()
@@ -103,10 +107,8 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
         fake_form, fake_flash, fake_render_template
 ):
     # Arrange
-    fake_form.return_value.validate_on_submit.return_value = False
-
     errors = 'errors'
-    fake_form.return_value.errors = errors
+    _set_up_create_get(fake_form, errors=errors)
 
     # Act
     result = mod.create()
@@ -117,6 +119,12 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template('seasons/create.html', form=fake_form.return_value)
     assert result is fake_render_template.return_value
+
+
+def _set_up_create_get(fake_form, errors: Optional[str] = None) -> None:
+    form = fake_form.return_value
+    form.validate_on_submit.return_value = False
+    form.errors = errors
 
 
 @patch('app.flask.season_controller.redirect')
@@ -130,19 +138,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
         fake_url_for, fake_redirect
 ):
     # Arrange
-    year = 1920
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.year.data = year
-
-    kwargs = {
-        'year': year,
-    }
-    season = Season(**kwargs)
-    fake_season_factory.create_season.return_value = season
-
-    fake_season_repository = MagicMock(SeasonRepository)
-    fake_injector.get.return_value = fake_season_repository
+    season, fake_season_repository = _set_up_create_post(fake_injector, fake_form, fake_season_factory)
 
     # Act
     result = mod.create()
@@ -150,6 +146,9 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
     # Assert
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
+    kwargs = {
+        'year': 1920,
+    }
     fake_season_factory.create_season.assert_called_once_with(None, **kwargs)
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.add_season.assert_called_once_with(season)
@@ -169,21 +168,8 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
         fake_flash, fake_render_template
 ):
     # Arrange
-    year = 1920
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.year.data = year
-
-    kwargs = {
-        'year': year,
-    }
-    season = Season(**kwargs)
-    fake_season_factory.create_season.return_value = season
-
-    fake_season_repository = MagicMock(SeasonRepository)
     err = ValueError()
-    fake_season_repository.add_season.side_effect = err
-    fake_injector.get.return_value = fake_season_repository
+    season, fake_season_repository = _set_up_create_post(fake_injector, fake_form, fake_season_factory, err=err)
 
     # Act
     result = mod.create()
@@ -191,6 +177,9 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     # Assert
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
+    kwargs = {
+        'year': 1920,
+    }
     fake_season_factory.create_season.assert_called_once_with(None, **kwargs)
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.add_season.assert_called_once_with(season)
@@ -201,24 +190,40 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     assert result is fake_render_template.return_value
 
 
+def _set_up_create_post(
+        fake_injector, fake_form, fake_season_factory, err: Optional[Exception] = None
+) -> tuple[Season, MagicMock]:
+    season = Season(
+        year=1920
+    )
+
+    form = fake_form.return_value
+    form.validate_on_submit.return_value = True
+    form.year.data = season.year
+
+    fake_season_factory.create_season.return_value = season
+
+    fake_season_repository = MagicMock(SeasonRepository)
+    fake_season_repository.add_season.side_effect = err
+    fake_injector.get.return_value = fake_season_repository
+
+    return season, fake_season_repository
+
+
 @patch('app.flask.season_controller.injector')
 def test_delete_when_season_not_found_should_abort_with_404_error(
         fake_injector, test_app
 ):
     # Arrange
-    year = 1
-
     fake_season_repository = MagicMock(SeasonRepository)
     fake_season_repository.get_season.return_value = None
     fake_injector.get.return_value = fake_season_repository
 
     # Act
-    with test_app.test_request_context(
-            f'/seasons/delete?year={year}',
-            method='POST'
-    ):
+    year = 1920
+    with test_app.test_request_context(f'/seasons/delete?year={year}', method='POST'):
         with pytest.raises(NotFound):
-            result = mod.delete(year)
+            _ = mod.delete(year)
 
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
@@ -233,26 +238,19 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_render_template, test_app
 ):
     # Arrange
-    fake_season_repository = MagicMock(SeasonRepository)
     season = Season()
-    fake_season_repository.get_season.return_value = season
-    fake_injector.get.return_value = fake_season_repository
-
-    year = 1
+    fake_season_repository = _set_up_delete(fake_injector, season=season)
 
     # Act
-    with test_app.test_request_context(
-            f'/seasons/delete?year={year}',
-            method='GET'
-    ):
+    year = 1920
+    with test_app.test_request_context(f'/seasons/delete?year={year}', method='GET'):
         result = mod.delete(year)
 
     # Assert
     fake_form.assert_called_once()
     fake_injector.get.assert_called_once_with(SeasonRepository)
     fake_season_repository.get_season.assert_called_once_with(year)
-    fake_render_template.assert_called_once_with('seasons/delete.html', season=season,
-                                                 form=fake_form.return_value)
+    fake_render_template.assert_called_once_with('seasons/delete.html', season=season, form=fake_form.return_value)
     assert result is fake_render_template.return_value
 
 
@@ -265,18 +263,12 @@ def test_delete_when_request_method_is_post_and_season_found_should_flash_succes
         fake_redirect, test_app
 ):
     # Arrange
-    year = 1
-
-    fake_season_repository = MagicMock(SeasonRepository)
-    season = Season()
-    fake_season_repository.get_season.return_value = season
-    fake_injector.get.return_value = fake_season_repository
+    year = 1920
+    season = Season(year=year)
+    fake_season_repository = _set_up_delete(fake_injector, season=season)
 
     # Act
-    with test_app.test_request_context(
-            f'/seasons/delete?year={year}',
-            method='POST'
-    ):
+    with test_app.test_request_context(f'/seasons/delete?year={year}', method='POST'):
         result = mod.delete(year)
 
     # Assert
@@ -294,22 +286,25 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
         fake_injector, test_app
 ):
     # Arrange
-    id = 1
-
-    fake_season_repository = MagicMock(SeasonRepository)
     season = Season()
-    fake_season_repository.get_season.return_value = season
-    fake_season_repository.delete_season.side_effect = IndexError()
-    fake_injector.get.return_value = fake_season_repository
+    err = IndexError()
+    fake_season_repository = _set_up_delete(fake_injector, season=season, err=err)
 
     # Act
-    with test_app.test_request_context(
-            f'/seasons/delete?id={id}',
-            method='POST'
-    ):
+    year = 1920
+    with test_app.test_request_context(f'/seasons/delete?id={id}', method='POST'):
         with pytest.raises(NotFound):
-            result = mod.delete(id)
+            _ = mod.delete(year)
 
     # Assert
     fake_injector.get.assert_called_once_with(SeasonRepository)
-    fake_season_repository.get_season.assert_called_once_with(id)
+    fake_season_repository.get_season.assert_called_once_with(year)
+
+
+def _set_up_delete(fake_injector, season: Optional[Season] = None, err: Optional[Exception] = None) -> MagicMock:
+    fake_season_repository = MagicMock(SeasonRepository)
+    fake_season_repository.get_season.return_value = season
+    fake_season_repository.delete_season.side_effect = err
+    fake_injector.get.return_value = fake_season_repository
+
+    return fake_season_repository

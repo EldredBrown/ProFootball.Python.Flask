@@ -54,13 +54,9 @@ def configure(binder):
     from app.data.repositories.association_repository import AssociationRepository
     from app.data.repositories.game_repository import GameRepository
     from app.data.repositories.league_season_repository import LeagueSeasonRepository
-    from app.data.repositories.league_season_totals_repository import LeagueSeasonTotalsRepository
-    from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
     from app.data.repositories.season_repository import SeasonRepository
-    from app.data.repositories.season_standings_repository import SeasonStandingsRepository
     from app.data.repositories.team_repository import TeamRepository
     from app.data.repositories.team_season_repository import TeamSeasonRepository
-    from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 
     from app.services.game_predictor_service.game_predictor_service import GamePredictorService
     from app.services.game_service.game_service import GameService
@@ -70,13 +66,9 @@ def configure(binder):
     binder.bind(AssociationRepository, to=AssociationRepository, scope=singleton)
     binder.bind(GameRepository, to=GameRepository, scope=singleton)
     binder.bind(LeagueSeasonRepository, to=LeagueSeasonRepository, scope=singleton)
-    binder.bind(LeagueSeasonTotalsRepository, to=LeagueSeasonTotalsRepository, scope=singleton)
     binder.bind(SeasonRepository, to=SeasonRepository, scope=singleton)
-    binder.bind(SeasonRankingsRepository, to=SeasonRankingsRepository, scope=singleton)
-    binder.bind(SeasonStandingsRepository, to=SeasonStandingsRepository, scope=singleton)
     binder.bind(TeamRepository, to=TeamRepository, scope=singleton)
     binder.bind(TeamSeasonRepository, to=TeamSeasonRepository, scope=singleton)
-    binder.bind(TeamSeasonScheduleRepository, to=TeamSeasonScheduleRepository, scope=singleton)
 
     binder.bind(GameService, to=GameService, scope=singleton)
     binder.bind(GamePredictorService, to=GamePredictorService, scope=singleton)

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import List
 from unittest.mock import patch, call, MagicMock
 
 import pytest
@@ -25,8 +26,6 @@ def test_repo():
 def test_get_team_seasons_should_get_team_seasons(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         team_seasons_in = [
             TeamSeason(
                 team_id=1,
@@ -44,9 +43,7 @@ def test_get_team_seasons_should_get_team_seasons(test_app, test_repo):
                 league_id=1
             ),
         ]
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        _set_up_db(team_seasons_in)
 
         # Act
         team_seasons_out = test_repo.get_team_seasons()
@@ -58,9 +55,7 @@ def test_get_team_seasons_should_get_team_seasons(test_app, test_repo):
 def test_get_team_seasons_by_team_when_team_id_is_none_should_get_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 team_id=1,
                 season_year=1920,
@@ -106,10 +101,8 @@ def test_get_team_seasons_by_team_when_team_id_is_none_should_get_empty_list(tes
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_seasons_out = test_repo.get_team_seasons_by_team(team_id=None)
@@ -123,9 +116,7 @@ def test_get_team_seasons_by_team_when_team_id_is_not_none_should_get_team_seaso
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 team_id=1,
                 season_year=1920,
@@ -171,10 +162,8 @@ def test_get_team_seasons_by_team_when_team_id_is_not_none_should_get_team_seaso
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         team_id = 2
 
@@ -188,9 +177,7 @@ def test_get_team_seasons_by_team_when_team_id_is_not_none_should_get_team_seaso
 def test_get_team_seasons_by_season_when_season_year_is_none_should_get_empty_list(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 team_id=1,
                 season_year=1920,
@@ -236,10 +223,8 @@ def test_get_team_seasons_by_season_when_season_year_is_none_should_get_empty_li
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_seasons_out = test_repo.get_team_seasons_by_season(season_year=None)
@@ -253,9 +238,7 @@ def test_get_team_seasons_by_season_when_season_year_is_not_none_should_get_team
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 team_id=1,
                 season_year=1920,
@@ -301,10 +284,8 @@ def test_get_team_seasons_by_season_when_season_year_is_not_none_should_get_team
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         season_year = 1921
 
@@ -318,7 +299,8 @@ def test_get_team_seasons_by_season_when_season_year_is_not_none_should_get_team
 def test_get_team_season_when_team_seasons_is_empty_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        team_seasons_in = []
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_out = test_repo.get_team_season(id=1)
@@ -332,9 +314,7 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_not_f
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -353,10 +333,8 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_not_f
                 season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_out = test_repo.get_team_season(id=-1)
@@ -370,9 +348,7 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_found
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -391,10 +367,8 @@ def test_get_team_season_when_team_seasons_is_not_empty_and_team_season_is_found
                 season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_out = test_repo.get_team_season(id=2)
@@ -408,7 +382,8 @@ def test_get_team_season_by_team_and_season_when_team_seasons_is_empty_should_re
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        team_seasons_in = []
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_out = test_repo.get_team_season_by_team_and_season(team_id=1, season_year=1920)
@@ -422,9 +397,7 @@ def test_get_team_season_by_league_and_season_when_team_seasons_is_not_empty_and
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -434,19 +407,17 @@ def test_get_team_season_by_league_and_season_when_team_seasons_is_not_empty_and
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_out = test_repo.get_team_season_by_team_and_season(team_id=-1, season_year=1919)
@@ -460,37 +431,62 @@ def test_get_team_season_by_team_and_season_when_team_seasons_is_not_empty_and_t
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons_in = (
+        team_seasons_in = [
             TeamSeason(
-                id=1,
                 team_id=1,
                 season_year=1920,
                 league_id=1
             ),
             TeamSeason(
-                id=2,
+                team_id=2,
+                season_year=1920,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=3,
+                season_year=1920,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=1,
+                season_year=1921,
+                league_id=1
+            ),
+            TeamSeason(
                 team_id=2,
                 season_year=1921,
                 league_id=1
             ),
             TeamSeason(
-                id=3,
+                team_id=3,
+                season_year=1921,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=1,
+                season_year=1922,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=2,
+                season_year=1922,
+                league_id=1
+            ),
+            TeamSeason(
                 team_id=3,
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons_in:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
-        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=2, season_year=1921)
+        team_id = 2
+        season_year = 1921
+        team_season_out = test_repo.get_team_season_by_team_and_season(team_id=team_id, season_year=season_year)
 
     # Assert
-    assert team_season_out is team_seasons_in[1]
+    assert team_season_out is [ts for ts in team_seasons_in if ts.team_id == team_id and ts.season_year == season_year][0]
 
 
 @patch('app.data.repositories.team_season_repository.try_commit')
@@ -609,7 +605,7 @@ def test_add_team_seasons_when_team_seasons_arg_is_not_empty_and_integrity_error
 
     # Act
     with pytest.raises(IntegrityError):
-        team_seasons_out = test_repo.add_team_seasons(team_seasons_in)
+        _ = test_repo.add_team_seasons(team_seasons_in)
 
     # Assert
     fake_sqla.session.add.assert_has_calls([
@@ -623,9 +619,7 @@ def test_add_team_seasons_when_team_seasons_arg_is_not_empty_and_integrity_error
 def test_team_season_exists_when_team_season_does_not_exist_should_return_false(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -635,19 +629,17 @@ def test_team_season_exists_when_team_season_does_not_exist_should_return_false(
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_exists = test_repo.team_season_exists(id=-1)
@@ -659,9 +651,7 @@ def test_team_season_exists_when_team_season_does_not_exist_should_return_false(
 def test_team_season_exists_when_team_season_exists_should_return_true(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -671,19 +661,17 @@ def test_team_season_exists_when_team_season_exists_should_return_true(test_app,
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_exists = test_repo.team_season_exists(id=2)
@@ -697,9 +685,7 @@ def test_team_season_exists_with_team_id_and_season_year_when_team_season_does_n
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -709,19 +695,17 @@ def test_team_season_exists_with_team_id_and_season_year_when_team_season_does_n
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_exists = test_repo.team_season_exists_with_team_id_and_season_year(team_id=-1, season_year=1919)
@@ -735,31 +719,54 @@ def test_team_season_exists_with_team_name_and_season_year_when_team_season_exis
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons_in = [
             TeamSeason(
-                id=1,
                 team_id=1,
                 season_year=1920,
                 league_id=1
             ),
             TeamSeason(
-                id=2,
+                team_id=2,
+                season_year=1920,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=3,
+                season_year=1920,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=1,
+                season_year=1921,
+                league_id=1
+            ),
+            TeamSeason(
                 team_id=2,
                 season_year=1921,
                 league_id=1
             ),
             TeamSeason(
-                id=3,
+                team_id=3,
+                season_year=1921,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=1,
+                season_year=1922,
+                league_id=1
+            ),
+            TeamSeason(
+                team_id=2,
+                season_year=1922,
+                league_id=1
+            ),
+            TeamSeason(
                 team_id=3,
                 season_year=1922,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         team_season_exists = test_repo.team_season_exists_with_team_id_and_season_year(team_id=2, season_year=1921)
@@ -827,9 +834,7 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
     with test_app.app_context():
         fake_team_season_exists.return_value = True
 
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -899,10 +904,8 @@ def test_update_team_season_when_team_season_exists_with_id_and_no_integrity_err
                 defensive_index=Decimal('3.00'),
                 final_expected_winning_percentage=Decimal('3.000')
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons)
 
         new_team_season = TeamSeason(
             id=2,
@@ -976,7 +979,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
 
         db_init.init_db()
 
-        team_seasons = (
+        team_seasons = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -1046,10 +1049,8 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
                 defensive_index=Decimal('3.00'),
                 final_expected_winning_percentage=Decimal('3.000')
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons)
 
         new_team_season = TeamSeason(
             id=2,
@@ -1079,7 +1080,7 @@ def test_update_team_season_when_and_team_season_exists_with_id_and_integrity_er
 
         # Act
         with pytest.raises(IntegrityError):
-            team_season_updated = test_repo.update_team_season(new_team_season)
+            _ = test_repo.update_team_season(new_team_season)
 
     # Assert
     old_team_season = team_seasons[1]
@@ -1094,9 +1095,7 @@ def test_delete_team_season_when_team_season_does_not_exist_should_return_none_a
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons_in = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -1106,19 +1105,17 @@ def test_delete_team_season_when_team_season_does_not_exist_should_return_none_a
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons_in)
 
         # Act
         game_deleted = test_repo.delete_team_season(id=-1)
@@ -1136,9 +1133,7 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_not_caug
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -1148,19 +1143,17 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_not_caug
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons)
 
         # Act
         try:
@@ -1175,15 +1168,12 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_not_caug
 
 
 @patch('app.data.repositories.team_season_repository.try_commit')
-@patch('app.data.repositories.team_season_repository.sqla')
 def test_delete_team_season_when_team_season_exists_and_integrity_error_caught_should_rollback_commit(
-        fake_sqla, fake_try_commit, test_app, test_repo
+        fake_try_commit, test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        team_seasons = (
+        team_seasons = [
             TeamSeason(
                 id=1,
                 team_id=1,
@@ -1193,25 +1183,31 @@ def test_delete_team_season_when_team_season_exists_and_integrity_error_caught_s
             TeamSeason(
                 id=2,
                 team_id=2,
-                season_year=1921,
+                season_year=1920,
                 league_id=1
             ),
             TeamSeason(
                 id=3,
                 team_id=3,
-                season_year=1922,
+                season_year=1920,
                 league_id=1
             ),
-        )
-        for team_season in team_seasons:
-            sqla.session.add(team_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(team_seasons)
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
-            team_season_deleted = test_repo.delete_team_season(id=2)
+            _ = test_repo.delete_team_season(id=2)
 
     # Assert
     fake_try_commit.assert_called_once()
+
+
+def _set_up_db(team_seasons: List[TeamSeason]) -> None:
+    db_init.init_db()
+
+    for team_season in team_seasons:
+        sqla.session.add(team_season)
+    sqla.session.commit()

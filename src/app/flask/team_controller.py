@@ -57,9 +57,9 @@ def create() -> Response | str:
 @blueprint.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id: int) -> Response | str:
     team_repository = injector.get(TeamRepository)
-    team = team_repository.get_team(id)
-    old_team = copy.deepcopy(team)
-    if old_team:
+    old_team = team_repository.get_team(id)
+    old_team_copy = copy.deepcopy(old_team)
+    if old_team_copy:
         form = EditTeamForm()
         if form.validate_on_submit():
             try:
@@ -68,17 +68,17 @@ def edit(id: int) -> Response | str:
                 flash(f"Item {form.name.data} has been successfully updated.", 'success')
                 return redirect(url_for('team.details', id=id))
             except ValueError as err:
-                return _handle_error(err, 'teams/edit.html', form, team=old_team)
+                return _handle_error(err, 'teams/edit.html', form, team=old_team_copy)
             except IntegrityError as err:
-                return _handle_error(err, 'teams/edit.html', form, team=old_team)
+                return _handle_error(err, 'teams/edit.html', form, team=old_team_copy)
             except IndexError:
                 abort(404)
         else:
-            _get_form_data_from_model(form, old_team)
+            _get_form_data_from_model(form, old_team_copy)
             if form.errors:
                 flash(f"{form.errors}", 'danger')
 
-            return render_template('teams/edit.html', team=old_team, form=form)
+            return render_template('teams/edit.html', team=old_team_copy, form=form)
     else:
         abort(404)
 

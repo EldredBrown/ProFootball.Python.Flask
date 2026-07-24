@@ -19,33 +19,15 @@ def create_association(**kwargs) -> Association:
             raise KeyError(f"{key} is invalid.")
 
         value = kwargs.get(key)
-        if key in ['long_name', 'short_name']:
-            error_message = f"Association already exists with {key}='{value}'."
-            if 'id' in kwargs:
-                if _value_has_changed(key, **kwargs):
-                    _validate_is_unique(key, value, error_message=error_message)
-            else:
-                _validate_is_unique(key, value, error_message=error_message)
-            model_kwargs[view_model_map[key]] = value
-        elif key == 'parent_name':
+        if key == 'parent_name':
             association_repository = injector.get(AssociationRepository)
-            parent_id = association_repository.get_association_by_short_name(kwargs.get('parent_name')).id
-            model_kwargs[view_model_map[key]] = parent_id
-        else:    # key in ['id', 'first_season_year', 'last_season_year']:
+            association = association_repository.get_association_by_short_name(value)
+            if association is None:
+                parent_id = None if value is None or value == '' else -1
+            else:
+                parent_id = association.id
+            model_kwargs['parent_id'] = parent_id
+        else:
             model_kwargs[view_model_map[key]] = value
 
     return Association(**model_kwargs)
-
-
-def _validate_is_unique(key, value, error_message=None):
-    if Association.query.filter_by(**{key: value}).first() is not None:
-        if not error_message:
-            error_message = f"{key} must be unique."
-        raise ValueError(error_message)
-
-
-def _value_has_changed(key: str, **kwargs) -> bool:
-    id = kwargs.get('id')
-    association_repository = injector.get(AssociationRepository)
-    old_association = association_repository.get_association(id)
-    return kwargs[key] != old_association.__dict__[key]

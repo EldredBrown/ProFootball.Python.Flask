@@ -7,8 +7,8 @@ from app.data.models.league_season_totals import LeagueSeasonTotals
 from app.data.models.team_season import TeamSeason
 from app.data.repositories.game_repository import GameRepository
 from app.data.repositories.league_season_repository import LeagueSeasonRepository
-from app.data.repositories.league_season_totals_repository import LeagueSeasonTotalsRepository
-from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
+from app.data.repositories import league_season_totals_repository
+from app.data.repositories import season_rankings_repository
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
 from app.services.utilities.utils import typename
@@ -41,9 +41,7 @@ class WeeklyUpdateService:
             season_repository: SeasonRepository,
             game_repository: GameRepository,
             league_season_repository: LeagueSeasonRepository,
-            team_season_repository: TeamSeasonRepository,
-            league_season_totals_repository: LeagueSeasonTotalsRepository,
-            season_rankings_repository: SeasonRankingsRepository
+            team_season_repository: TeamSeasonRepository
     ):
         """
         Initializes a new instance of the WeeklyUpdateService class.
@@ -52,7 +50,6 @@ class WeeklyUpdateService:
         self.game_repository = game_repository
         self.league_season_repository = league_season_repository
         self.team_season_repository = team_season_repository
-        self.league_season_totals_repository = league_season_totals_repository
         self.season_rankings_repository = season_rankings_repository
 
     def __repr__(self):
@@ -62,7 +59,6 @@ class WeeklyUpdateService:
             f"game_repository={self.game_repository}, "
             f"league_season_repository={self.league_season_repository}, "
             f"team_season_repository={self.team_season_repository}, "
-            f"league_season_totals_repository={self.league_season_totals_repository}, "
             f"season_rankings_repository={self.season_rankings_repository}"
             f")"
         )
@@ -72,7 +68,6 @@ class WeeklyUpdateService:
                f"Game Repository: {self.game_repository}, " \
                f"League Season Repository: {self.league_season_repository}, " \
                f"Team Season Repository: {self.team_season_repository}, " \
-               f"League Season Totals Repository: {self.league_season_totals_repository}, " \
                f"Season Rankings Repository: {self.season_rankings_repository}"
 
     def run_weekly_update(self, league_id: int, season_year: int) -> None:
@@ -105,7 +100,7 @@ class WeeklyUpdateService:
         self.league_season_repository.update_league_season(league_season)
 
     def _get_league_season_data(self, league_id: int, season_year: int) -> LeagueSeasonData | None:
-        league_season_totals = self.league_season_totals_repository.get_league_season_totals(league_id, season_year)
+        league_season_totals = league_season_totals_repository.get_league_season_totals(league_id, season_year)
         if (
                 league_season_totals is None
                 or league_season_totals.total_games is None
@@ -154,7 +149,7 @@ class WeeklyUpdateService:
         self.team_season_repository.update_team_season(team_season)
 
     def _get_rankings_data(self, team_season: TeamSeason) -> RankingsData | None:
-        results = self.season_rankings_repository.get_data_for_rankings_update(team_season)
+        results = season_rankings_repository.get_data_for_rankings_update(team_season)
 
         totals = results['team_season_schedule_totals']
         if not totals or totals['schedule_games'] is None:

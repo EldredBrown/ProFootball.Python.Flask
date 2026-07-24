@@ -16,8 +16,6 @@ class TestForms(unittest.TestCase):
         self.ctx.pop()
 
     def test_id_not_provided(self):
-        form = SeasonForm(data={
-            'num_of_weeks_scheduled': 13,
-        })
+        form = SeasonForm(data={})
         self.assertFalse(form.validate())
-        self.assertIn("Please enter a year.", form.id.errors)
+        self.assertIn("Please enter a year.", form.year.errors)

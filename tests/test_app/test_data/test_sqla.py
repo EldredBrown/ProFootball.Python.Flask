@@ -4,7 +4,7 @@ import pytest
 
 from sqlalchemy.exc import IntegrityError
 
-from app.data import sqla as mod
+import app.data.sqla as mod
 
 
 @patch('app.data.sqla.sqla')

@@ -56,9 +56,8 @@ def test_get_team_when_teams_is_not_empty_and_team_is_not_found_should_return_no
     fake_team.query.all.return_value = teams_in
     fake_team.query.get.return_value = None
 
-    id = len(teams_in) + 1
-
     # Act
+    id = len(teams_in) + 1
     team_out = test_repo.get_team(id)
 
     # Assert
@@ -391,9 +390,8 @@ def test_delete_team_when_team_does_not_exist_should_return_none_and_not_delete_
     fake_team.query.all.return_value = teams
     fake_team.query.get.return_value = None
 
-    id = 1
-
     # Act
+    id = 1
     team_deleted = test_repo.delete_team(id)
 
     # Assert

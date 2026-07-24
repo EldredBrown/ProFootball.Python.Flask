@@ -1,5 +1,4 @@
 from sqlalchemy.orm import validates
-from sqlalchemy_utils.functions import foreign_keys
 
 from app.data.models.game import Game
 from app.data.models.team_season import TeamSeason

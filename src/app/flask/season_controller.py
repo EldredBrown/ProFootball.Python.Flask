@@ -69,10 +69,6 @@ def delete(year: int) -> Response | str:
         abort(404)
 
 
-def _get_form_data_from_model(form: SeasonForm, season: Season) -> None:
-    form.year.data = season.year
-
-
 def _get_kwargs_from_form(form: SeasonForm, year: int=None) -> dict[str, Any]:
     kwargs = {
         'year': int(form.year.data),

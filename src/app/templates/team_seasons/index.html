@@ -9,7 +9,7 @@
     <select id="dropdown" name="season_dropdown">
         {% for season in seasons %}
             <option value="{{ season.year }}" {% if season.year == selected_season_year %}selected='selected'{% endif %}>
-                {{ Season.year }}
+                {{ season.year }}
             </option>
         {% endfor %}
     </select>

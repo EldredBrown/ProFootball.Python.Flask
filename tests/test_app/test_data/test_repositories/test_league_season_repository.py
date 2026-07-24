@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch, call
 
 import pytest
@@ -24,8 +25,6 @@ def test_repo():
 def test_get_league_seasons_should_get_league_seasons(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         league_seasons_in = [
             LeagueSeason(
                 id=1,
@@ -49,9 +48,7 @@ def test_get_league_seasons_should_get_league_seasons(test_app, test_repo):
                 num_of_weeks_completed=0
             ),
         ]
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons()
@@ -65,9 +62,7 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_none_should_return_e
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -131,10 +126,8 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_none_should_return_e
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_league(league_id=None)
@@ -148,9 +141,7 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_no_matc
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -214,10 +205,8 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_no_matc
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_league(league_id=-1)
@@ -231,9 +220,7 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_matchin
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -297,10 +284,8 @@ def test_get_league_seasons_by_league_when_league_id_arg_is_not_none_and_matchin
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_league(league_id=2)
@@ -314,9 +299,7 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_none_should_return
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -380,10 +363,8 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_none_should_return
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_league(league_id=None)
@@ -397,9 +378,7 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_no_ma
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -463,10 +442,8 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_no_ma
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_league(league_id=1919)
@@ -480,9 +457,7 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_match
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -546,10 +521,8 @@ def test_get_league_seasons_by_season_when_season_year_arg_is_not_none_and_match
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_seasons_out = test_repo.get_league_seasons_by_season(season_year=1921)
@@ -563,7 +536,8 @@ def test_get_league_season_when_league_seasons_is_empty_should_return_none(
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        league_seasons_in = []
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_out = test_repo.get_league_season(id=3)
@@ -577,9 +551,7 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -601,10 +573,8 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_out = test_repo.get_league_season(id=-1)
@@ -618,9 +588,7 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -642,10 +610,8 @@ def test_get_league_season_when_league_seasons_is_not_empty_and_league_season_is
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_out = test_repo.get_league_season(id=2)
@@ -659,7 +625,8 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_empty_sho
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        league_seasons_in = []
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_out = test_repo.get_league_season_by_league_and_season(league_id=1, season_year=1920)
@@ -673,9 +640,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -685,22 +650,20 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_out = test_repo.get_league_season_by_league_and_season(league_id=-1, season_year=1919)
@@ -714,9 +677,7 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons_in = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -726,28 +687,72 @@ def test_get_league_season_by_league_and_season_when_league_seasons_is_not_empty
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
+                league_id=1,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=4,
+                league_id=2,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=5,
+                league_id=2,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=6,
+                league_id=2,
+                season_year=1922,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=7,
+                league_id=3,
+                season_year=1920,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=8,
+                league_id=3,
+                season_year=1921,
+                num_of_weeks_scheduled=0,
+                num_of_weeks_completed=0
+            ),
+            LeagueSeason(
+                id=9,
                 league_id=3,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons_in:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
-        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=2, season_year=1921)
+        league_id = 2
+        season_year = 1921
+        league_season_out = test_repo.get_league_season_by_league_and_season(league_id=league_id, season_year=season_year)
 
     # Assert
-    assert league_season_out is league_seasons_in[1]
+    assert league_season_out is [
+        ls for ls in league_seasons_in if ls.league_id == league_id and ls.season_year == season_year
+    ][0]
 
 
 @patch('app.data.repositories.league_season_repository.try_commit')
@@ -901,9 +906,7 @@ def test_league_season_exists_when_league_season_does_not_exist_should_return_fa
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -913,22 +916,20 @@ def test_league_season_exists_when_league_season_does_not_exist_should_return_fa
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_exists = test_repo.league_season_exists(id=-1)
@@ -942,9 +943,7 @@ def test_league_season_exists_when_league_season_exists_should_return_true(
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons_in = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -954,22 +953,20 @@ def test_league_season_exists_when_league_season_exists_should_return_true(
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons_in)
 
         # Act
         league_season_exists = test_repo.league_season_exists(id=2)
@@ -1024,9 +1021,7 @@ def test_update_league_season_when_league_season_exists_with_id_and_no_integrity
     with test_app.app_context():
         fake_league_season_exists.return_value = True
 
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -1036,22 +1031,20 @@ def test_update_league_season_when_league_season_exists_with_id_and_no_integrity
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons)
 
         new_league_season = LeagueSeason(
             id=2,
@@ -1091,9 +1084,7 @@ def test_update_league_season_when_league_season_exists_with_id_and_integrity_er
     with test_app.app_context():
         fake_league_season_exists.return_value = True
 
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -1103,22 +1094,20 @@ def test_update_league_season_when_league_season_exists_with_id_and_integrity_er
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons)
 
         new_league_season = LeagueSeason(
             id=2,
@@ -1147,9 +1136,7 @@ def test_delete_league_season_when_league_season_does_not_exist_should_return_no
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -1159,22 +1146,20 @@ def test_delete_league_season_when_league_season_does_not_exist_should_return_no
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons)
 
         # Act
         game_deleted = test_repo.delete_league_season(id=-1)
@@ -1192,9 +1177,7 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_not_
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -1204,22 +1187,20 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_not_
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons)
 
         # Act
         try:
@@ -1240,9 +1221,7 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_caug
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        league_seasons = (
+        league_seasons = [
             LeagueSeason(
                 id=1,
                 league_id=1,
@@ -1252,28 +1231,34 @@ def test_delete_league_season_when_league_season_exists_and_integrity_error_caug
             ),
             LeagueSeason(
                 id=2,
-                league_id=2,
+                league_id=1,
                 season_year=1921,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
             LeagueSeason(
                 id=3,
-                league_id=3,
+                league_id=1,
                 season_year=1922,
                 num_of_weeks_scheduled=0,
                 num_of_weeks_completed=0
             ),
-        )
-        for league_season in league_seasons:
-            sqla.session.add(league_season)
-        sqla.session.commit()
+        ]
+        _set_up_db(league_seasons)
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
-            league_season_deleted = test_repo.delete_league_season(id=2)
+            _ = test_repo.delete_league_season(id=2)
 
     # Assert
     fake_try_commit.assert_called_once()
+
+
+def _set_up_db(league_seasons: List[LeagueSeason]) -> None:
+    db_init.init_db()
+
+    for league_season in league_seasons:
+        sqla.session.add(league_season)
+    sqla.session.commit()

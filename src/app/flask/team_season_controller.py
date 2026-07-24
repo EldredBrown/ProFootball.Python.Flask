@@ -6,10 +6,10 @@ from app import injector
 from app.data.models.association import Association
 from app.data.models.season import Season
 from app.data.models.team_season import TeamSeason
+from app.data.repositories import team_season_schedule_repository
 from app.data.repositories.association_repository import AssociationRepository
 from app.data.repositories.season_repository import SeasonRepository
 from app.data.repositories.team_season_repository import TeamSeasonRepository
-from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
 from app.services.weekly_update_service.weekly_update_service import WeeklyUpdateService
 
 blueprint = Blueprint('team_season', __name__)
@@ -69,7 +69,6 @@ def details(id: int) -> str:
         team_season_repository = injector.get(TeamSeasonRepository)
         team_season = team_season_repository.get_team_season(id)
 
-        team_season_schedule_repository = injector.get(TeamSeasonScheduleRepository)
         team_season_schedule_profile = team_season_schedule_repository.get_team_season_schedule_profile(
             team_season.team_id, team_season.season_year
         )

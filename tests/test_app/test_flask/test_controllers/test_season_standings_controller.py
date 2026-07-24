@@ -1,12 +1,14 @@
-from unittest.mock import patch, MagicMock
+from typing import Optional
+from unittest.mock import patch, MagicMock, call
 
 import pytest
 from flask import session
 
 import app.flask.season_standings_controller as mod
+from app.data.models.association import Association
 from app.data.models.season import Season
+from app.data.repositories.association_repository import AssociationRepository
 from app.data.repositories.season_repository import SeasonRepository
-from app.data.repositories.season_standings_repository import SeasonStandingsRepository
 
 from test_app import create_app
 
@@ -16,67 +18,391 @@ def test_app():
     return create_app()
 
 
+@pytest.mark.parametrize(
+    "league_name",
+    [
+        None,
+        '',
+    ]
+)
 @patch('app.flask.season_standings_controller.render_template')
 @patch('app.flask.season_standings_controller.injector')
-def test_index_should_render_season_standings_index_template(fake_injector, fake_render_template, test_app):
-    with test_app.test_request_context(
-            '/season_standings/',
-            method='GET'
-    ):
+def test_index_when_selected_season_year_is_none_and_selected_league_name_is_none_or_empty_should_set_selected_season_year_and_selected_league_name_and_render_team_season_index_template(
+        fake_injector, fake_render_template, league_name, test_app
+):
+    with (test_app.test_request_context('/team_seasons/', method='GET')):
         # Arrange
-        fake_season_repository = MagicMock(SeasonRepository)
-        seasons = (
-            Season(year=1920),
-            Season(year=1921),
-            Season(year=1922),
+        seasons, fake_season_repository, associations, fake_association_repository = (
+            _set_up_index(fake_injector, league_name=league_name)
         )
-        fake_season_repository.get_seasons.return_value = seasons
-        fake_injector.get.return_value = fake_season_repository
-
-        session['seasons'] = []
 
         # Act
         result = mod.index()
 
         # Assert
-        fake_injector.get.assert_called_once_with(SeasonRepository)
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(AssociationRepository),
+        ])
+
+        # Verify seasons.
         fake_season_repository.get_seasons.assert_called_once()
+        seasons.sort(key=lambda s: s.year, reverse=True)
         assert session.get('seasons') == [s.to_dict() for s in seasons]
+
+        default_season = seasons[0]
+        assert session.get('selected_season_year') == default_season.year
+
+        # Verify leagues.
+        fake_association_repository.get_associations.assert_called_once()
+        leagues = [a for a in associations if a.parent_id is None]
+        active_leagues = [l for l in leagues if l.first_season_year <= default_season.year
+                          and (l.last_season is None or default_season.year <= l.last_season_year)]
+        active_leagues.sort(key=lambda l: l.id, reverse=True)
+        assert session.get('leagues') == [l.to_dict() for l in active_leagues]
+
+        default_league = active_leagues[0]
+        assert session.get('selected_league_name') == default_league.short_name
+
+        # Verify render.
         fake_render_template.assert_called_once_with(
             'season_standings/index.html',
-            seasons=fake_season_repository.get_seasons.return_value, selected_season_year=-1, season_standings=[]
+            seasons=seasons, selected_season_year=default_season.year,
+            leagues=active_leagues, selected_league_name=default_league.short_name,
+            season_standings=[]
+        )
+        assert result is fake_render_template.return_value
+
+
+@pytest.mark.parametrize(
+    "league_name",
+    [
+        None,
+        '',
+    ]
+)
+@patch('app.flask.season_standings_controller.render_template')
+@patch('app.flask.season_standings_controller.injector')
+def test_index_when_selected_season_year_is_not_none_should_set_selected_season_year_and_render_team_season_index_template(
+        fake_injector, fake_render_template, league_name, test_app
+):
+    with test_app.test_request_context('/team_seasons/', method='GET'):
+        selected_season_year = 1920
+        seasons, fake_season_repository, associations, fake_association_repository = (
+            _set_up_index(fake_injector, season_year=selected_season_year, league_name=league_name)
+        )
+
+        # Act
+        result = mod.index()
+
+        # Assert
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(AssociationRepository),
+        ])
+
+        # Verify seasons.
+        fake_season_repository.get_seasons.assert_called_once()
+        seasons.sort(key=lambda s: s.year, reverse=True)
+        assert session.get('seasons') == [s.to_dict() for s in seasons]
+        assert session.get('selected_season_year') == selected_season_year
+
+        # Verify leagues.
+        fake_association_repository.get_associations.assert_called_once()
+        leagues = [a for a in associations if a.parent_id is None]
+        active_leagues = [l for l in leagues if l.first_season_year <= selected_season_year
+                          and (l.last_season is None or selected_season_year <= l.last_season_year)]
+        active_leagues.sort(key=lambda l: l.id, reverse=True)
+        assert session.get('leagues') == [l.to_dict() for l in active_leagues]
+
+        default_league = active_leagues[0]
+        assert session.get('selected_league_name') == default_league.short_name
+
+        # Verify render.
+        fake_render_template.assert_called_once_with(
+            'season_standings/index.html',
+            seasons=seasons, selected_season_year=selected_season_year,
+            leagues=active_leagues, selected_league_name=default_league.short_name,
+            season_standings=[]
+        )
+        assert result is fake_render_template.return_value
+
+
+@patch('app.flask.season_standings_controller.render_template')
+@patch('app.flask.season_standings_controller.injector')
+def test_index_when_selected_league_name_is_neither_none_nor_empty_should_set_selected_league_name_and_render_team_season_index_template(
+        fake_injector, fake_render_template, test_app
+):
+    with test_app.test_request_context('/team_seasons/', method='GET'):
+        # Arrange
+        selected_season_year = 1920
+        selected_league_name = "APFA"
+        seasons, fake_season_repository, associations, fake_association_repository = (
+            _set_up_index(fake_injector, season_year=selected_season_year, league_name=selected_league_name)
+        )
+
+        # Act
+        result = mod.index()
+
+        # Assert
+        fake_injector.get.assert_has_calls([
+            call(SeasonRepository),
+            call(AssociationRepository),
+        ])
+
+        # Verify seasons.
+        fake_season_repository.get_seasons.assert_called_once()
+        seasons.sort(key=lambda s: s.year, reverse=True)
+        assert session.get('seasons') == [s.to_dict() for s in seasons]
+        assert session.get('selected_season_year') == selected_season_year
+
+        # Verify leagues.
+        fake_association_repository.get_associations.assert_called_once()
+        leagues = [a for a in associations if a.parent_id is None]
+        active_leagues = [l for l in leagues if l.first_season_year <= selected_season_year
+                          and (l.last_season is None or selected_season_year <= l.last_season_year)]
+        active_leagues.sort(key=lambda l: l.id, reverse=True)
+        assert session.get('leagues') == [l.to_dict() for l in active_leagues]
+        assert session.get('selected_league_name') == selected_league_name
+
+        fake_render_template.assert_called_once_with(
+            'season_standings/index.html',
+            seasons=seasons, selected_season_year=selected_season_year,
+            leagues=active_leagues, selected_league_name=selected_league_name,
+            season_standings=[]
+        )
+        assert result is fake_render_template.return_value
+
+
+def _set_up_index(fake_injector, season_year: Optional[int] = None, league_name: Optional[str] = None) \
+        -> tuple[list[Season], MagicMock, list[Association], MagicMock]:
+    seasons, fake_season_repository = _set_up_index_seasons(season_year)
+    associations, fake_association_repository = _set_up_index_leagues(league_name)
+    fake_injector.get.side_effect = [fake_season_repository, fake_association_repository]
+
+    return seasons, fake_season_repository, associations, fake_association_repository
+
+
+def _set_up_index_seasons(season_year: int | None) -> tuple[list[Season], MagicMock]:
+    fake_season_repository = MagicMock(SeasonRepository)
+    seasons = [
+        Season(year=1920),
+        Season(year=1921),
+        Season(year=1922),
+    ]
+    fake_season_repository.get_seasons.return_value = seasons
+
+    session['selected_season_year'] = season_year
+
+    return seasons, fake_season_repository
+
+
+def _set_up_index_leagues(league_name: str | None) -> tuple[list[Association], MagicMock]:
+    fake_association_repository = MagicMock(AssociationRepository)
+    associations = [
+        Association(
+            id=1,
+            long_name="American Professional Football Association",
+            short_name="APFA",
+            parent_id=None,
+            first_season_year=1920,
+            last_season_year=1922,
+        ),
+        Association(
+            id=2,
+            long_name="National Football League",
+            short_name="NFL",
+            parent_id=None,
+            first_season_year=1922
+        ),
+        Association(
+            id=3,
+            long_name="National Football Conference",
+            short_name="NFC",
+            parent_id=2,
+            first_season_year=1970
+        ),
+        Association(
+            id=4,
+            long_name="American Football Conference",
+            short_name="AFC",
+            parent_id=2,
+            first_season_year=1970
+        ),
+    ]
+    fake_association_repository.get_associations.return_value = associations
+
+    session['selected_league_name'] = league_name
+
+    return associations, fake_association_repository
+
+
+@pytest.mark.skip('WIP')
+@patch('app.flask.season_standings_controller.render_template')
+@patch('app.flask.season_standings_controller.season_standings_repository')
+@patch('app.flask.season_standings_controller.injector')
+@patch('app.flask.season_standings_controller.request')
+def test_select_season_should_render_season_standings_index_template_for_selected_season_year(
+        fake_request, fake_injector, fake_season_standings_repository,
+        fake_render_template, test_app
+):
+    with test_app.test_request_context('/season_standings/select_season', method='POST'):
+        # Arrange
+        selected_season_year = 1920
+        fake_request.form.get.return_value = str(selected_season_year)
+
+        seasons = [
+            Season(year=1920),
+            Season(year=1921),
+            Season(year=1922),
+        ]
+        session['seasons'] = [s.to_dict() for s in seasons]
+
+        fake_association_repository = MagicMock(AssociationRepository)
+        associations = [
+            Association(
+                id=1,
+                long_name="American Professional Football Association",
+                short_name="APFA",
+                parent_id=None,
+                first_season_year=1920,
+                last_season_year=1922,
+            ),
+            Association(
+                id=2,
+                long_name="National Football League",
+                short_name="NFL",
+                parent_id=None,
+                first_season_year=1922
+            ),
+            Association(
+                id=3,
+                long_name="National Football Conference",
+                short_name="NFC",
+                parent_id=2,
+                first_season_year=1970
+            ),
+            Association(
+                id=4,
+                long_name="American Football Conference",
+                short_name="AFC",
+                parent_id=2,
+                first_season_year=1970
+            ),
+        ]
+        fake_association_repository.get_associations.return_value = associations
+        fake_injector.get.return_value = fake_association_repository
+
+        selected_league_name = "APFA"
+        session['selected_league_name'] = selected_league_name
+
+        # Act
+        result = mod.select_season()
+
+        # Assert
+        fake_request.form.get.assert_called_once_with('season_dropdown')
+
+        assert session.get('selected_season_year') == selected_season_year
+
+        fake_injector.get.assert_called_once_with(AssociationRepository)
+        fake_association_repository.get_associations.assert_called_once()
+        leagues = [a for a in associations if a.parent_id is None]
+        active_leagues = [l for l in leagues if l.first_season_year <= selected_season_year
+                          and (l.last_season is None or selected_season_year <= l.last_season_year)]
+        active_leagues.sort(key=lambda l: l.id, reverse=True)
+        assert session.get('leagues') == [l.to_dict() for l in active_leagues]
+
+        selected_league = active_leagues[0]
+        assert session.get('selected_league_name') == selected_league.short_name
+
+        fake_render_template.assert_called_once_with(
+            'season_standings/index.html',
+            seasons=seasons, selected_season_year=selected_season_year,
+            leagues=active_leagues, selected_league_name=selected_league.short_name,
+            season_standings=[]
         )
         assert result is fake_render_template.return_value
 
 
 @pytest.mark.skip('WIP')
 @patch('app.flask.season_standings_controller.render_template')
-@patch('app.flask.season_standings_controller.injector')
-def test_select_season_should_render_season_standings_index_template_for_selected_year(
-        fake_injector, fake_render_template, test_app
+@patch('app.flask.season_standings_controller.season_standings_repository')
+@patch('app.flask.season_standings_controller.request')
+def test_select_league_should_render_season_standings_index_template_for_selected_league_name(
+        fake_request, fake_season_standings_repository,
+        fake_render_template, test_app
 ):
-    with test_app.test_request_context(
-            '/season_standings/select_season',
-            method='POST'
-    ):
+    with test_app.test_request_context('/season_standings/select_season', method='POST'):
         # Arrange
-        fake_season_standings_repository = MagicMock(SeasonStandingsRepository)
-        fake_injector.get.return_value = fake_season_standings_repository
+        selected_league_name = "APFA"
+        fake_request.form.get.return_value = selected_league_name
 
-        selected_year = 0
-        fake_request.form.get.return_value = str(selected_year)
+        seasons = [
+            Season(year=1920),
+            Season(year=1921),
+            Season(year=1922),
+        ]
+        session['seasons'] = [s.to_dict() for s in seasons]
+
+        selected_season_year = 1920
+        session['selected_season_year'] = selected_season_year
+
+        associations = [
+            Association(
+                id=1,
+                long_name="American Professional Football Association",
+                short_name="APFA",
+                parent_id=None,
+                first_season_year=1920,
+                last_season_year=1922,
+            ),
+            Association(
+                id=2,
+                long_name="National Football League",
+                short_name="NFL",
+                parent_id=None,
+                first_season_year=1922
+            ),
+            Association(
+                id=3,
+                long_name="National Football Conference",
+                short_name="NFC",
+                parent_id=2,
+                first_season_year=1970
+            ),
+            Association(
+                id=4,
+                long_name="American Football Conference",
+                short_name="AFC",
+                parent_id=2,
+                first_season_year=1970
+            ),
+        ]
+        leagues = [a for a in associations if a.parent_id is None]
+        active_leagues = [l for l in leagues if l.first_season_year <= selected_season_year
+                          and (l.last_season is None or selected_season_year <= l.last_season_year)]
+        active_leagues.sort(key=lambda l: l.id, reverse=True)
+        session['leagues'] = active_leagues
 
         # Act
-        result = mod.select_season(fake_season_standings_repository)
+        result = mod.select_league()
 
         # Assert
         fake_request.form.get.assert_called_once_with('season_dropdown')
 
-        fake_injector.get.assert_called_once_with(SeasonStandingsRepository)
-        fake_season_standings_repository.get_season_standings_by_season_year.assert_called_once_with(season_year=selected_year)
+        assert session.get('selected_league_name') == selected_league_name
+
+        kwargs = [l for l in active_leagues if l['short_name'] == selected_league_name][0]
+        selected_league = Association(**kwargs)
+
+        fake_season_standings_repository.get_season_standings.assert_called_once_with(
+            season_year=selected_season_year, league_id=selected_league.id
+        )
+
         fake_render_template.assert_called_once_with(
             'season_standings/index.html',
-            seasons=session.get('seasons'), selected_year=selected_year,
+            seasons=seasons, selected_season_year=selected_season_year,
+            leagues=active_leagues, selected_league_name=selected_league.short_name,
             season_standings=fake_season_standings_repository.get_season_standings_by_season_year.return_value
         )
         assert result is fake_render_template.return_value

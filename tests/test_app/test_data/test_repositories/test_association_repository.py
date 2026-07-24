@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch, call
 
 import pytest
@@ -25,8 +26,6 @@ def test_get_associations_should_get_associations(test_app, test_repo):
     # Arrange
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -54,9 +53,7 @@ def test_get_associations_should_get_associations(test_app, test_repo):
                 first_season_year=1922
             ),
         ]
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        _set_up_db(associations_in)
 
         # Act
         associations_out = test_repo.get_associations()
@@ -68,7 +65,8 @@ def test_get_associations_should_get_associations(test_app, test_repo):
 def test_get_association_when_associations_is_empty_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        associations_in = []
+        _set_up_db(associations_in)
 
         # Act
         association_out = test_repo.get_association(1)
@@ -82,8 +80,6 @@ def test_get_association_when_associations_is_not_empty_and_association_is_not_f
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -92,7 +88,7 @@ def test_get_association_when_associations_is_not_empty_and_association_is_not_f
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -110,10 +106,8 @@ def test_get_association_when_associations_is_not_empty_and_association_is_not_f
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         association_out = test_repo.get_association(-1)
@@ -127,8 +121,6 @@ def test_get_association_when_associations_is_not_empty_and_association_is_found
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -137,7 +129,7 @@ def test_get_association_when_associations_is_not_empty_and_association_is_found
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -155,10 +147,8 @@ def test_get_association_when_associations_is_not_empty_and_association_is_found
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         id = 1
@@ -171,7 +161,8 @@ def test_get_association_when_associations_is_not_empty_and_association_is_found
 def test_get_association_by_short_name_when_associations_is_empty_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
+        associations_in = []
+        _set_up_db(associations_in)
 
         # Act
         association_out = test_repo.get_association_by_short_name("A")
@@ -185,8 +176,6 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -195,7 +184,7 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -213,10 +202,8 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         association_out = test_repo.get_association_by_short_name("A")
@@ -230,8 +217,6 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -240,7 +225,7 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -258,10 +243,8 @@ def test_get_association_by_short_name_when_associations_is_not_empty_and_associ
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         short_name = "A1"
@@ -430,8 +413,6 @@ def test_add_associations_when_associations_arg_is_not_empty_and_integrity_error
 def test_association_exists_when_association_does_not_exist_should_return_false(test_app, test_repo):
     # Arrange
     with test_app.app_context():
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -440,7 +421,7 @@ def test_association_exists_when_association_does_not_exist_should_return_false(
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -458,10 +439,8 @@ def test_association_exists_when_association_does_not_exist_should_return_false(
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         association_exists = test_repo.association_exists(id=-1)
@@ -473,8 +452,6 @@ def test_association_exists_when_association_does_not_exist_should_return_false(
 def test_association_exists_when_association_exists_should_return_true(test_app, test_repo):
     # Arrange
     with test_app.app_context():
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -483,7 +460,7 @@ def test_association_exists_when_association_exists_should_return_true(test_app,
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
@@ -501,10 +478,8 @@ def test_association_exists_when_association_exists_should_return_true(test_app,
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         association_exists = test_repo.association_exists(id=1)
@@ -635,8 +610,6 @@ def test_update_association_when_integrity_error_caught_should_rollback_transact
         # Arrange
         fake_association_exists.return_value = True
 
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -645,13 +618,13 @@ def test_update_association_when_integrity_error_caught_should_rollback_transact
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
                 long_name="Association 2",
                 short_name="A2",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1921
             ),
@@ -659,14 +632,12 @@ def test_update_association_when_integrity_error_caught_should_rollback_transact
                 id=3,
                 long_name="Association 3",
                 short_name="A3",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         old_association = associations_in[1]
 
@@ -696,8 +667,6 @@ def test_delete_association_when_association_does_not_exist_should_return_none_a
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -706,13 +675,13 @@ def test_delete_association_when_association_does_not_exist_should_return_none_a
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
                 long_name="Association 2",
                 short_name="A2",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1921
             ),
@@ -720,14 +689,12 @@ def test_delete_association_when_association_does_not_exist_should_return_none_a
                 id=3,
                 long_name="Association 3",
                 short_name="A3",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         association_deleted = test_repo.delete_association(id=-1)
@@ -745,8 +712,6 @@ def test_delete_association_when_association_exists_and_integrity_error_not_caug
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -755,13 +720,13 @@ def test_delete_association_when_association_exists_and_integrity_error_not_caug
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
                 long_name="Association 2",
                 short_name="A2",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1921
             ),
@@ -769,14 +734,12 @@ def test_delete_association_when_association_exists_and_integrity_error_not_caug
                 id=3,
                 long_name="Association 3",
                 short_name="A3",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         # Act
         id = 1
@@ -798,8 +761,6 @@ def test_delete_association_when_association_exists_and_integrity_error_caught_s
 ):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
         parent = Association(
             id=1,
             long_name="Association 1",
@@ -808,13 +769,13 @@ def test_delete_association_when_association_exists_and_integrity_error_caught_s
             parent=None,
             first_season_year=1920
         )
-        associations_in = (
+        associations_in = [
             parent,
             Association(
                 id=2,
                 long_name="Association 2",
                 short_name="A2",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1921
             ),
@@ -822,14 +783,12 @@ def test_delete_association_when_association_exists_and_integrity_error_caught_s
                 id=3,
                 long_name="Association 3",
                 short_name="A3",
-                parent_id=1,
+                parent_id = 1,
                 parent=parent,
                 first_season_year=1922
             ),
-        )
-        for association in associations_in:
-            sqla.session.add(association)
-        sqla.session.commit()
+        ]
+        _set_up_db(associations_in)
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
@@ -841,3 +800,11 @@ def test_delete_association_when_association_exists_and_integrity_error_caught_s
     # Assert
     fake_sqla.session.delete.assert_called_once_with([a for a in associations_in if a.id == id][0])
     fake_try_commit.assert_called_once()
+
+
+def _set_up_db(associations: List[Association]) -> None:
+    db_init.init_db()
+
+    for association in associations:
+        sqla.session.add(association)
+    sqla.session.commit()

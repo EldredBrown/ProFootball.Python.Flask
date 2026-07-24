@@ -16,11 +16,11 @@ def test_service(fake_team_season_repository):
 def test_predict_game_score_when_guest_season_is_none_should_raise_value_error(test_service):
     # Arrange
     guest_name = "Guest"
-    guest_season_year = 1
+    guest_season_year = 1920
     guest_season = None
 
     host_name = "Host"
-    host_season_year = 1
+    host_season_year = 1920
     host_season = None
 
     test_service.team_season_repository.get_team_season_by_team_and_season.side_effect = \
@@ -42,7 +42,7 @@ def test_predict_game_score_when_host_season_is_none_should_raise_value_error(te
     guest_season = MagicMock(TeamSeason)
 
     host_name = "Host"
-    host_season_year = 1921
+    host_season_year = 1920
     host_season = None
 
     test_service.team_season_repository.get_team_season_by_team_and_season.side_effect = \
@@ -67,7 +67,7 @@ def test_predict_game_score_when_guest_season_and_host_season_are_not_none_shoul
     league_id = 1
 
     guest_name = "Guest"
-    guest_season_year = 1
+    guest_season_year = 1920
     guest_season = TeamSeason(team_id=1, season_year=guest_season_year, league_id=league_id)
     guest_season.offensive_average = 1.000
     guest_season.offensive_factor = 2.000
@@ -75,7 +75,7 @@ def test_predict_game_score_when_guest_season_and_host_season_are_not_none_shoul
     guest_season.defensive_factor = 4.000
 
     host_name = "Host"
-    host_season_year = 1
+    host_season_year = 1920
     host_season = TeamSeason(team_id=2, season_year=host_season_year, league_id=league_id)
     host_season.offensive_average = 5.000
     host_season.offensive_factor = 6.000

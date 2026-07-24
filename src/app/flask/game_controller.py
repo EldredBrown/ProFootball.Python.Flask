@@ -157,7 +157,7 @@ def _get_model_from_form(form: GameForm, id: int=None) -> Game:
 
 def _handle_value_error(err: Any, template_name: str, form: GameForm, game: Game=None) -> str:
     flash(str(err), 'danger')
-    return render_template(template_name, form=form, game=game)
+    return render_template(template_name, game=game, form=form)
 
 
 def _handle_integrity_error(err: Any, sql_operation: str, template_name: str, form: GameForm, game: Game=None) -> str:
@@ -173,7 +173,7 @@ def _handle_integrity_error(err: Any, sql_operation: str, template_name: str, fo
         err_msg = "An unexpected error occurred."
 
     flash(err_msg, 'danger')
-    return render_template(template_name, form=form, game=game)
+    return render_template(template_name, game=game, form=form)
 
 
 def _get_kwargs_from_form(form: GameForm, id: int=None) -> dict[str, Any]:

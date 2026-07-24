@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from app.services.utilities import team_season_utils as mod
+import app.services.utilities.team_season_utils as mod
 
 
 def test_calculate_expected_winning_percentage_when_sum_of_points_for_and_points_against_equals_zero_should_return_none():

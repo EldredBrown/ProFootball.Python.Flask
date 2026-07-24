@@ -1,12 +1,12 @@
-from typing import List, Any
+from typing import Any, Optional
 
 from flask import Blueprint, render_template, request, url_for, redirect, Response, session
 
 from app import injector
 from app.data.models.association import Association
 from app.data.models.season import Season
+from app.data.repositories import season_rankings_repository
 from app.data.repositories.association_repository import AssociationRepository
-from app.data.repositories.season_rankings_repository import SeasonRankingsRepository
 from app.data.repositories.season_repository import SeasonRepository
 
 blueprint = Blueprint('season_rankings', __name__)
@@ -20,7 +20,6 @@ def index() -> str:
     active_leagues, selected_league = _get_leagues_and_selected_league(selected_season_year)
 
     selected_type = None
-
     return render_template(
         'season_rankings/index.html',
         seasons=seasons, selected_season_year=selected_season_year,
@@ -105,7 +104,7 @@ def select_league() -> str:
     selected_league_name = str(request.form.get('league_dropdown'))  # Fetch the selected league.
 
     seasons = session.get('seasons')
-    selected_season_year = int(session.get('selected_season_year'))
+    selected_season_year = session.get('selected_season_year')
 
     active_leagues = session.get('leagues')
     session['selected_league_name'] = selected_league_name
@@ -115,7 +114,7 @@ def select_league() -> str:
 
     return render_template(
         'season_rankings/index.html',
-        seasons=seasons, selected_year=selected_season_year,
+        seasons=seasons, selected_season_year=selected_season_year,
         leagues=active_leagues, selected_league_name=selected_league.short_name,
         types=RANKING_TYPES, selected_type=None, season_rankings=None
     )
@@ -140,44 +139,68 @@ def select_type() -> Response | str:
 
 @blueprint.route('/offense')
 def offense() -> str:
-    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_season_year = session.get('selected_season_year')
-    season_rankings = season_rankings_repository.get_offensive_rankings_by_season(season_year=selected_season_year)
+    selected_league_name = session.get('selected_league_name')
+
+    association_repository = injector.get(AssociationRepository)
+    selected_league = association_repository.get_association_by_short_name(selected_league_name)
+
+    season_rankings = season_rankings_repository.get_offensive_rankings(
+        season_year=selected_season_year, league_id=selected_league.id
+    )
 
     return _render_rankings_template(
         'offense',
-        selected_season_year=selected_season_year, season_rankings=season_rankings
+        selected_season_year=selected_season_year, selected_league_name=selected_league_name,
+        season_rankings=season_rankings
     )
 
 
 @blueprint.route('/defense')
 def defense() -> str:
-    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_season_year = session.get('selected_season_year')
-    season_rankings = season_rankings_repository.get_defensive_rankings_by_season(season_year=selected_season_year)
+    selected_league_name = session.get('selected_league_name')
+
+    association_repository = injector.get(AssociationRepository)
+    selected_league = association_repository.get_association_by_short_name(selected_league_name)
+
+    season_rankings = season_rankings_repository.get_defensive_rankings(
+        season_year=selected_season_year, league_id=selected_league.id
+    )
 
     return _render_rankings_template(
         'defense',
-        selected_season_year=selected_season_year, season_rankings=season_rankings
+        selected_season_year=selected_season_year, selected_league_name=selected_league_name,
+        season_rankings=season_rankings
     )
 
 
 @blueprint.route('/total')
 def total() -> str:
-    season_rankings_repository = injector.get(SeasonRankingsRepository)
     selected_season_year = session.get('selected_season_year')
-    season_rankings = season_rankings_repository.get_total_rankings_by_season(season_year=selected_season_year)
+    selected_league_name = session.get('selected_league_name')
+
+    association_repository = injector.get(AssociationRepository)
+    selected_league = association_repository.get_association_by_short_name(selected_league_name)
+
+    season_rankings = season_rankings_repository.get_total_rankings(
+        season_year=selected_season_year, league_id=selected_league.id
+    )
 
     return _render_rankings_template(
         'total',
-        selected_season_year=selected_season_year, season_rankings=season_rankings
+        selected_season_year=selected_season_year, selected_league_name=selected_league_name,
+        season_rankings=season_rankings
     )
 
 
-def _render_rankings_template(rankings_type: str, selected_season_year: int, season_rankings: list) -> str:
+def _render_rankings_template(
+        rankings_type: str, selected_season_year: Optional[int], selected_league_name: Optional[str],
+        season_rankings: list
+) -> str:
     return render_template(
         f'season_rankings/{rankings_type}.html',
         seasons=session.get('seasons'), selected_season_year=selected_season_year,
-        leagues=session.get('leagues'), selected_league_name=session.get('selected_league_name'),
+        leagues=session.get('leagues'), selected_league_name=selected_league_name,
         types=RANKING_TYPES, selected_type=session.get('selected_type'), season_rankings=season_rankings
     )

@@ -1,32 +1,24 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
-
+import app.data.repositories.team_season_schedule_repository as mod
 from app.data.models.team_season_schedule_averages import TeamSeasonScheduleAverages
 from app.data.models.team_season_schedule_profile import TeamSeasonOpponentProfile
 from app.data.models.team_season_schedule_totals import TeamSeasonScheduleTotals
-from app.data.repositories.team_season_schedule_repository import TeamSeasonScheduleRepository
-
-
-@pytest.fixture()
-def test_repo() -> TeamSeasonScheduleRepository:
-    return TeamSeasonScheduleRepository()
 
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_profile_when_query_returns_empty_list_should_get_empty_team_season_schedule_profile(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     profile = []
     fake_sqla.callproc.return_value.all.return_value = profile
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_profile(team_id, season_year)
+    result = mod.get_team_season_schedule_profile(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_year};")
@@ -35,7 +27,7 @@ def test_get_team_season_schedule_profile_when_query_returns_empty_list_should_g
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_should_get_team_season_schedule_profile(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     profile = [
@@ -45,11 +37,10 @@ def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_shou
     ]
     fake_sqla.callproc.return_value.all.return_value = profile
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_profile(team_id, season_year)
+    result = mod.get_team_season_schedule_profile(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleProfile '{team_id}', {season_year};")
@@ -76,17 +67,16 @@ def test_get_team_season_schedule_profile_when_query_returns_non_empty_list_shou
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empty_team_season_schedule_totals(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     totals = None
     fake_sqla.callproc.return_value.first.return_value = totals
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_totals(team_id, season_year)
+    result = mod.get_team_season_schedule_totals(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_year};")
@@ -106,7 +96,7 @@ def test_get_team_season_schedule_totals_when_query_returns_none_should_get_empt
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_totals(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     games = 0
@@ -124,11 +114,10 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
         schedule_games, schedule_points_for, schedule_points_against
     )
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_totals(team_id, season_year)
+    result = mod.get_team_season_schedule_totals(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleTotals '{team_id}', {season_year};")
@@ -149,17 +138,16 @@ def test_get_team_season_schedule_totals_when_query_does_not_return_none_should_
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_averages_when_query_returns_none_should_get_empty_team_season_schedule_averages(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     averages = None
     fake_sqla.callproc.return_value.first.return_value = averages
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_averages(team_id, season_year)
+    result = mod.get_team_season_schedule_averages(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_year};")
@@ -174,7 +162,7 @@ def test_get_team_season_schedule_averages_when_query_returns_none_should_get_em
 
 @patch('app.data.repositories.team_season_schedule_repository.sqla')
 def test_get_team_season_schedule_averages_when_query_does_not_return_none_should_get_not_empty_team_season_schedule_averages(
-        fake_sqla, test_repo
+        fake_sqla
 ):
     # Arrange
     points_for = 1
@@ -185,11 +173,10 @@ def test_get_team_season_schedule_averages_when_query_does_not_return_none_shoul
         points_for, points_against, schedule_points_for, schedule_points_against
     )
 
+    # Act
     team_id = 1
     season_year = 1920
-
-    # Act
-    result = test_repo.get_team_season_schedule_averages(team_id, season_year)
+    result = mod.get_team_season_schedule_averages(team_id, season_year)
 
     # Assert
     fake_sqla.callproc.assert_called_once_with(f"EXEC sp_GetTeamSeasonScheduleAverages '{team_id}', {season_year};")

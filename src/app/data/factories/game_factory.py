@@ -30,7 +30,7 @@ def create_game(**kwargs) -> Game:
                 league_id = None if value is None or value == '' else -1
             else:
                 league_id = league.id
-            model_kwargs[view_model_map[key]] = league_id
+            model_kwargs['league_id'] = league_id
         else:
             model_kwargs[view_model_map[key]] = value
 

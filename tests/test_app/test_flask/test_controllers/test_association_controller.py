@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -8,6 +9,7 @@ from werkzeug.exceptions import NotFound
 import app.flask.association_controller as mod
 
 from app.data.models.association import Association
+from app.data.models.season import Season
 from app.data.repositories.association_repository import AssociationRepository
 from test_app import create_app
 
@@ -21,8 +23,7 @@ def test_app():
 @patch('app.flask.association_controller.injector')
 def test_index_should_render_association_index_template(fake_injector, fake_render_template):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_injector.get.return_value = fake_association_repository
+    fake_association_repository = _set_up_index_and_details(fake_injector)
 
     # Act
     result = mod.index()
@@ -43,12 +44,10 @@ def test_details_when_association_found_should_render_association_details_templa
         fake_form, fake_injector, fake_render_template
 ):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_injector.get.return_value = fake_association_repository
-
-    id = 1
+    fake_association_repository = _set_up_index_and_details(fake_injector)
 
     # Act
+    id = 1
     result = mod.details(id)
 
     # Assert
@@ -67,29 +66,30 @@ def test_details_when_association_found_should_render_association_details_templa
 @patch('app.flask.association_controller.DeleteAssociationForm')
 def test_details_when_association_not_found_should_abort_with_404_error(fake_form, fake_injector):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_association_repository.get_association.side_effect = IndexError()
-    fake_injector.get.return_value = fake_association_repository
+    err = IndexError()
+    _ = _set_up_index_and_details(fake_injector, err=err)
 
     # Act
     with pytest.raises(NotFound):
         _ = mod.details(1)
 
 
+def _set_up_index_and_details(fake_injector, err: Optional[Exception]=None) -> MagicMock:
+    fake_association_repository = MagicMock(AssociationRepository)
+    fake_association_repository.get_association.side_effect = err
+    fake_injector.get.return_value = fake_association_repository
+
+    return fake_association_repository
+
+
 @patch('app.flask.association_controller.render_template')
 @patch('app.flask.association_controller.flash')
-@patch('app.flask.association_controller.injector')
 @patch('app.flask.association_controller.NewAssociationForm')
 def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_template(
-        fake_form, fake_injector, fake_flash,
-        fake_render_template
+        fake_form, fake_flash, fake_render_template
 ):
     # Arrange
-    fake_form.return_value.validate_on_submit.return_value = False
-    fake_form.return_value.errors = None
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_injector.get.return_value = fake_association_repository
+    _set_up_create_get(fake_form)
 
     # Act
     result = mod.create()
@@ -97,8 +97,6 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
     # Assert
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    fake_injector.get.assert_not_called()
-    fake_association_repository.add_association.assert_not_called()
     fake_flash.assert_not_called()
     fake_render_template('associations/create.html', form=fake_form.return_value)
     assert result is fake_render_template.return_value
@@ -106,20 +104,13 @@ def test_create_when_form_not_submitted_and_no_form_errors_should_render_create_
 
 @patch('app.flask.association_controller.render_template')
 @patch('app.flask.association_controller.flash')
-@patch('app.flask.association_controller.injector')
 @patch('app.flask.association_controller.NewAssociationForm')
 def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_render_create_template(
-        fake_form, fake_injector, fake_flash,
-        fake_render_template
+        fake_form, fake_flash, fake_render_template
 ):
     # Arrange
-    fake_form.return_value.validate_on_submit.return_value = False
-
     errors = 'errors'
-    fake_form.return_value.errors = errors
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_injector.get.return_value = fake_association_repository
+    _set_up_create_get(fake_form, errors=errors)
 
     # Act
     result = mod.create()
@@ -127,11 +118,15 @@ def test_create_when_form_not_submitted_and_form_errors_should_flash_errors_and_
     # Assert
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    fake_injector.get.assert_not_called()
-    fake_association_repository.add_association.assert_not_called()
     fake_flash.assert_called_once_with(f"{errors}", 'danger')
     fake_render_template('associations/create.html', form=fake_form.return_value)
     assert result is fake_render_template.return_value
+
+
+def _set_up_create_get(fake_form, errors: Optional[str]=None) -> None:
+    form = fake_form.return_value
+    form.validate_on_submit.return_value = False
+    form.errors = errors
 
 
 @patch('app.flask.association_controller.redirect')
@@ -145,27 +140,7 @@ def test_create_when_form_submitted_and_no_errors_caught_should_flash_success_me
         fake_flash, fake_url_for, fake_redirect
 ):
     # Arrange
-    model_kwargs = {
-        'long_name': "Association",
-        'short_name': "A",
-        'parent_id': 1,
-        'first_season_year': 1920,
-        'last_season_year': 1921,
-    }
-    association = Association(**model_kwargs)
-    association.parent = Association(id=1, long_name="Parent", short_name="P")
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = association.long_name
-    fake_form.return_value.short_name.data = association.short_name
-    fake_form.return_value.parent_name.data = association.parent.short_name
-    fake_form.return_value.first_season_year.data = association.first_season_year
-    fake_form.return_value.last_season_year.data = association.last_season_year
-
-    fake_association_factory.create_association.return_value = association
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_injector.get.return_value = fake_association_repository
+    association, fake_association_repository = _set_up_create_post(fake_injector, fake_form, fake_association_factory)
 
     # Act
     result = mod.create()
@@ -199,29 +174,10 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
         fake_flash, fake_render_template
 ):
     # Arrange
-    model_kwargs = {
-        'long_name': "Association",
-        'short_name': "A",
-        'parent_id': 1,
-        'first_season_year': 1920,
-        'last_season_year': 1921,
-    }
-    association = Association(**model_kwargs)
-    association.parent = Association(id=1, long_name="Parent", short_name="P")
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = association.long_name
-    fake_form.return_value.short_name.data = association.short_name
-    fake_form.return_value.parent_name.data = association.parent.short_name
-    fake_form.return_value.first_season_year.data = association.first_season_year
-    fake_form.return_value.last_season_year.data = association.last_season_year
-
-    fake_association_factory.create_association.return_value = association
-
-    fake_association_repository = MagicMock(AssociationRepository)
     err = ValueError()
-    fake_association_repository.add_association.side_effect = err
-    fake_injector.get.return_value = fake_association_repository
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
 
     # Act
     result = mod.create()
@@ -229,14 +185,14 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
     # Assert
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
+    kwargs = {
         'long_name': association.long_name,
         'short_name': association.short_name,
         'parent_name': association.parent.short_name,
         'first_season_year': association.first_season_year,
         'last_season_year': association.last_season_year,
     }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
     fake_injector.get.assert_called_once_with(AssociationRepository)
     fake_association_repository.add_association.assert_called_once_with(association)
     fake_flash.assert_called_once_with(str(err), 'danger')
@@ -251,73 +207,262 @@ def test_create_when_form_submitted_and_value_error_caught_should_flash_error_me
 @patch('app.flask.association_controller.injector')
 @patch('app.flask.association_controller.association_factory')
 @patch('app.flask.association_controller.NewAssociationForm')
-def test_create_when_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_create_template(
+def test_create_when_form_submitted_and_integrity_error_caught_for_primary_key_constraint_violation_on_id_should_flash_error_message_and_render_create_template(
         fake_form, fake_association_factory, fake_injector,
-        fake_flash, fake_render_template
+        fake_flash, fake_render_template, test_app
 ):
     # Arrange
-    model_kwargs = {
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Violation of PRIMARY KEY constraint")
+    )
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    with test_app.test_request_context('/associations/create', method='POST'):
+        result = mod.create()
+
+    # Assert
+    kwargs = {
         'long_name': "Association",
         'short_name': "A",
-        'parent_id': 1,
+        'parent_name': "P",
         'first_season_year': 1920,
-        'last_season_year': 1921,
+        'last_season_year': 1922,
     }
-    association = Association(**model_kwargs)
-    association.parent = Association(id=1, long_name="Parent", short_name="P")
 
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = association.long_name
-    fake_form.return_value.short_name.data = association.short_name
-    fake_form.return_value.parent_name.data = association.parent.short_name
-    fake_form.return_value.first_season_year.data = association.first_season_year
-    fake_form.return_value.last_season_year.data = association.last_season_year
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.add_association.assert_called_once_with(association)
+    fake_flash.assert_called_once_with("An association with the same id already exists.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/create.html', form=fake_form.return_value, association=None
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.injector')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.NewAssociationForm')
+def test_create_when_form_submitted_and_integrity_error_caught_for_unique_key_constraint_violation_on_long_name_should_flash_error_message_and_render_create_template(
+        fake_form, fake_association_factory, fake_injector,
+        fake_flash, fake_render_template, test_app
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Violation of UNIQUE KEY constraint 'UQ_Association_LongName'")
+    )
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    with test_app.test_request_context('/associations/create', method='POST'):
+        result = mod.create()
+
+    # Assert
+    kwargs = {
+        'long_name': "Association",
+        'short_name': "A",
+        'parent_name': "P",
+        'first_season_year': 1920,
+        'last_season_year': 1922,
+    }
+
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.add_association.assert_called_once_with(association)
+    fake_flash.assert_called_once_with(
+        "An association with the same long name already exists.", 'danger'
+    )
+    fake_render_template.assert_called_once_with(
+        'associations/create.html', form=fake_form.return_value, association=None
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.injector')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.NewAssociationForm')
+def test_create_when_form_submitted_and_integrity_error_caught_for_unique_key_constraint_violation_on_short_name_should_flash_error_message_and_render_create_template(
+        fake_form, fake_association_factory, fake_injector,
+        fake_flash, fake_render_template, test_app
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Violation of UNIQUE KEY constraint 'UQ_Association_ShortName'")
+    )
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    with test_app.test_request_context('/associations/create', method='POST'):
+        result = mod.create()
+
+    # Assert
+    kwargs = {
+        'long_name': "Association",
+        'short_name': "A",
+        'parent_name': "P",
+        'first_season_year': 1920,
+        'last_season_year': 1922,
+    }
+
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.add_association.assert_called_once_with(association)
+    fake_flash.assert_called_once_with(
+        "An association with the same short name already exists.", 'danger'
+    )
+    fake_render_template.assert_called_once_with(
+        'associations/create.html', form=fake_form.return_value, association=None
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.injector')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.NewAssociationForm')
+def test_create_when_form_submitted_and_integrity_error_caught_for_conflict_with_foreign_key_constraint_on_season_year_should_flash_error_message_and_render_create_template(
+        fake_form, fake_association_factory, fake_injector,
+        fake_flash, fake_render_template, test_app
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("The INSERT statement conflicted with the FOREIGN KEY constraint 'FK_Association_Season_FirstSeasonYear'")
+    )
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    with test_app.test_request_context('/associations/create', method='POST'):
+        result = mod.create()
+
+    # Assert
+    kwargs = {
+        'long_name': "Association",
+        'short_name': "A",
+        'parent_name': "P",
+        'first_season_year': 1920,
+        'last_season_year': 1922,
+    }
+
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.add_association.assert_called_once_with(association)
+    fake_flash.assert_called_once_with("FOREIGN KEY constraint violation on first season year.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/create.html', form=fake_form.return_value, association=None
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.injector')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.NewAssociationForm')
+def test_create_when_form_submitted_and_integrity_error_caught_for_something_else_should_flash_error_message_and_render_create_template(
+        fake_form, fake_association_factory, fake_injector,
+        fake_flash, fake_render_template, test_app
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Something else")
+    )
+    association, fake_association_repository = (
+        _set_up_create_post(fake_injector, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    with test_app.test_request_context('/associations/create', method='POST'):
+        result = mod.create()
+
+    # Assert
+    kwargs = {
+        'long_name': "Association",
+        'short_name': "A",
+        'parent_name': "P",
+        'first_season_year': 1920,
+        'last_season_year': 1922,
+    }
+
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.add_association.assert_called_once_with(association)
+    fake_flash.assert_called_once_with("An unexpected error occurred.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/create.html', form=fake_form.return_value, association=None
+    )
+    assert result is fake_render_template.return_value
+
+
+def _set_up_create_post(
+        fake_injector, fake_form, fake_association_factory,
+        err: Optional[Exception]=None
+) -> tuple[Association, MagicMock]:
+    association = Association(
+        id=2,
+        long_name="Association",
+        short_name="A",
+        parent_id=1,
+        parent=Association(id=1, long_name="Parent", short_name="P", parent_id=None),
+        first_season_year=1920,
+        last_season_year=1922,
+    )
+
+    form = fake_form.return_value
+    form.validate_on_submit.return_value = True
+    form.long_name.data = "Association"
+    form.short_name.data = "A"
+    form.parent_name.data = "P"
+    form.first_season_year.data = 1920
+    form.last_season_year.data = 1922
 
     fake_association_factory.create_association.return_value = association
 
     fake_association_repository = MagicMock(AssociationRepository)
-    err = IntegrityError('statement', 'params', Exception())
     fake_association_repository.add_association.side_effect = err
     fake_injector.get.return_value = fake_association_repository
 
-    # Act
-    result = mod.create()
-
-    # Assert
-    fake_form.assert_called_once()
-    fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
-        'long_name': association.long_name,
-        'short_name': association.short_name,
-        'parent_name': association.parent.short_name,
-        'first_season_year': association.first_season_year,
-        'last_season_year': association.last_season_year,
-    }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
-    fake_injector.get.assert_called_once_with(AssociationRepository)
-    fake_association_repository.add_association.assert_called_once_with(association)
-    fake_flash.assert_called_once_with(str(err), 'danger')
-    fake_render_template.assert_called_once_with(
-        'associations/create.html', association=None, form=fake_form.return_value
-    )
-    assert result is fake_render_template.return_value
+    return association, fake_association_repository
 
 
 @patch('app.flask.association_controller.copy')
 @patch('app.flask.association_controller.injector')
 def test_edit_when_association_not_found_should_abort_with_404_error(fake_injector, fake_copy):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    fake_injector.get.return_value = fake_association_repository
-
     old_association_copy = None
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    id = 1
+    old_association, fake_association_repository = (
+        _set_up_edit(fake_injector, fake_copy, old_association_copy=old_association_copy)
+    )
 
     # Act
+    id = 1
     with pytest.raises(NotFound):
         result = mod.edit(id)
 
@@ -337,26 +482,12 @@ def test_edit_when_association_found_and_form_not_submitted_and_no_form_errors_s
         fake_render_template
 ):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    fake_injector.get.return_value = fake_association_repository
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association"
-    old_association_copy.short_name = "A"
-    old_association_copy.parent = Association(id=1, long_name="Parent", short_name="P")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    fake_form.return_value.validate_on_submit.return_value = False
-    fake_form.return_value.errors = None
-
-    id = 1
+    old_association, old_association_copy, fake_association_repository = (
+        _set_up_edit_get(fake_injector, fake_copy, fake_form)
+    )
 
     # Act
+    id = 1
     result = mod.edit(id)
 
     # Assert
@@ -387,29 +518,13 @@ def test_edit_when_association_found_and_form_not_submitted_and_form_errors_shou
         fake_render_template
 ):
     # Arrange
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    fake_injector.get.return_value = fake_association_repository
-
-    fake_form.return_value.validate_on_submit.return_value = False
-    fake_form.return_value.errors = None
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association"
-    old_association_copy.short_name = "A"
-    old_association_copy.parent = Association(id=1, long_name="Parent", short_name="P")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
     errors = 'errors'
-    fake_form.return_value.errors = errors
-
-    id = 1
+    old_association, old_association_copy, fake_association_repository = (
+        _set_up_edit_get(fake_injector, fake_copy, fake_form, errors=errors)
+    )
 
     # Act
+    id = 1
     result = mod.edit(id)
 
     # Assert
@@ -430,6 +545,31 @@ def test_edit_when_association_found_and_form_not_submitted_and_form_errors_shou
     assert result is fake_render_template.return_value
 
 
+def _set_up_edit_get(
+        fake_injector, fake_copy, fake_form, errors: Optional[str]=None
+) -> tuple[Association, Association, MagicMock]:
+    old_association_copy = Association(
+        id=2,
+        long_name="Old Association",
+        short_name="OA",
+        parent_id=1,
+        parent=Association(id=1, long_name="Parent", short_name="P", parent_id=None),
+        first_season_year=1920,
+        first_season=Season(year=1920),
+        last_season_year=1922,
+        last_season=Season(year=1922)
+    )
+    old_association, fake_association_repository = (
+        _set_up_edit(fake_injector, fake_copy, old_association_copy=old_association_copy)
+    )
+
+    form = fake_form.return_value
+    form.validate_on_submit.return_value = False
+    form.errors = errors
+
+    return old_association, old_association_copy, fake_association_repository
+
+
 @patch('app.flask.association_controller.redirect')
 @patch('app.flask.association_controller.url_for')
 @patch('app.flask.association_controller.flash')
@@ -439,46 +579,16 @@ def test_edit_when_association_found_and_form_not_submitted_and_form_errors_shou
 @patch('app.flask.association_controller.injector')
 def test_edit_when_association_found_and_form_submitted_and_no_errors_caught_should_flash_success_message_and_redirect_to_association_details(
         fake_injector, fake_copy, fake_form,
-        fake_association_factory, fake_flash, fake_url_for,
-        fake_redirect
+        fake_association_factory, fake_flash,
+        fake_url_for, fake_redirect
 ):
     # Arrange
-    id = 1
-    model_kwargs = {
-        'id': id,
-        'long_name': "Association 2",
-        'short_name': "A2",
-        'parent_id': 2,
-        'first_season_year': 1922,
-        'last_season_year': 1923,
-    }
-    new_association = Association(**model_kwargs)
-    new_association.parent = Association(id=2, long_name="Parent 2", short_name="P2")
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    fake_injector.get.return_value = fake_association_repository
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association 1"
-    old_association_copy.short_name = "A1"
-    old_association_copy.parent = Association(id=1, long_name="Parent 1", short_name="P1")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.short_name.data = new_association.short_name
-    fake_form.return_value.long_name.data = new_association.long_name
-    fake_form.return_value.parent_name.data = new_association.parent.short_name
-    fake_form.return_value.first_season_year.data = new_association.first_season_year
-    fake_form.return_value.last_season_year.data = new_association.last_season_year
-
-    fake_association_factory.create_association.return_value = new_association
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory)
+    )
 
     # Act
+    id = 1
     result = mod.edit(id)
 
     # Assert
@@ -487,7 +597,7 @@ def test_edit_when_association_found_and_form_submitted_and_no_errors_caught_sho
     fake_copy.deepcopy.assert_called_once_with(old_association)
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
+    kwargs = {
         'id': id,
         'long_name': new_association.long_name,
         'short_name': new_association.short_name,
@@ -495,7 +605,7 @@ def test_edit_when_association_found_and_form_submitted_and_no_errors_caught_sho
         'first_season_year': new_association.first_season_year,
         'last_season_year': new_association.last_season_year,
     }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
     fake_association_repository.update_association.assert_called_once_with(new_association)
     fake_flash.assert_called_once_with(
         f"Item {fake_form.return_value.short_name.data} has been successfully updated.", 'success'
@@ -517,44 +627,13 @@ def test_edit_when_association_found_and_form_submitted_and_value_error_caught_s
         fake_render_template
 ):
     # Arrange
-    id = 1
-    model_kwargs = {
-        'id': id,
-        'long_name': "Association 2",
-        'short_name': "L2",
-        'parent_id': 2,
-        'first_season_year': 1922,
-        'last_season_year': 1923,
-    }
-    new_association = Association(**model_kwargs)
-    new_association.parent = Association(id=2, long_name="Parent 2", short_name="P2")
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
     err = ValueError()
-    fake_association_repository.update_association.side_effect = err
-    fake_injector.get.return_value = fake_association_repository
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association 1"
-    old_association_copy.short_name = "A1"
-    old_association_copy.parent = Association(id=1, long_name="Parent 1", short_name="P1")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = new_association.long_name
-    fake_form.return_value.short_name.data = new_association.short_name
-    fake_form.return_value.parent_name.data = new_association.parent.short_name
-    fake_form.return_value.first_season_year.data = new_association.first_season_year
-    fake_form.return_value.last_season_year.data = new_association.last_season_year
-
-    fake_association_factory.create_association.return_value = new_association
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
 
     # Act
+    id = 1
     result = mod.edit(id)
 
     # Assert
@@ -563,7 +642,7 @@ def test_edit_when_association_found_and_form_submitted_and_value_error_caught_s
     fake_copy.deepcopy.assert_called_once_with(old_association)
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
+    kwargs = {
         'id': id,
         'long_name': new_association.long_name,
         'short_name': new_association.short_name,
@@ -571,7 +650,7 @@ def test_edit_when_association_found_and_form_submitted_and_value_error_caught_s
         'first_season_year': new_association.first_season_year,
         'last_season_year': new_association.last_season_year,
     }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
     fake_flash.assert_called_once_with(str(err), 'danger')
     fake_render_template.assert_called_once_with(
         'associations/edit.html', association=old_association_copy, form=fake_form.return_value
@@ -585,50 +664,22 @@ def test_edit_when_association_found_and_form_submitted_and_value_error_caught_s
 @patch('app.flask.association_controller.EditAssociationForm')
 @patch('app.flask.association_controller.copy')
 @patch('app.flask.association_controller.injector')
-def test_edit_when_association_found_and_form_submitted_and_integrity_error_caught_should_flash_error_message_and_render_edit_template(
+def test_edit_when_association_found_and_form_submitted_and_integrity_error_caught_for_unique_key_constraint_violation_on_long_name_should_flash_error_message_and_render_edit_template(
         fake_injector, fake_copy, fake_form,
         fake_association_factory, fake_flash,
         fake_render_template
 ):
     # Arrange
-    id = 1
-    model_kwargs = {
-        'id': id,
-        'long_name': "Association 2",
-        'short_name': "L2",
-        'parent_id': 2,
-        'first_season_year': 1922,
-        'last_season_year': 1923,
-    }
-    new_association = Association(**model_kwargs)
-    new_association.parent = Association(id=2, long_name="Parent 2", short_name="P2")
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    err = IntegrityError('statement', 'params', Exception())
-    fake_association_repository.update_association.side_effect = err
-    fake_injector.get.return_value = fake_association_repository
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association 1"
-    old_association_copy.short_name = "A1"
-    old_association_copy.parent = Association(id=1, long_name="Parent 1", short_name="P1")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = new_association.long_name
-    fake_form.return_value.short_name.data = new_association.short_name
-    fake_form.return_value.parent_name.data = new_association.parent.short_name
-    fake_form.return_value.first_season_year.data = new_association.first_season_year
-    fake_form.return_value.last_season_year.data = new_association.last_season_year
-
-    fake_association_factory.create_association.return_value = new_association
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Violation of UNIQUE KEY constraint 'UQ_Association_LongName'")
+    )
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
 
     # Act
+    id = 1
     result = mod.edit(id)
 
     # Assert
@@ -637,7 +688,7 @@ def test_edit_when_association_found_and_form_submitted_and_integrity_error_caug
     fake_copy.deepcopy.assert_called_once_with(old_association)
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
+    kwargs = {
         'id': id,
         'long_name': new_association.long_name,
         'short_name': new_association.short_name,
@@ -645,65 +696,37 @@ def test_edit_when_association_found_and_form_submitted_and_integrity_error_caug
         'first_season_year': new_association.first_season_year,
         'last_season_year': new_association.last_season_year,
     }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
-    fake_flash.assert_called_once_with(str(err), 'danger')
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_flash.assert_called_once_with("An association with the same long name already exists.", 'danger')
     fake_render_template.assert_called_once_with(
         'associations/edit.html', association=old_association_copy, form=fake_form.return_value
     )
     assert result is fake_render_template.return_value
 
 
+@patch('app.flask.association_controller.render_template')
 @patch('app.flask.association_controller.flash')
 @patch('app.flask.association_controller.association_factory')
 @patch('app.flask.association_controller.EditAssociationForm')
-@patch('app.flask.association_controller.url_for')
-@patch('app.flask.association_controller.redirect')
 @patch('app.flask.association_controller.copy')
 @patch('app.flask.association_controller.injector')
-def test_edit_when_association_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
-        fake_injector, fake_copy, fake_redirect, fake_url_for,
-        fake_form, fake_association_factory, fake_flash
+def test_edit_when_association_found_and_form_submitted_and_integrity_error_caught_for_unique_key_constraint_violation_on_short_name_should_flash_error_message_and_render_edit_template(
+        fake_injector, fake_copy, fake_form,
+        fake_association_factory, fake_flash,
+        fake_render_template
 ):
     # Arrange
-    id = 1
-    model_kwargs = {
-        'id': id,
-        'long_name': "Association 2",
-        'short_name': "A2",
-        'parent_id': 2,
-        'first_season_year': 1922,
-        'last_season_year': 1923,
-    }
-    new_association = Association(**model_kwargs)
-    new_association.parent = Association(id=2, long_name="Parent 2", short_name="P2")
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    old_association = MagicMock(Association)
-    fake_association_repository.get_association.return_value = old_association
-    fake_injector.get.return_value = fake_association_repository
-
-    old_association_copy = MagicMock(Association)
-    old_association_copy.long_name = "Association 1"
-    old_association_copy.short_name = "A1"
-    old_association_copy.parent = Association(id=1, long_name="Parent 1", short_name="P1")
-    old_association_copy.parent_id = 1
-    old_association_copy.first_season_year = 1920
-    old_association_copy.last_season_year = 1921
-    fake_copy.deepcopy.return_value = old_association_copy
-
-    fake_form.return_value.validate_on_submit.return_value = True
-    fake_form.return_value.long_name.data = new_association.long_name
-    fake_form.return_value.short_name.data = new_association.short_name
-    fake_form.return_value.parent_name.data = new_association.parent.short_name
-    fake_form.return_value.first_season_year.data = new_association.first_season_year
-    fake_form.return_value.last_season_year.data = new_association.last_season_year
-
-    err = IndexError()
-    fake_url_for.side_effect = err
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Violation of UNIQUE KEY constraint 'UQ_Association_ShortName'")
+    )
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
 
     # Act
-    with pytest.raises(NotFound):
-        result = mod.edit(id)
+    id = 1
+    result = mod.edit(id)
 
     # Assert
     fake_injector.get.assert_called_once_with(AssociationRepository)
@@ -711,7 +734,7 @@ def test_edit_when_association_found_and_form_submitted_and_index_error_caught_s
     fake_copy.deepcopy.assert_called_once_with(old_association)
     fake_form.assert_called_once()
     fake_form.return_value.validate_on_submit.assert_called_once()
-    view_kwargs = {
+    kwargs = {
         'id': id,
         'long_name': new_association.long_name,
         'short_name': new_association.short_name,
@@ -719,25 +742,195 @@ def test_edit_when_association_found_and_form_submitted_and_index_error_caught_s
         'first_season_year': new_association.first_season_year,
         'last_season_year': new_association.last_season_year,
     }
-    fake_association_factory.create_association.assert_called_once_with(**view_kwargs)
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_flash.assert_called_once_with("An association with the same short name already exists.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/edit.html', association=old_association_copy, form=fake_form.return_value
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.EditAssociationForm')
+@patch('app.flask.association_controller.copy')
+@patch('app.flask.association_controller.injector')
+def test_edit_when_association_found_and_form_submitted_and_integrity_error_caught_for_conflict_with_foreign_key_constraint_on_first_season_year_should_flash_error_message_and_render_edit_template(
+        fake_injector, fake_copy, fake_form,
+        fake_association_factory, fake_flash,
+        fake_render_template
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("The UPDATE statement conflicted with the FOREIGN KEY constraint 'FK_Association_Season_FirstSeasonYear'")
+    )
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    id = 1
+    result = mod.edit(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.get_association.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_association)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    kwargs = {
+        'id': id,
+        'long_name': new_association.long_name,
+        'short_name': new_association.short_name,
+        'parent_name': new_association.parent.short_name,
+        'first_season_year': new_association.first_season_year,
+        'last_season_year': new_association.last_season_year,
+    }
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_flash.assert_called_once_with("FOREIGN KEY constraint violation on first season year.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/edit.html', association=old_association_copy, form=fake_form.return_value
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.render_template')
+@patch('app.flask.association_controller.flash')
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.EditAssociationForm')
+@patch('app.flask.association_controller.copy')
+@patch('app.flask.association_controller.injector')
+def test_edit_when_association_found_and_form_submitted_and_integrity_error_caught_for_something_else_should_flash_error_message_and_render_edit_template(
+        fake_injector, fake_copy, fake_form,
+        fake_association_factory, fake_flash,
+        fake_render_template
+):
+    # Arrange
+    err = IntegrityError(
+        'statement', 'params',
+        Exception("Something else")
+    )
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    id = 1
+    result = mod.edit(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.get_association.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_association)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    kwargs = {
+        'id': id,
+        'long_name': new_association.long_name,
+        'short_name': new_association.short_name,
+        'parent_name': new_association.parent.short_name,
+        'first_season_year': new_association.first_season_year,
+        'last_season_year': new_association.last_season_year,
+    }
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+    fake_flash.assert_called_once_with("An unexpected error occurred.", 'danger')
+    fake_render_template.assert_called_once_with(
+        'associations/edit.html', association=old_association_copy, form=fake_form.return_value
+    )
+    assert result is fake_render_template.return_value
+
+
+@patch('app.flask.association_controller.association_factory')
+@patch('app.flask.association_controller.EditAssociationForm')
+@patch('app.flask.association_controller.copy')
+@patch('app.flask.association_controller.injector')
+def test_edit_when_association_found_and_form_submitted_and_index_error_caught_should_abort_with_404_error(
+        fake_injector, fake_copy, fake_form,
+        fake_association_factory
+):
+    # Arrange
+    err = IndexError()
+    old_association, old_association_copy, new_association, fake_association_repository = (
+        _set_up_edit_post(fake_injector, fake_copy, fake_form, fake_association_factory, err=err)
+    )
+
+    # Act
+    id = 1
+    with pytest.raises(NotFound):
+        _ = mod.edit(id)
+
+    # Assert
+    fake_injector.get.assert_called_once_with(AssociationRepository)
+    fake_association_repository.get_association.assert_called_once_with(id)
+    fake_copy.deepcopy.assert_called_once_with(old_association)
+    fake_form.assert_called_once()
+    fake_form.return_value.validate_on_submit.assert_called_once()
+    kwargs = {
+        'id': id,
+        'long_name': new_association.long_name,
+        'short_name': new_association.short_name,
+        'parent_name': new_association.parent.short_name,
+        'first_season_year': new_association.first_season.year,
+        'last_season_year': new_association.last_season.year,
+    }
+    fake_association_factory.create_association.assert_called_once_with(**kwargs)
+
+
+def _set_up_edit_post(
+        fake_injector, fake_copy, fake_form, fake_association_factory,
+        err: Optional[Exception]=None
+) -> tuple[Association, Association, Association, MagicMock]:
+    old_association_copy = Association(
+        id=2,
+        long_name="Old Association",
+        short_name="OA",
+        parent_id=1,
+        parent=Association(id=1, long_name="Parent", short_name="P", parent_id=None),
+        first_season_year=1920,
+        first_season=Season(year=1920),
+        last_season_year=1922,
+        last_season=Season(year=1922)
+    )
+    old_association, fake_association_repository = (
+        _set_up_edit(fake_injector, fake_copy, old_association_copy=old_association_copy, err=err)
+    )
+
+    new_association = Association(
+        id=2,
+        long_name="New Association",
+        short_name="NA",
+        parent_id=1,
+        parent=Association(id=1, long_name="Parent", short_name="P", parent_id=None),
+        first_season_year=1920,
+        first_season=Season(year=1920),
+        last_season_year=1922,
+        last_season=Season(year=1922)
+    )
+    form = fake_form.return_value
+    form.long_name.data = new_association.long_name
+    form.short_name.data = new_association.short_name
+    form.parent_name.data = new_association.parent.short_name
+    form.first_season_year.data = new_association.first_season.year
+    form.last_season_year.data = new_association.last_season.year
+    form.validate_on_submit.return_value = True
+
+    fake_association_factory.create_association.return_value = new_association
+
+    return old_association, old_association_copy, new_association, fake_association_repository
 
 
 @patch('app.flask.association_controller.injector')
 def test_delete_when_association_not_found_should_abort_with_404_error(fake_injector, test_app):
     # Arrange
-    id = 1
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    fake_association_repository.get_association.return_value = None
-    fake_injector.get.return_value = fake_association_repository
+    fake_association_repository = _set_up_delete(fake_injector)
 
     # Act
-    with test_app.test_request_context(
-            f'/associations/delete?id={id}',
-            method='POST'
-    ):
+    id = 1
+    with test_app.test_request_context(f'/associations/delete?id={id}', method='POST'):
         with pytest.raises(NotFound):
-            result = mod.delete(id)
+            _ = mod.delete(id)
 
     # Assert
     fake_injector.get.assert_called_once_with(AssociationRepository)
@@ -751,18 +944,12 @@ def test_delete_when_request_method_is_get_should_render_delete_template(
         fake_injector, fake_form, fake_render_template, test_app
 ):
     # Arrange
-    id = 1
-
-    fake_association_repository = MagicMock(AssociationRepository)
     association = Association()
-    fake_association_repository.get_association.return_value = association
-    fake_injector.get.return_value = fake_association_repository
+    fake_association_repository = _set_up_delete(fake_injector, association=association)
 
     # Act
-    with test_app.test_request_context(
-            f'/associations/delete?id={id}',
-            method='GET'
-    ):
+    id = 1
+    with test_app.test_request_context(f'/associations/delete?id={id}', method='GET'):
         result = mod.delete(id)
 
     # Assert
@@ -785,17 +972,21 @@ def test_delete_when_request_method_is_post_and_association_found_should_flash_s
 ):
     # Arrange
     id = 1
-
-    fake_association_repository = MagicMock(AssociationRepository)
-    association = Association()
-    fake_association_repository.get_association.return_value = association
-    fake_injector.get.return_value = fake_association_repository
+    association = Association(
+        id=id,
+        long_name="Association",
+        short_name="A",
+        parent_id=1,
+        parent=Association(id=1, long_name="Parent", short_name="P", parent_id=None),
+        first_season_year=1920,
+        first_season=Season(year=1920),
+        last_season_year=1922,
+        last_season=Season(year=1922)
+    )
+    fake_association_repository = _set_up_delete(fake_injector, association=association)
 
     # Act
-    with test_app.test_request_context(
-            '/associations/delete?id=1',
-            method='POST'
-    ):
+    with test_app.test_request_context('/associations/delete?id=1', method='POST'):
         result = mod.delete(id)
 
     # Assert
@@ -815,22 +1006,41 @@ def test_delete_when_request_method_is_post_and_index_error_is_caught_should_abo
         fake_injector, test_app
 ):
     # Arrange
-    id = 1
-
-    fake_association_repository = MagicMock(AssociationRepository)
     association = Association()
-    fake_association_repository.get_association.return_value = association
-    fake_association_repository.delete_association.side_effect = IndexError()
-    fake_injector.get.return_value = fake_association_repository
+    err = IndexError()
+    fake_association_repository = _set_up_delete(fake_injector, association=association, err=err)
 
     # Act
-    with test_app.test_request_context(
-            f'/associations/delete?id={id}',
-            method='POST'
-    ):
+    id = 1
+    with test_app.test_request_context(f'/associations/delete?id={id}', method='POST'):
         with pytest.raises(NotFound):
-            result = mod.delete(id)
+            _ = mod.delete(id)
 
     # Assert
     fake_injector.get.assert_called_once_with(AssociationRepository)
     fake_association_repository.get_association.assert_called_once_with(id)
+
+
+def _set_up_delete(fake_injector, association: Optional[Association]=None, err: Optional[Exception]=None) \
+        -> MagicMock:
+    fake_association_repository = MagicMock(AssociationRepository)
+    fake_association_repository.get_association.return_value = association
+    fake_association_repository.delete_association.side_effect = err
+    fake_injector.get.return_value = fake_association_repository
+
+    return fake_association_repository
+
+
+def _set_up_edit(
+        fake_injector, fake_copy, old_association_copy: Optional[Association]=None,
+        err: Optional[Exception]=None
+) -> tuple[MagicMock, Association]:
+    fake_association_repository = MagicMock(AssociationRepository)
+    old_association = Association()
+    fake_association_repository.get_association.return_value = old_association
+    fake_association_repository.update_association.side_effect = err
+    fake_injector.get.return_value = fake_association_repository
+
+    fake_copy.deepcopy.return_value = old_association_copy
+
+    return old_association, fake_association_repository

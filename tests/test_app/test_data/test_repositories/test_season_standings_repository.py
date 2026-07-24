@@ -1,21 +1,12 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
-
+import app.data.repositories.season_standings_repository as mod
 from app.data.models.standings_team_season import StandingsTeamSeason
-from app.data.repositories.season_standings_repository import SeasonStandingsRepository
-
-
-@pytest.fixture
-def test_repo():
-    return SeasonStandingsRepository()
 
 
 @patch('app.data.repositories.season_standings_repository.sqla')
-def test_get_season_standings_by_season_year_should_get_season_standings_for_specified_season_year(
-        fake_sqla, test_repo
-):
+def test_get_season_standings_by_season_year_should_get_season_standings_for_specified_season_year(fake_sqla):
     # Arrange
     team_seasons_in = [
         (
@@ -43,12 +34,13 @@ def test_get_season_standings_by_season_year_should_get_season_standings_for_spe
     fake_sqla.callproc.return_value = team_seasons_in
 
     season_year = 1920
+    league_id = 1
 
     # Act
-    team_seasons_out = test_repo.get_season_standings_by_season(season_year=season_year)
+    team_seasons_out = mod.get_season_standings(season_year=season_year, league_id=league_id)
 
     # Assert
-    querystring = f"EXEC sp_GetSeasonStandings @season_year = {season_year}, @group_by_division = False"
+    querystring = f"EXEC sp_GetSeasonStandings @season_year = {season_year}, @league_id = {league_id}"
     fake_sqla.callproc.assert_called_once_with(querystring)
     for i in range(len(team_seasons_in)):
         assert isinstance(team_seasons_out[i], StandingsTeamSeason)

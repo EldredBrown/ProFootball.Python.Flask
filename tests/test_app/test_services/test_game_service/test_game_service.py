@@ -221,9 +221,8 @@ def test_delete_game_when_game_with_passed_id_is_not_found_should_raise_entity_n
     # Arrange
     test_service.game_repository.get_game.return_value = None
 
-    id = 1
-
     # Act
+    id = 1
     with pytest.raises(EntityNotFoundError) as err:
         test_service.delete_game(id)
         assert err.value.args[0] == f"GameService.delete_game: A game with id={id} could not be found."
@@ -240,9 +239,8 @@ def test_delete_game_when_game_with_passed_id_is_found_should_delete_game_from_r
     strategy = MagicMock(SubtractGameStrategy)
     test_service.process_game_strategy_factory.create_strategy.return_value = strategy
 
-    id = 1
-
     # Act
+    id = 1
     test_service.delete_game(id)
 
     # Assert

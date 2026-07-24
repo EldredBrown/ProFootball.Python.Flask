@@ -1,7 +1,6 @@
 from app import injector
 from app.data.models.league_season import LeagueSeason
 from app.data.repositories.association_repository import AssociationRepository
-from app.data.repositories.league_season_repository import LeagueSeasonRepository
 
 
 def create_league_season(**kwargs) -> LeagueSeason:

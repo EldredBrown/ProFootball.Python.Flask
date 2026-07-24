@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch, call
 
 import pytest
@@ -25,16 +26,12 @@ def test_repo():
 def test_get_seasons_should_get_seasons(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        db_init.init_db()
-
-        seasons_in= [
+        seasons_in = [
             Season(year=1920),
             Season(year=1921),
             Season(year=1922),
         ]
-        for season in seasons_in:
-            sqla.session.add(season)
-        sqla.session.commit()
+        _set_up_db(seasons_in)
 
         # Act
         seasons_out = test_repo.get_seasons()
@@ -43,12 +40,11 @@ def test_get_seasons_should_get_seasons(test_app, test_repo):
     assert seasons_out == seasons_in
 
 
-@patch('app.data.repositories.season_repository.Season')
-def test_get_season_when_seasons_is_empty_should_return_none(fake_season, test_app, test_repo):
+def test_get_season_when_seasons_is_empty_should_return_none(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        seasons_in = ()
-        fake_season.query.all.return_value = seasons_in
+        seasons_in = []
+        _set_up_db(seasons_in)
 
         # Act
         season_out = test_repo.get_season(1)
@@ -57,21 +53,17 @@ def test_get_season_when_seasons_is_empty_should_return_none(fake_season, test_a
     assert season_out is None
 
 
-@patch('app.data.repositories.season_repository.Season')
 def test_get_season_when_seasons_is_not_empty_and_season_is_not_found_should_return_none(
-        fake_season, test_app, test_repo
+        test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
-        seasons_in = (
+        seasons_in = [
             Season(year=1920),
             Season(year=1921),
             Season(year=1922),
-        )
-        fake_season.query.all.return_value = seasons_in
-
-        selected_season = None
-        fake_season.query.get.return_value = selected_season
+        ]
+        _set_up_db(seasons_in)
 
         # Act
         year = -1
@@ -81,27 +73,24 @@ def test_get_season_when_seasons_is_not_empty_and_season_is_not_found_should_ret
     assert season_out is None
 
 
-@patch('app.data.repositories.season_repository.Season')
 def test_get_season_when_seasons_is_not_empty_and_season_is_found_should_return_season(
-        fake_season, test_app, test_repo
+        test_app, test_repo
 ):
     with test_app.app_context():
         # Arrange
-        seasons_in = (
+        seasons_in = [
             Season(year=1920),
             Season(year=1921),
             Season(year=1922),
-        )
-        fake_season.query.all.return_value = seasons_in
-
-        selected_season = [s for s in seasons_in if s.year == 1920][0]
-        fake_season.query.get.return_value = selected_season
+        ]
+        _set_up_db(seasons_in)
 
         # Act
-        season_out = test_repo.get_season(selected_season.year)
+        year = 1920
+        season_out = test_repo.get_season(year)
 
     # Assert
-    assert season_out is selected_season
+    assert season_out is seasons_in[0]
 
 
 @patch('app.data.repositories.season_repository.try_commit')
@@ -208,7 +197,7 @@ def test_add_seasons_when_seasons_arg_is_not_empty_and_integrity_error_caught_sh
 
         # Act
         with pytest.raises(IntegrityError):
-            seasons_out = test_repo.add_seasons(seasons_in)
+            _ = test_repo.add_seasons(seasons_in)
 
     # Assert
     fake_sqla.session.add.assert_has_calls([
@@ -219,19 +208,15 @@ def test_add_seasons_when_seasons_arg_is_not_empty_and_integrity_error_caught_sh
     fake_try_commit.assert_called_once()
 
 
-@patch('app.data.repositories.season_repository.Season')
-def test_season_exists_when_season_does_not_exist_should_return_false(
-        fake_season, test_app, test_repo
-):
+def test_season_exists_when_season_does_not_exist_should_return_false(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        seasons= (
+        seasons= [
             Season(year=1920),
             Season(year=1921),
             Season(year=1922),
-        )
-        fake_season.query.all.return_value = seasons
-        fake_season.query.get.return_value = None
+        ]
+        _set_up_db(seasons)
 
         # Act
         season_exists = test_repo.season_exists(year=-1)
@@ -240,17 +225,15 @@ def test_season_exists_when_season_does_not_exist_should_return_false(
     assert not season_exists
 
 
-@patch('app.data.repositories.season_repository.Season')
-def test_season_exists_when_season_exists_should_return_true(fake_season, test_app, test_repo):
+def test_season_exists_when_season_exists_should_return_true(test_app, test_repo):
     with test_app.app_context():
         # Arrange
-        seasons= (
+        seasons= [
             Season(year=1920),
             Season(year=1921),
             Season(year=1922),
-        )
-        fake_season.query.all.return_value = seasons
-        fake_season.query.get.return_value = seasons[1]
+        ]
+        _set_up_db(seasons)
 
         # Act
         season_exists = test_repo.season_exists(year=1920)
@@ -404,7 +387,7 @@ def test_delete_season_when_season_exists_and_integrity_error_not_caught_should_
         )
         fake_season.query.all.return_value = seasons
 
-        selected_season = [s for s in seasons if s.year == 1920][0]
+        selected_season = seasons[0]
         fake_season.query.get.return_value = selected_season
 
         # Act
@@ -435,15 +418,23 @@ def test_delete_season_when_season_exists_and_integrity_error_caught_should_roll
         )
         fake_season.query.all.return_value = seasons
 
-        selected_season = [s for s in seasons if s.year == 1920][0]
+        selected_season = seasons[0]
         fake_season.query.get.return_value = selected_season
 
         fake_try_commit.side_effect = IntegrityError('statement', 'params', Exception())
 
         # Act
         with pytest.raises(IntegrityError):
-            season_deleted = test_repo.delete_season(selected_season.year)
+            _ = test_repo.delete_season(selected_season.year)
 
     # Assert
     fake_sqla.session.delete.assert_called_once_with(fake_season.query.get.return_value)
     fake_try_commit.assert_called_once()
+
+
+def _set_up_db(seasons: List[Season]) -> None:
+    db_init.init_db()
+
+    for season in seasons:
+        sqla.session.add(season)
+    sqla.session.commit()

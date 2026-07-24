@@ -103,7 +103,7 @@ class GameService:
                 f"{type(self).__name__}.delete_game: A game with id={id} could not be found."
             )
 
-        # self._edit_team_seasons(Direction.DOWN, old_game)
+        self._edit_team_seasons(Direction.DOWN, old_game)
         self.game_repository.delete_game(id)
 
     def _edit_team_seasons(self, direction: Direction, game: Game) -> None:

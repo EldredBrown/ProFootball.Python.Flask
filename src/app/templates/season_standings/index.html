@@ -15,6 +15,18 @@
     </select>
     <button type="submit">Submit</button>
 </form>
+<form method="POST" action="/season_standings/select_league">
+    <label for="league_dropdown">Choose a league:</label>
+    <select id="league_dropdown" name="league_dropdown">
+        {% for league in leagues %}
+            <option value="{{ league.short_name }}"
+                    {% if league.short_name == selected_league_name %}selected='selected'{% endif %}>
+                {{ league.short_name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
 <table class="table">
     <thead>
         <tr>
